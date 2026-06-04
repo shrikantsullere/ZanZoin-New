@@ -28,6 +28,18 @@ const Login = ({ onLogin }) => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpValue, setOtpValue] = useState(''); // Store OTP momentarily for testing
 
+  const demoCredentials = {
+    'superadmin': { email: 'admin@zanezion.com',      password: 'superadmin' },
+    'admin':      { email: 'admin@example.com',       password: 'admin' },
+    'procurement': { email: 'procurement@example.com', password: 'procurement' },
+    'operations': { email: 'operation@example.com',   password: 'operations' },
+    'logistics':  { email: 'logistics@example.com',   password: 'logistics' },
+    'inventory':  { email: 'inventory@example.com',   password: 'inventory' },
+    'concierge':  { email: 'concierge@example.com',   password: 'concierge' },
+    'client':     { email: 'customer1@example.com',   password: 'client' },
+    'staff':      { email: 'staff@example.com',       password: 'staff' },
+  };
+
   const roles = [
     { id: 'superadmin', label: 'Super Admin', icon: ShieldCheck, color: 'bg-accent' },
     { id: 'admin', label: 'Admin', icon: LayoutDashboard, color: 'bg-purple-500' },
@@ -41,9 +53,41 @@ const Login = ({ onLogin }) => {
   ];
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Bypass backend for dummy credentials
+    const dummyRole = Object.keys(demoCredentials).find(
+      role => demoCredentials[role].email === String(email || '').trim() && demoCredentials[role].password === password
+    );
+
+    if (dummyRole) {
+      const userData = {
+        id: `dummy-${dummyRole}`,
+        email: demoCredentials[dummyRole].email,
+        firstName: dummyRole.charAt(0).toUpperCase() + dummyRole.slice(1),
+        lastName: 'User',
+        role: dummyRole,
+        status: 'active'
+      };
+      
+      localStorage.setItem('token', `dummy-token-${dummyRole}`);
+      localStorage.setItem('userRole', dummyRole);
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('menuPermissions', JSON.stringify([]));
+
+      setMenuPermissions([]);
+      setCurrentUser(userData);
+      onLogin(dummyRole);
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 50);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Real API login (trim email — trailing space breaks lookup)
@@ -154,24 +198,36 @@ const Login = ({ onLogin }) => {
   };
 
   const handleQuickLogin = (role) => {
-    // Credential mapping — all passwords are 'admin123'
-    const demoCredentials = {
-      'superadmin': { email: 'admin@zanezion.com',      password: '123456' },
-      'admin':      { email: 'admin@example.com',       password: '123456' },
-      'procurement': { email: 'procurement@example.com', password: '123456' },
-      'operations': { email: 'operation@example.com',   password: '123456' },
-      'logistics':  { email: 'logistics@example.com',   password: '123456' },
-      'inventory':  { email: 'inventory@example.com',   password: '123456' },
-      'concierge':  { email: 'concierge@example.com',   password: '123456' },
-      'client':     { email: 'customer1@example.com',   password: '123456' },
-      'staff':      { email: 'staff@example.com',       password: '123456' },
-    };
-
     const credentials = demoCredentials[role];
     if (credentials) {
       setEmail(credentials.email);
       setPassword(credentials.password);
       setError(null);
+      
+      // Auto-submit login with these credentials directly
+      setLoading(true);
+      const userData = {
+        id: `dummy-${role}`,
+        email: credentials.email,
+        firstName: role.charAt(0).toUpperCase() + role.slice(1),
+        lastName: 'User',
+        role: role,
+        status: 'active'
+      };
+      
+      localStorage.setItem('token', `dummy-token-${role}`);
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('menuPermissions', JSON.stringify([]));
+
+      setMenuPermissions([]);
+      setCurrentUser(userData);
+      onLogin(role);
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 50);
     } else {
       setError(`Credentials for ${role} not found.`);
     }

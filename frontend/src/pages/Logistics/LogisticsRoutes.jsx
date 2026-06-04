@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table from '../../components/Table';
 import Modal from '../../components/Modal';
 import {
@@ -11,6 +12,7 @@ import { useData } from '../../context/GlobalDataContext';
 import { normalizeRole } from '../../utils/authUtils';
 
 const Routes = () => {
+  const navigate = useNavigate();
   const { routes, addRoute, updateRoute, deleteRoute, fetchRoutes, hasMenuPermission, currentUser } = useData();
 
   React.useEffect(() => {
@@ -169,7 +171,12 @@ const Routes = () => {
                         <Navigation size={16} className="text-accent" />
                         Live Tracking:
                       </div>
-                      <span className="font-bold text-accent animate-pulse cursor-pointer underline">Open Logistics Map</span>
+                      <span 
+                        onClick={() => navigate('/dashboard/logistics-tracking')}
+                        className="font-bold text-accent animate-pulse cursor-pointer underline"
+                      >
+                        Open Logistics Map
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2 text-secondary">

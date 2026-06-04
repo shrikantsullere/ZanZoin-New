@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { swalSuccess, swalError, swalWarning, swalInfo, swalConfirm, swalCredentials, swalCopied } from '../../utils/swal';
 import KpiCard from '../../components/KpiCard';
 import StatusBadge from '../../components/StatusBadge';
@@ -17,6 +18,7 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import Table from '../../components/Table';
 
 const LogisticsDashboard = () => {
+  const navigate = useNavigate();
   const { 
     fleet = [], routes = [], urgentTasks = [], logs = [], dispatchVehicle, 
     deliveries = [], dashboardStats, fetchDashboardStats, fetchFleet, fetchRoutes, fetchDeliveries,
@@ -100,7 +102,10 @@ const LogisticsDashboard = () => {
           >
             <ClipboardList size={16} /> Audit
           </button>
-          <button className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 text-[10px] sm:text-xs py-3.5 px-6">
+          <button 
+            onClick={() => navigate('/dashboard/logistics-tracking')}
+            className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 text-[10px] sm:text-xs py-3.5 px-6"
+          >
             <Map size={16} /> Network Map
           </button>
           {hasMenuPermission('Fleet', 'can_add') && (
@@ -377,7 +382,12 @@ const LogisticsDashboard = () => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 py-3 border border-white/5 bg-white/5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] text-secondary hover:text-white transition-all">Full Arsenal Inventory</button>
+            <button 
+              onClick={() => navigate('/dashboard/fleet')}
+              className="w-full mt-6 py-3 border border-white/5 bg-white/5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] text-secondary hover:text-white transition-all"
+            >
+              Full Arsenal Inventory
+            </button>
           </div>
         </div>
       </div>

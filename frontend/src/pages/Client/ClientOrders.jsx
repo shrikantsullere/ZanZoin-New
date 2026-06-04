@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table from '../../components/Table';
 import { ShoppingBag, Search, Filter, Download, Clock, CheckCircle2, FileCheck, Plus, ChevronRight, Zap } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
@@ -10,6 +11,7 @@ import { displayOrderStatus, isoDateSlice, formatDateDisplayDMY } from '../../ut
 import { normalizeRole, roleCanCreateInstitutionalOrder } from '../../utils/authUtils';
 
 const ClientOrders = () => {
+    const navigate = useNavigate();
     const { orders, currentUser, clients, confirmDeliveryReceipt, addOrder, fetchOrders, fetchClients } = useData();
     const userRole = localStorage.getItem('userRole') || 'client';
     const portalRole = normalizeRole(currentUser?.role || userRole);
@@ -297,7 +299,12 @@ const ClientOrders = () => {
                         <p className="text-xs text-secondary">Proof of delivery available 15m post-completion.</p>
                     </div>
                 </div>
-                <button className="btn-secondary text-xs">Audit Global Network</button>
+                <button 
+                    onClick={() => navigate('/dashboard/audits')}
+                    className="btn-secondary text-xs"
+                >
+                    Audit Global Network
+                </button>
             </div>
             </div>
 

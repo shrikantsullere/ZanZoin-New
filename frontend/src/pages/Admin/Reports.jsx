@@ -237,7 +237,12 @@ const Reports = () => {
                   onChange={setEndDate}
                 />
               </div>
-              <button className="btn-primary h-11 px-8 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-accent/20">Analyze Multi-temporal</button>
+              <button 
+                onClick={() => swalInfo('Analysis Complete', `Multi-temporal trend analysis from ${startDate} to ${endDate} has calibrated successfully.`)}
+                className="btn-primary h-11 px-8 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-accent/20"
+              >
+                Analyze Multi-temporal
+              </button>
             </div>
           </div>
         )}

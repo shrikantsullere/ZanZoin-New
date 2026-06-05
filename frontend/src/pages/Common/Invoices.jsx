@@ -9,16 +9,29 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import StatusBadge from '../../components/StatusBadge';
+import { useInvoices, useCreateInvoice, useUpdateInvoiceStatus, useCreatePayment } from '../../hooks/api/useFinance';
+import { RefreshCcw } from 'lucide-react';
+import Pagination from '../../components/Common/Pagination';
 
 const Invoices = () => {
-    const { invoices, orders, clients, customerUsers, addInvoice, settleInvoice, updateInvoice, deleteInvoice, currentUser, fetchFinance, fetchOrders, fetchClients, fetchCustomerUsers, hasMenuPermission } = useData();
+    const { orders, clients, customerUsers, currentUser, fetchOrders, fetchClients, fetchCustomerUsers, hasMenuPermission } = useData();
+
+    const [page, setPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const { data: invoicesData, isLoading, error } = useInvoices(page, 10, searchTerm);
+    const invoices = invoicesData?.data || [];
+    const meta = invoicesData?.meta || { totalPages: 1, totalItems: 0 };
+    
+    const createInvoiceMutation = useCreateInvoice();
+    const updateInvoiceStatusMutation = useUpdateInvoiceStatus();
+    const createPaymentMutation = useCreatePayment();
 
     React.useEffect(() => {
-        fetchFinance();
         fetchOrders();
         fetchClients();
         fetchCustomerUsers();
-    }, [fetchFinance, fetchOrders, fetchClients, fetchCustomerUsers]);
+    }, [fetchOrders, fetchClients, fetchCustomerUsers]);
 
     // Merge company clients + personal customers for the dropdown
     const allClientsForDropdown = React.useMemo(() => {
@@ -31,7 +44,6 @@ const Invoices = () => {
     const procurementInvoiceReadOnly = currentUser?.role?.toLowerCase().replace(/\s+/g, '') === 'procurement';
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [modalType, setModalType] = useState('view');
     const [actionStatus, setActionStatus] = useState(null);
@@ -58,32 +70,25 @@ const Invoices = () => {
         return fromCustomers ? { ...fromCustomers, name: fromCustomers.name } : null;
     };
 
-    const filteredInvoices = invoices.filter(inv => {
-        const matchesClient = isClient ? (inv.clientId === currentUser?.clientId) : true;
-        const clientName = findClientById(inv.clientId)?.name || inv.clientName || '';
-        const matchesSearch = String(inv.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-            String(inv.orderId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-            clientName.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesClient && matchesSearch;
-    });
+    const filteredInvoices = invoices;
+    const currentInvoices = invoices;
+    const totalPages = meta.totalPages;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (procurementInvoiceReadOnly && (modalType === 'add' || modalType === 'edit')) return;
         const client = findClientById(formData.clientId);
         if (modalType === 'add') {
-            const res = await addInvoice({
-                ...formData,
-                id: `INV-${Math.floor(5000 + Math.random() * 999)}`,
-                date: new Date().toISOString().split('T')[0],
-                clientName: client?.name || 'Unknown'
-            });
-            if (res?.ok === false) return;
-        } else {
-            await updateInvoice({
-                ...selectedInvoice,
-                ...formData,
-                clientName: client?.name || selectedInvoice.clientName
+            await createInvoiceMutation.mutateAsync({
+                deliveryId: formData.orderId, // In phase 9, invoices are generated against a delivery. (mapping orderId -> deliveryId here for now)
+                invoiceItems: [{ 
+                    itemId: 1, 
+                    quantity: 1, 
+                    unitPrice: formData.totalAmount, 
+                    totalPrice: formData.totalAmount 
+                }] // Stub for items
+            }).catch(err => {
+                alert("Failed to generate invoice. Please ensure the order/delivery is completed with POD.");
             });
         }
         setIsModalOpen(false);
@@ -234,34 +239,46 @@ const Invoices = () => {
                                 type="text"
                                 placeholder="Search by ID, Client or Order..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="w-full bg-background border border-border rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-accent font-bold"
                             />
                         </div>
                     </div>
 
-                    <Table
-                        columns={columns}
-                        data={filteredInvoices}
-                        actions={true}
-                        customAction={(inv) => (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handlePrint(inv); }}
-                                className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
-                                title="Print Protocol"
-                            >
-                                <Printer size={16} />
-                            </button>
-                        )}
-                        onView={(inv) => handleAction('view', inv)}
-                        onEdit={isSuperAdmin && !procurementInvoiceReadOnly ? (inv) => handleAction('edit', inv) : null}
-                        onDelete={!isClient && !procurementInvoiceReadOnly ? (inv) => {
-                            setInvoiceToDelete(inv);
-                            setShowDeleteConfirm(true);
-                        } : null}
-                        canEdit={!procurementInvoiceReadOnly && hasMenuPermission('Invoices', 'can_edit')}
-                        canDelete={!procurementInvoiceReadOnly && hasMenuPermission('Invoices', 'can_delete')}
-                    />
+                    {isLoading ? (
+                        <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+                    ) : error ? (
+                        <div className="text-danger p-4">Failed to load invoices.</div>
+                    ) : (
+                        <>
+                            <Table
+                                columns={columns}
+                                data={currentInvoices}
+                                actions={true}
+                                customAction={(inv) => (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handlePrint(inv); }}
+                                        className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
+                                        title="Print Protocol"
+                                    >
+                                        <Printer size={16} />
+                                    </button>
+                                )}
+                                onView={(inv) => handleAction('view', inv)}
+                            />
+                            <div className="mt-6 border-t border-white/5 pt-6">
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={totalPages}
+                                    onPageChange={setPage}
+                                    totalItems={meta.totalItems}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <Modal
@@ -440,13 +457,21 @@ const Invoices = () => {
                                     {selectedInvoice.status !== 'Paid' && (
                                         <button
                                             className="btn-primary bg-success hover:bg-success/80 border-success/20 flex items-center gap-2"
-                                            onClick={() => {
+                                            onClick={async () => {
                                                 setActionStatus('settling');
-                                                setTimeout(() => {
-                                                    settleInvoice(selectedInvoice.id, { amount: selectedInvoice.totalAmount, method: 'Corporate Settlement' });
-                                                    setActionStatus(null);
+                                                try {
+                                                    await createPaymentMutation.mutateAsync({
+                                                        invoiceId: selectedInvoice.id,
+                                                        amount: selectedInvoice.totalAmount - (selectedInvoice.paidAmount || 0),
+                                                        paymentMethod: 'bank_transfer',
+                                                        referenceNumber: `TRX-${Date.now()}`
+                                                    });
                                                     setIsModalOpen(false);
-                                                }, 1500);
+                                                } catch (err) {
+                                                    alert("Payment failed.");
+                                                } finally {
+                                                    setActionStatus(null);
+                                                }
                                             }}
                                         >
                                             <CheckCircle2 size={16} /> Mark as Paid

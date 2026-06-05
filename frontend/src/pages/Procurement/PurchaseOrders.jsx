@@ -23,16 +23,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useData } from "../../context/GlobalDataContext";
 import StatusBadge from "../../components/StatusBadge";
 import Pagination from "../../components/Common/Pagination";
+import { usePurchaseOrders } from "../../hooks/api/useProcurement";
+import { RefreshCcw } from "lucide-react";
 
 const PurchaseOrders = () => {
   const {
-    purchaseOrders,
     marketplaceVendors,
     addPurchaseOrder,
     updatePurchaseOrder,
     receiveGoodsAgainstPO,
     reverseGoodsReceipt,
-    fetchPurchaseOrders,
     fetchVendors,
     currentUser,
     purchaseRequests,
@@ -43,13 +43,16 @@ const PurchaseOrders = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const { data: poData, isLoading, error } = usePurchaseOrders(page, 10, searchTerm);
+  const purchaseOrders = poData?.data || [];
+  const meta = poData?.meta || { totalPages: 1, totalItems: 0 };
+
   const userRole = (currentUser?.role || "").toLowerCase().replace(/\s+/g, "_");
   const isCustomer = ["customer", "saas_client", "client"].includes(userRole);
 
   React.useEffect(() => {
-    fetchPurchaseOrders({ search: searchTerm });
     fetchVendors();
-  }, [fetchPurchaseOrders, fetchVendors, searchTerm]);
+  }, [fetchVendors]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
@@ -105,18 +108,9 @@ const PurchaseOrders = () => {
     (p) => p.status === "Partially Received",
   ).length;
 
-  const filteredPOs = purchaseOrders.filter(
-    (po) =>
-      String(po.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      po.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      po.status.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-  const itemsPerPage = 10;
-  const currentPOs = filteredPOs.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage,
-  );
-  const totalPages = Math.ceil(filteredPOs.length / itemsPerPage);
+  const filteredPOs = purchaseOrders; // Assuming API pagination already filters based on search term
+  const currentPOs = purchaseOrders;
+  const totalPages = meta.totalPages;
 
   const exportCSV = () => {
     if (!filteredPOs.length) return;
@@ -391,181 +385,187 @@ const PurchaseOrders = () => {
         </div>
 
         <div className="no-print-logic glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-white/[0.03] border-b border-border">
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    PO Identifier
-                  </th>
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    Sourcing Vendor
-                  </th>
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    Issuance Date
-                  </th>
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    Fiscal Value
-                  </th>
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    Fulfillment
-                  </th>
-                  <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {currentPOs.map((po, i) => (
-                  <motion.tr
-                    key={po.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="hover:bg-white/[0.01] group transition-colors"
-                  >
-                    <td className="p-6">
-                      <span className="text-sm font-black text-accent">
-                        {po.id}
-                      </span>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs">
-                          {(po.vendor_name || po.vendorName || "?")[0]}
-                        </div>
-                        <span className="text-sm font-bold text-white uppercase">
-                          {po.vendor_name || po.vendorName || "Unknown Vendor"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-sm text-secondary font-medium">
-                        {(po.created_at || po.date)?.split("T")[0] || "N/A"}
-                      </span>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-sm font-black text-white">
-                        $
-                        {Number(
-                          po.total_amount || po.total || 0,
-                        ).toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="p-6">
-                      <StatusBadge status={po.status} />
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-2">
-                        {!isCustomer && (
-                          <>
+          {isLoading ? (
+            <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+          ) : error ? (
+            <div className="text-danger p-4">Failed to load purchase orders.</div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white/[0.03] border-b border-border">
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        PO Identifier
+                      </th>
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        Sourcing Vendor
+                      </th>
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        Issuance Date
+                      </th>
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        Fiscal Value
+                      </th>
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        Fulfillment
+                      </th>
+                      <th className="p-6 text-[10px] font-black text-muted uppercase tracking-widest">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {currentPOs.map((po, i) => (
+                      <motion.tr
+                        key={po.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="hover:bg-white/[0.01] group transition-colors"
+                      >
+                        <td className="p-6">
+                          <span className="text-sm font-black text-accent">
+                            {po.id}
+                          </span>
+                        </td>
+                        <td className="p-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs">
+                              {(po.vendor_name || po.vendorName || "?")[0]}
+                            </div>
+                            <span className="text-sm font-bold text-white uppercase">
+                              {po.vendor_name || po.vendorName || "Unknown Vendor"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-6">
+                          <span className="text-sm text-secondary font-medium">
+                            {(po.created_at || po.date)?.split("T")[0] || "N/A"}
+                          </span>
+                        </td>
+                        <td className="p-6">
+                          <span className="text-sm font-black text-white">
+                            $
+                            {Number(
+                              po.total_amount || po.total || 0,
+                            ).toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="p-6">
+                          <StatusBadge status={po.status} />
+                        </td>
+                        <td className="p-6">
+                          <div className="flex items-center gap-2">
+                            {!isCustomer && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setSelectedPO(po);
+                                    setReceivePackingSlip(po.packing_slip || po.packingSlip || "");
+                                    setShowReceiveModal(true);
+                                  }}
+                                  className="p-2.5 bg-accent/10 border border-accent/20 text-accent rounded-lg hover:bg-accent hover:text-black transition-all"
+                                  title="Receive Goods"
+                                >
+                                  <Package size={16} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedPO(po);
+                                    setPoItems(
+                                      po.items.map((item) => ({
+                                        ...item,
+                                        quantity: item.orderedQty,
+                                      })),
+                                    );
+                                    setShowEditModal(true);
+                                  }}
+                                  className="p-2.5 bg-white/5 border border-border text-secondary rounded-lg hover:text-white hover:bg-white/10 transition-all"
+                                  title="Edit PO"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                              </>
+                            )}
                             <button
-                              onClick={() => {
-                                setSelectedPO(po);
-                                setReceivePackingSlip(po.packing_slip || po.packingSlip || "");
-                                setShowReceiveModal(true);
-                              }}
-                              className="p-2.5 bg-accent/10 border border-accent/20 text-accent rounded-lg hover:bg-accent hover:text-black transition-all"
-                              title="Receive Goods"
+                              onClick={() => handlePrint(po)}
+                              className="p-2.5 bg-white/5 border border-border text-secondary rounded-lg hover:text-white hover:bg-white/10 transition-all"
+                              title="Print PO"
                             >
-                              <Package size={16} />
+                              <Printer size={16} />
                             </button>
+                            {(currentUser?.role === "superadmin" ||
+                              currentUser?.role === "super_admin") &&
+                              po.status === "Pending" && (
+                                <button
+                                  onClick={() =>
+                                    updatePurchaseOrder({
+                                      ...po,
+                                      status: "Authorized",
+                                    })
+                                  }
+                                  className="p-2.5 bg-success/10 border border-success/20 text-success rounded-lg hover:bg-success hover:text-black transition-all"
+                                  title="Authorize PO"
+                                >
+                                  <ShieldCheck size={16} />
+                                </button>
+                              )}
+                            {(currentUser?.role === "superadmin" ||
+                              currentUser?.role === "super_admin" ||
+                              currentUser?.role === "admin") &&
+                              po.status === "Pending Receipt Approval" && (
+                                <button
+                                  onClick={() => approvePOReceipt(po.id)}
+                                  className="p-2.5 bg-success/10 border border-success/20 text-success rounded-lg hover:bg-success hover:text-black transition-all"
+                                  title="Approve Receipt & Sync Inventory"
+                                >
+                                  <CheckCircle size={16} />
+                                </button>
+                              )}
+                            {(currentUser?.role === "superadmin" ||
+                              currentUser?.role === "super_admin" ||
+                              currentUser?.role === "procurement") &&
+                              po.status === "Authorized" && (
+                                <button
+                                  onClick={() =>
+                                    updatePurchaseOrder({
+                                      ...po,
+                                      status: "Sent to Vendor",
+                                    })
+                                  }
+                                  className="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all"
+                                  title="Send to Vendor"
+                                >
+                                  <Truck size={16} />
+                                </button>
+                              )}
                             <button
                               onClick={() => {
                                 setSelectedPO(po);
-                                setPoItems(
-                                  po.items.map((item) => ({
-                                    ...item,
-                                    quantity: item.orderedQty,
-                                  })),
-                                );
-                                setShowEditModal(true);
+                                setShowViewModal(true);
                               }}
                               className="p-2.5 bg-white/5 border border-border text-secondary rounded-lg hover:text-white hover:bg-white/10 transition-all"
-                              title="Edit PO"
+                              title="View Details"
                             >
-                              <Edit2 size={16} />
+                              <Eye size={16} />
                             </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() => handlePrint(po)}
-                          className="p-2.5 bg-white/5 border border-border text-secondary rounded-lg hover:text-white hover:bg-white/10 transition-all"
-                          title="Print PO"
-                        >
-                          <Printer size={16} />
-                        </button>
-                        {(currentUser?.role === "superadmin" ||
-                          currentUser?.role === "super_admin") &&
-                          po.status === "Pending" && (
-                            <button
-                              onClick={() =>
-                                updatePurchaseOrder({
-                                  ...po,
-                                  status: "Authorized",
-                                })
-                              }
-                              className="p-2.5 bg-success/10 border border-success/20 text-success rounded-lg hover:bg-success hover:text-black transition-all"
-                              title="Authorize PO"
-                            >
-                              <ShieldCheck size={16} />
-                            </button>
-                          )}
-                        {(currentUser?.role === "superadmin" ||
-                          currentUser?.role === "super_admin" ||
-                          currentUser?.role === "admin") &&
-                          po.status === "Pending Receipt Approval" && (
-                            <button
-                              onClick={() => approvePOReceipt(po.id)}
-                              className="p-2.5 bg-success/10 border border-success/20 text-success rounded-lg hover:bg-success hover:text-black transition-all"
-                              title="Approve Receipt & Sync Inventory"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                          )}
-                        {(currentUser?.role === "superadmin" ||
-                          currentUser?.role === "super_admin" ||
-                          currentUser?.role === "procurement") &&
-                          po.status === "Authorized" && (
-                            <button
-                              onClick={() =>
-                                updatePurchaseOrder({
-                                  ...po,
-                                  status: "Sent to Vendor",
-                                })
-                              }
-                              className="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all"
-                              title="Send to Vendor"
-                            >
-                              <Truck size={16} />
-                            </button>
-                          )}
-                        <button
-                          onClick={() => {
-                            setSelectedPO(po);
-                            setShowViewModal(true);
-                          }}
-                          className="p-2.5 bg-white/5 border border-border text-secondary rounded-lg hover:text-white hover:bg-white/10 transition-all"
-                          title="View Details"
-                        >
-                          <Eye size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {filteredPOs.length > itemsPerPage && (
-            <div className="mt-6 border-t border-white/5 pt-6 px-6 pb-6">
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                totalItems={filteredPOs.length}
-              />
-            </div>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-6 border-t border-white/5 pt-6 px-6 pb-6">
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  totalItems={meta.totalItems}
+                />
+              </div>
+            </>
           )}
         </div>
 

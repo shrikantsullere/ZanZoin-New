@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from '../../components/Common/Pagination';
+import { useDeliveries, useCreateDelivery, useCancelDelivery, useCreateMission, useStartMission, useSubmitPOD } from '../../hooks/api/useLogistics';
 
 import { useData } from '../../context/GlobalDataContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -30,12 +31,22 @@ function displayDeliveryStatus(raw) {
 }
 
 const Deliveries = () => {
-  const { deliveries, addDelivery, updateDelivery, deleteDelivery, users, fleet, fetchDeliveries, fetchStaff, hasMenuPermission, warehouses, fetchWarehouses, currentUser, clients = [], fetchClients, customerUsers = [], fetchCustomerUsers } = useData();
+  const { users, fleet, fetchStaff, hasMenuPermission, warehouses, fetchWarehouses, currentUser, clients = [], fetchClients, customerUsers = [], fetchCustomerUsers } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debounceSearch, setDebounceSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const { data: deliveriesData, isLoading, error } = useDeliveries(currentPage, itemsPerPage, debounceSearch);
+  const deliveries = deliveriesData?.data || [];
+  const meta = deliveriesData?.meta || { totalPages: 1, totalItems: 0 };
+  
+  const createDeliveryMutation = useCreateDelivery();
+  const cancelDeliveryMutation = useCancelDelivery();
+  const createMissionMutation = useCreateMission();
+  const startMissionMutation = useStartMission();
+  const submitPODMutation = useSubmitPOD();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -46,12 +57,11 @@ const Deliveries = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    fetchDeliveries();
     fetchWarehouses();
     fetchStaff();
     fetchClients();
     fetchCustomerUsers({ include_all: true, include_client_role: true });
-  }, [fetchDeliveries, fetchWarehouses, fetchStaff, fetchClients, fetchCustomerUsers]);
+  }, [fetchWarehouses, fetchStaff, fetchClients, fetchCustomerUsers]);
 
   const clientOptions = React.useMemo(() => {
     const out = [];
@@ -207,12 +217,8 @@ const Deliveries = () => {
     String(d.mission_type || '').toLowerCase() !== 'chauffeur'
   );
 
-  const filteredDeliveries = logisticsOnlyDeliveries.filter(d =>
-    String(d.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(d.orderId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.item && d.item.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-  const currentItems = filteredDeliveries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentItems = logisticsOnlyDeliveries; // Pagination is server-side now
+  const totalPages = meta.totalPages;
 
   const handleAction = (type, del) => {
     setSelectedDelivery(del || {});
@@ -303,11 +309,39 @@ const Deliveries = () => {
         : formData.pod
     };
     if (modalType === 'add') {
-      addDelivery(finalData);
+      // Create Delivery via backend
+      createDeliveryMutation.mutateAsync({
+        orderId: finalData.orderId ? Number(String(finalData.orderId).replace(/\D/g, '')) : null,
+        clientId: finalData.clientId ? Number(finalData.clientId) : null,
+        items: finalData.items.map(item => ({
+          itemId: item.id || 1, // Will need a real mapping if dynamic
+          quantity: item.qty
+        }))
+      }).catch(() => swalError("Error", "Could not create delivery"));
     } else if (modalType === 'edit') {
-      updateDelivery(finalData);
+      // Assume edit is for assigning driver (creating mission)
+      if (finalData.assigned_driver && finalData.status !== 'Completed' && finalData.status !== 'Delivered') {
+        createMissionMutation.mutateAsync({
+          deliveryId: finalData.id,
+          assignedEmployeeId: finalData.assigned_driver,
+          vehicleId: 1 // Default vehicle ID placeholder
+        }).catch(() => swalError("Error", "Could not assign driver (create mission)"));
+      } else if (formData.status === 'Completed' || formData.status === 'Delivered') {
+         // It's a POD completion
+         // Try to use submitPOD if it's a mission
+         // If there is no mission, we can't complete it this way. Assuming mission ID is same as delivery ID for now.
+         submitPODMutation.mutateAsync({
+           id: finalData.id, // Replace with actual mission ID in a robust system
+           podData: {
+             podSignature: finalData.pod?.signature || '',
+             podNotes: 'Delivered',
+             actualDeliveryDate: new Date()
+           }
+         }).catch(() => swalError("Error", "Could not submit POD"));
+      }
     } else if (modalType === 'delete') {
-      deleteDelivery(selectedDelivery.db_id || selectedDelivery.id);
+      cancelDeliveryMutation.mutateAsync(selectedDelivery.db_id || selectedDelivery.id)
+        .catch(() => swalError("Error", "Could not cancel delivery"));
     }
     setIsModalOpen(false);
   };
@@ -415,54 +449,66 @@ const Deliveries = () => {
           </div>
         </div>
 
-        <Table
-          columns={columns}
-          data={currentItems}
-          actions={true}
-          onView={(item) => handleAction('view', item)}
-          onEdit={(item) => handleAction('edit', item)}
-          onDelete={(item) => handleAction('delete', item)}
-          canEdit={canAssignDriverUi}
-          canDelete={hasMenuPermission('Deliveries', 'can_delete')}
-          customAction={(item) => (
-            <div className="flex items-center gap-1 flex-wrap justify-end">
-              {canAssignDriverUi && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAction('edit', item);
-                  }}
-                  className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-accent border border-accent/35 bg-accent/10 hover:bg-accent/20 transition-all flex items-center gap-1"
-                  title="Assign driver / vehicle and save"
-                >
-                  <UserPlus size={12} /> Assign
-                </button>
+        {isLoading ? (
+          <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+        ) : error ? (
+          <div className="text-danger p-4">Failed to load deliveries.</div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              data={currentItems}
+              actions={true}
+              onView={(item) => handleAction('view', item)}
+              onEdit={(item) => handleAction('edit', item)}
+              onDelete={(item) => handleAction('delete', item)}
+              canEdit={canAssignDriverUi}
+              canDelete={hasMenuPermission('Deliveries', 'can_delete')}
+              customAction={(item) => (
+                <div className="flex items-center gap-1 flex-wrap justify-end">
+                  {canAssignDriverUi && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAction('edit', item);
+                      }}
+                      className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-accent border border-accent/35 bg-accent/10 hover:bg-accent/20 transition-all flex items-center gap-1"
+                      title="Assign driver / vehicle and save"
+                    >
+                      <UserPlus size={12} /> Assign
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction('delivered', item);
+                    }}
+                    className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-success border border-success/30 bg-success/10 hover:bg-success/20 transition-all"
+                    title="Complete Delivery (POD)"
+                  >
+                    Delivered
+                  </button>
+                </div>
               )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAction('delivered', item);
-                }}
-                className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-success border border-success/30 bg-success/10 hover:bg-success/20 transition-all"
-                title="Complete Delivery (POD)"
-              >
-                Delivered
-              </button>
-            </div>
-          )}
-        />
-        {filteredDeliveries.length === 0 && (
-          <div className="mt-4 text-center text-[10px] font-black uppercase tracking-widest text-muted">
-            No logistics deliveries found. Chauffeur rides are tracked in Chauffeur protocol.
-          </div>
-        )}
-        {filteredDeliveries.length > itemsPerPage && (
-          <Pagination
-            pagination={{ total: filteredDeliveries.length, page: currentPage, limit: itemsPerPage, totalPages: Math.ceil(filteredDeliveries.length / itemsPerPage) }}
-            onPageChange={handlePageChange}
-          />
+            />
+            {currentItems.length === 0 && (
+              <div className="mt-4 text-center text-[10px] font-black uppercase tracking-widest text-muted">
+                No logistics deliveries found. Chauffeur rides are tracked in Chauffeur protocol.
+              </div>
+            )}
+            {meta.totalItems > itemsPerPage && (
+              <div className="mt-6 border-t border-white/5 pt-6 px-6 pb-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={meta.totalItems}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 

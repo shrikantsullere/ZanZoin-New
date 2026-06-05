@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import api from "../utils/api";
+import api from "../services/api/setupAxios.js";
 import {
   normalizeRole,
   roleCanCreateInstitutionalOrder,
@@ -693,6 +693,34 @@ export const GlobalDataProvider = ({ children }) => {
     }
     return null;
   });
+
+  // FETCH REAL PROFILE ON MOUNT (PHASE 11 INTEGRATION)
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const res = await api.get('/auth/profile');
+          const realUser = res.data?.data || res.data;
+          if (realUser) {
+            setCurrentUser(realUser);
+            localStorage.setItem('user', JSON.stringify(realUser));
+            if (realUser.role?.name) {
+              localStorage.setItem('userRole', realUser.role.name.toLowerCase());
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch real profile:', error);
+          if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setCurrentUser(null);
+          }
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const [menuPermissions, setMenuPermissions] = useState(() => {
     const saved = localStorage.getItem("menuPermissions");

@@ -3,13 +3,14 @@ import { motion } from 'framer-motion';
 import Table from '../../components/Table';
 import Modal from '../../components/Modal';
 import { useData } from '../../context/GlobalDataContext';
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '../../hooks/api/useCRM';
 import { Search, Plus, Shield, ShieldCheck, Calendar, Check, X as CloseIcon, Radio, Clock, CheckCircle2, XCircle, Briefcase, Truck, MapPin, Car, FileText } from 'lucide-react';
 import { swalConfirm, swalSuccess, swalWarning } from '../../utils/swal';
 import Pagination from '../../components/Common/Pagination';
 import { normalizeRole, resolvePortalRole } from '../../utils/authUtils';
 
 const Users = () => {
-  const { users, addUser, updateUser, deleteUser, leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, hasMenuPermission, cancelPersonalMembership } = useData();
+  const { leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, hasMenuPermission, cancelPersonalMembership } = useData();
   const roleNormalized = normalizeRole(currentUser?.role);
   const isSuperAdmin = roleNormalized === 'superadmin';
   const isAdminOrSuper = isSuperAdmin || roleNormalized === 'admin' || roleNormalized === 'client' || roleNormalized === 'saas_client' || hasMenuPermission('Staff Management', 'can_edit') || hasMenuPermission('Staff Management', 'can_add');
@@ -28,6 +29,13 @@ const Users = () => {
     passengerName: '', pickupTime: '', dropLocation: '', luggage: '', goodsDetails: '', weight: '', pickupLocation: '', deliveryLocation: ''
   });
   const itemsPerPage = 10;
+
+  const { data: usersData, isLoading: isUsersLoading } = useUsers(currentPage, 100, debounceSearch);
+  const users = usersData?.data || [];
+  
+  const createMutation = useCreateUser();
+  const updateMutation = useUpdateUser();
+  const deleteMutation = useDeleteUser();
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -164,17 +172,17 @@ const Users = () => {
           payload.company_id = parsedCompanyId;
           payload.companyId = parsedCompanyId;
         }
-        await addUser(payload);
+        await createMutation.mutateAsync(payload);
         setIsModalOpen(false);
       } catch (err) {
-        // error already handled in addUser
+        // error already handled
       }
     } else if (modalType === 'edit') {
       try {
-        await updateUser({ ...selectedUser, ...formData });
+        await updateMutation.mutateAsync({ id: selectedUser.id, data: { ...selectedUser, ...formData } });
         setIsModalOpen(false);
       } catch (err) {
-        // error already handled in updateUser
+        // error already handled
       }
     }
   };
@@ -210,7 +218,7 @@ const Users = () => {
   };
 
   const handleDelete = () => {
-    deleteUser(selectedUser.id);
+    deleteMutation.mutate(selectedUser.id);
     setIsModalOpen(false);
   };
 

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import Table from '../../components/Table';
 import { useData } from '../../context/GlobalDataContext';
 import { isoDateSlice, displayOrderStatus } from '../../utils/orderWorkflow';
-import { Search, Plus, PackageCheck, PackageX, FileText, CheckCircle, ShoppingCart, Truck, Warehouse, ArrowRightCircle } from 'lucide-react';
+import { Search, Plus, PackageCheck, PackageX, FileText, CheckCircle, ShoppingCart, Truck, Warehouse, ArrowRightCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useOrders, useUpdateOrderStatus } from '../../hooks/api/useOrders';
 
 import OrderModal from '../../components/OrderModal';
 import InvoiceGenerationModal from '../../components/InvoiceGenerationModal';
@@ -19,21 +20,27 @@ function isCustomRequestFlowOrder(row) {
 
 const Orders = () => {
   const {
-    orders, addOrder, updateOrder, deleteOrder,
+    addOrder, updateOrder, deleteOrder,
     deliveries, purchaseRequests, stockMovements,
     addProject, invoices, projects, generateInvoiceFromOrder,
     currentUser, launchMissionFromOrder, convertOrderToProject,
-    fetchOrders, fetchVendors, fetchClients,
-    assignOrderToStage,
+    fetchVendors, fetchClients,
     hasMenuPermission
   } = useData();
   const navigate = useNavigate();
 
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const { data: ordersData, isLoading, error } = useOrders(page, 10, searchTerm);
+  const orders = ordersData?.data || [];
+  const meta = ordersData?.meta || { totalPages: 1, totalItems: 0 };
+  const updateOrderStatusMutation = useUpdateOrderStatus();
+
   React.useEffect(() => {
-    fetchOrders();
     fetchVendors();
     fetchClients();
-  }, [fetchOrders, fetchVendors, fetchClients]);
+  }, [fetchVendors, fetchClients]);
 
   const normalizedRole = currentUser?.role?.toLowerCase().replace(/\s/g, '');
   const portalRole = normalizeRole(currentUser?.role);
@@ -43,7 +50,6 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState(null);
 
@@ -71,18 +77,18 @@ const Orders = () => {
   
   const handleApprove = async (order, stage) => {
     if (window.confirm(`Are you sure you want to move Order #${order.id} to ${stage.toUpperCase()} stage?`)) {
-      const res = await assignOrderToStage(order.id, stage);
-      if (res) {
+      try {
+        await updateOrderStatusMutation.mutateAsync({ id: order.id, status: stage });
         alert(`Order #${order.id} has been successfully moved to ${stage}.`);
+      } catch (err) {
+        alert('Failed to update order status.');
       }
     }
   };
 
-  const filteredOrders = orders.filter(order =>
-    String(order.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.items && order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())))
-  );
+  const filteredOrders = orders;
+  const currentOrders = orders;
+  const totalPages = meta.totalPages;
 
   const handleAction = (type, order) => {
     setSelectedOrder(order);
@@ -269,15 +275,23 @@ const Orders = () => {
               type="text"
               placeholder="Search by ID, Client or Items..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="w-full bg-background border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-accent"
             />
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+        ) : error ? (
+          <div className="text-danger p-4">Failed to load orders.</div>
+        ) : (
           <Table
             columns={columns}
-            data={filteredOrders}
+            data={currentOrders}
             actions={true}
             onView={(item) => handleAction('view', item)}
             onEdit={(item) => handleAction('edit', item)}
@@ -430,7 +444,8 @@ const Orders = () => {
               </div>
             ) : null}
           />
-        </div>
+        )}
+      </div>
       </div>
 
       <OrderModal

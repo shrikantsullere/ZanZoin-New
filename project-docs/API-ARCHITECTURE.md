@@ -74,21 +74,80 @@ Auth
 
 Routes:
 
-POST /auth/login
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/v1/auth/login` | Authenticate user | No |
+| POST | `/api/v1/auth/refresh-token` | Rotate JWT token | No |
+| POST | `/api/v1/auth/forgot-password` | Send reset link | No |
+| POST | `/api/v1/auth/reset-password` | Reset password | No |
+| POST | `/api/v1/auth/logout` | Revoke tokens | Yes |
+| GET | `/api/v1/auth/profile` | Get current user | Yes |
+| PUT | `/api/v1/auth/profile` | Update profile | Yes |
+| PUT | `/api/v1/auth/change-password` | Change password | Yes |
 
-POST /auth/register
+## 2. User Management (`/api/v1/users`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/users` | List users | Yes | `USERS:READ` |
+| GET | `/api/v1/users/:id` | Get user | Yes | `USERS:READ` |
+| POST | `/api/v1/users` | Create user | Yes | `USERS:CREATE` |
+| PUT | `/api/v1/users/:id` | Update user | Yes | `USERS:UPDATE` |
+| DELETE | `/api/v1/users/:id` | Soft delete user | Yes | `USERS:DELETE` |
 
-POST /auth/logout
+## 3. Roles & Permissions (`/api/v1/roles`, `/api/v1/permissions`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/roles` | List roles | Yes | `ROLES:READ` |
+| POST | `/api/v1/roles` | Create role | Yes | `ROLES:CREATE` |
+| POST | `/api/v1/roles/:id/permissions` | Assign permissions | Yes | `ROLES:ASSIGN_PERMISSIONS` |
+| GET | `/api/v1/permissions` | List permissions | Yes | `PERMISSIONS:READ` |
 
-POST /auth/refresh-token
+## 4. System Settings (`/api/v1/settings`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/settings` | Get settings | Yes | `SETTINGS:READ` |
+| PUT | `/api/v1/settings/:key` | Update setting | Yes | `SETTINGS:UPDATE` |
 
-POST /auth/forgot-password
+## 5. Notifications (`/api/v1/notifications`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/notifications` | List notifications | Yes | `NOTIFICATIONS:READ` |
+| PUT | `/api/v1/notifications/mark-all-read` | Mark all read | Yes | `NOTIFICATIONS:UPDATE` |
 
-POST /auth/reset-password
+## 6. Plans (`/api/v1/plans`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/plans` | List plans | Yes | `PLANS:MANAGE` |
+| POST | `/api/v1/plans` | Create plan | Yes | `PLANS:MANAGE` |
+| PUT | `/api/v1/plans/:id` | Update plan | Yes | `PLANS:MANAGE` |
+| PUT | `/api/v1/plans/:id/activate` | Activate plan | Yes | `PLANS:MANAGE` |
+| DELETE | `/api/v1/plans/:id` | Delete plan | Yes | `PLANS:MANAGE` |
 
-GET /auth/profile
+## 7. Subscriptions (`/api/v1/subscriptions`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/subscriptions` | List subscriptions | Yes | `SUBSCRIPTIONS:MANAGE` |
+| POST | `/api/v1/subscriptions` | Create sub | Yes | `SUBSCRIPTIONS:MANAGE` |
+| PUT | `/api/v1/subscriptions/:id/upgrade` | Upgrade sub | Yes | `SUBSCRIPTIONS:MANAGE` |
+| PUT | `/api/v1/subscriptions/:id/cancel` | Cancel sub | Yes | `SUBSCRIPTIONS:MANAGE` |
+| PUT | `/api/v1/subscriptions/:id/renew` | Renew sub | Yes | `SUBSCRIPTIONS:MANAGE` |
 
-PUT /auth/profile
+## 8. Organizations (`/api/v1/organizations`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/organizations` | List organizations | Yes | `ORGANIZATIONS:MANAGE` |
+| POST | `/api/v1/organizations` | Create org | Yes | `ORGANIZATIONS:MANAGE` |
+| PUT | `/api/v1/organizations/:id` | Update org | Yes | `ORGANIZATIONS:MANAGE` |
+| PUT | `/api/v1/organizations/:id/suspend` | Suspend org | Yes | `ORGANIZATIONS:MANAGE` |
+
+## 9. Tenants (`/api/v1/tenants`)
+| Method | Endpoint | Description | Auth Required | Permission |
+|--------|----------|-------------|---------------|------------|
+| GET | `/api/v1/tenants` | List tenants | Yes | `TENANTS:MANAGE` |
+| POST | `/api/v1/tenants` | Create tenant | Yes | `TENANTS:MANAGE` |
+| PUT | `/api/v1/tenants/:id` | Update tenant | Yes | `TENANTS:MANAGE` |
+| PUT | `/api/v1/tenants/:id/suspend` | Suspend tenant | Yes | `TENANTS:MANAGE` |
+| DELETE | `/api/v1/tenants/:id` | Delete tenant | Yes | `TENANTS:MANAGE` |
 
 ---
 

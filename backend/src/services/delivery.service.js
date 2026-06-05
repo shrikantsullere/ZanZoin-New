@@ -1,0 +1,102 @@
+import * as deliveryRepo from '../repositories/delivery.repository.js';
+import * as orderRepo from '../repositories/order.repository.js';
+import * as warehouseRepo from '../repositories/warehouse.repository.js';
+import AppError from '../utils/AppError.js';
+import { logAudit } from '../utils/audit.js';
+import prisma from '../config/db.js';
+
+export const createDelivery = async (data, performerId, tenantId) => {
+  const { items, ...deliveryData } = data;
+
+  const order = await orderRepo.findOrderById(data.orderId);
+  if (!order || (tenantId !== null && order.tenantId !== tenantId)) {
+    throw new AppError('Order not found', 404);
+  }
+
+  if (!['approved', 'ready_for_delivery'].includes(order.status)) {
+    throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
+  }
+
+  const warehouse = await warehouseRepo.findWarehouseById(data.warehouseId);
+  if (!warehouse || (tenantId !== null && warehouse.tenantId !== tenantId)) {
+    throw new AppError('Warehouse not found', 404);
+  }
+
+  deliveryData.clientId = order.clientId;
+
+  // Validate quantities: Delivery quantity cannot exceed (Order Quantity - Already Delivered Quantity)
+  for (const item of items) {
+    const orderItem = order.items.find(oi => oi.id === item.orderItemId);
+    if (!orderItem) {
+      throw new AppError(`Order item ${item.orderItemId} does not belong to this order`, 400);
+    }
+    
+    if (orderItem.warehouseId !== data.warehouseId) {
+      throw new AppError(`Item ${item.itemId} was not reserved in warehouse ${data.warehouseId}`, 400);
+    }
+
+    const alreadyDelivered = await deliveryRepo.getDeliveredQuantityForOrderItem(item.orderItemId);
+    const remainingToDeliver = orderItem.quantity - alreadyDelivered;
+
+    if (item.quantity > remainingToDeliver) {
+      throw new AppError(`Cannot deliver ${item.quantity} for item ${item.itemId}. Only ${remainingToDeliver} remaining.`, 400);
+    }
+  }
+
+  const newDelivery = await deliveryRepo.createDelivery(deliveryData, items, tenantId);
+
+  // If order was approved, mark it as ready_for_delivery automatically
+  if (order.status === 'approved') {
+    await orderRepo.updateOrderStatus(order.id, 'ready_for_delivery');
+  }
+
+  await logAudit({
+    module: 'DELIVERIES',
+    action: 'CREATE',
+    description: `Created Delivery ${newDelivery.deliveryNumber} for Order ${order.orderNumber}`,
+    newValue: newDelivery,
+    performedBy: performerId
+  });
+
+  return newDelivery;
+};
+
+export const getDeliveries = async (tenantId, query) => {
+  return await deliveryRepo.findAllDeliveries(tenantId, query);
+};
+
+export const getDeliveryById = async (id, tenantId) => {
+  const delivery = await deliveryRepo.findDeliveryById(id);
+  if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
+    throw new AppError('Delivery not found', 404);
+  }
+  return delivery;
+};
+
+export const cancelDelivery = async (id, tenantId, performerId) => {
+  const delivery = await getDeliveryById(id, tenantId);
+
+  if (['dispatched', 'in_transit', 'delivered'].includes(delivery.status)) {
+    throw new AppError(`Cannot cancel delivery in ${delivery.status} status`, 400);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await deliveryRepo.updateDeliveryStatus(tx, id, 'cancelled');
+    
+    // Auto cancel associated missions if any
+    await tx.mission.updateMany({
+      where: { deliveryId: id, status: { notIn: ['completed', 'cancelled'] } },
+      data: { status: 'cancelled' }
+    });
+  });
+
+  await logAudit({
+    module: 'DELIVERIES',
+    action: 'CANCEL',
+    description: `Cancelled Delivery ${delivery.deliveryNumber}`,
+    oldValue: delivery,
+    performedBy: performerId
+  });
+
+  return true;
+};

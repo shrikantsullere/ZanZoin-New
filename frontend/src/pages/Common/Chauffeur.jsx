@@ -9,7 +9,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
 import Table from '../../components/Table';
 import StatusBadge from '../../components/StatusBadge';
+import Pagination from '../../components/Common/Pagination';
 import { calculateOSRMRouteDistance } from '../../utils/distanceHelper';
+import { useChauffeurMissions, useCreateChauffeurMission, useUpdateChauffeurMission, useDeleteChauffeurMission } from '../../hooks/api/useChauffeur';
 
 const DriverEtaDisplay = ({ pickupLocation, status, driverName }) => {
     const [eta, setEta] = useState(null);
@@ -88,11 +90,6 @@ const CHAUFFEUR_BILLING_MODE = String(import.meta.env?.VITE_CHAUFFEUR_BILLING_MO
 
 const Chauffeur = () => {
     const {
-        chauffeurRequests,
-        addChauffeurRequest,
-        updateChauffeurRequest,
-        deleteChauffeurRequest,
-        fetchChauffeurRequests,
         currentUser,
         users,
         clients,
@@ -104,11 +101,29 @@ const Chauffeur = () => {
     } = useData();
     const [editingRequest, setEditingRequest] = useState(null);
     useEffect(() => {
-        fetchChauffeurRequests();
         fetchStaff();
         fetchClients();
         fetchSystemSettings();
-    }, [fetchChauffeurRequests, fetchStaff, fetchClients, fetchSystemSettings]);
+    }, [fetchStaff, fetchClients, fetchSystemSettings]);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [debounceSearch, setDebounceSearch] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebounceSearch(searchTerm);
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const { data: chauffeurData, isLoading } = useChauffeurMissions(currentPage, 10, debounceSearch);
+    const chauffeurRequests = chauffeurData?.data || [];
+    const meta = chauffeurData?.meta || { totalPages: 1, totalItems: 0 };
+    
+    const createMutation = useCreateChauffeurMission();
+    const updateMutation = useUpdateChauffeurMission();
+    const deleteMutation = useDeleteChauffeurMission();
 
     useEffect(() => {
         if (editingRequest && editingRequest.id) {
@@ -179,18 +194,7 @@ const Chauffeur = () => {
     const needsAdminApprove = (req) =>
         isAdmin && req && !req.driverName && !req.adminApproved && ['pending', 'pending_review'].includes(chauffeurStatusKey(req.status));
 
-    const filteredRequests = chauffeurRequests.filter(req => {
-        const matchesSearch =
-            String(req.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            req.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            req.pickupLocation?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        if (isAdmin) return matchesSearch;
-
-        // Customer/Client: backend already filters by company_id, so show all returned data
-        // Just apply search filter
-        return matchesSearch;
-    });
+    const filteredRequests = chauffeurRequests;
 
     const toggleAmenity = (item) => {
         setAmenities(prev =>
@@ -257,9 +261,9 @@ const Chauffeur = () => {
         };
 
         if (editingRequest) {
-            updateChauffeurRequest({ ...editingRequest, ...request });
+            updateMutation.mutate({ id: editingRequest.id, data: { ...editingRequest, ...request } });
         } else {
-            addChauffeurRequest(request);
+            createMutation.mutate(request);
         }
 
         setShowModal(false);
@@ -296,7 +300,7 @@ const Chauffeur = () => {
     const handleCancel = async (id) => {
         if ((await swalConfirm('Cancel Booking', 'Are you sure?')).isConfirmed) {
             const request = chauffeurRequests.find(r => r.id === id);
-            updateChauffeurRequest({ ...request, status: 'Cancelled' });
+            updateMutation.mutate({ id, data: { ...request, status: 'Cancelled' } });
         }
     };
 
@@ -413,16 +417,28 @@ const Chauffeur = () => {
                 </div>
 
                 {isAdmin ? (
-                    <Table
-                        columns={columns}
-                        data={filteredRequests}
-                        actions={true}
-                        onView={(row) => openModal('view', row)}
-                        onEdit={(row) => openModal('edit', row)}
-                        onDelete={(row) => deleteChauffeurRequest(row.id)}
-                        canEdit={hasMenuPermission('Chauffeur', 'can_edit')}
-                        canDelete={hasMenuPermission('Chauffeur', 'can_delete')}
-                    />
+                    <>
+                        <Table
+                            columns={columns}
+                            data={filteredRequests}
+                            actions={true}
+                            onView={(row) => openModal('view', row)}
+                            onEdit={(row) => openModal('edit', row)}
+                            onDelete={(row) => deleteMutation.mutate(row.id)}
+                            canEdit={hasMenuPermission('Chauffeur', 'can_edit')}
+                            canDelete={hasMenuPermission('Chauffeur', 'can_delete')}
+                        />
+                        {meta.totalItems > 10 && (
+                            <div className="mt-6 border-t border-white/5 pt-6">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={meta.totalPages}
+                                    onPageChange={setCurrentPage}
+                                    totalItems={meta.totalItems}
+                                />
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {filteredRequests.length === 0 ? (
@@ -603,10 +619,13 @@ const Chauffeur = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            updateChauffeurRequest({
-                                                                ...editingRequest,
-                                                                status: 'approved',
-                                                                passenger_info: mergePassengerPayload(editingRequest, { adminApproved: true }),
+                                                            updateMutation.mutate({
+                                                                id: editingRequest.id,
+                                                                data: {
+                                                                    ...editingRequest,
+                                                                    status: 'approved',
+                                                                    passenger_info: mergePassengerPayload(editingRequest, { adminApproved: true }),
+                                                                }
                                                             });
                                                             setShowModal(false);
                                                         }}
@@ -693,16 +712,19 @@ const Chauffeur = () => {
                                                                     const selected = users.find(u => String(u.id) === e.target.value);
                                                                     if (selected) {
                                                                         const photo = selected.profile_pic_url || selected.profilePicUrl || selected.photo || selected.avatar || selected.profile_image || selected.image || null;
-                                                                        updateChauffeurRequest({
-                                                                            ...editingRequest,
-                                                                            driverName: selected.name,
-                                                                            driverPhotoUrl: photo,
-                                                                            status: 'assigned',
-                                                                            passenger_info: mergePassengerPayload(editingRequest, {
+                                                                        updateMutation.mutate({
+                                                                            id: editingRequest.id,
+                                                                            data: {
+                                                                                ...editingRequest,
+                                                                                driverName: selected.name,
                                                                                 driverPhotoUrl: photo,
-                                                                                driver_user_id: selected.id,
-                                                                                adminApproved: true,
-                                                                            }),
+                                                                                status: 'assigned',
+                                                                                passenger_info: mergePassengerPayload(editingRequest, {
+                                                                                    driver_user_id: selected.id,
+                                                                                    driverPhotoUrl: photo,
+                                                                                    adminApproved: true
+                                                                                })
+                                                                            }
                                                                         });
                                                                     }
                                                                 }}

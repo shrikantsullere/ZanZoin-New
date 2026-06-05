@@ -1,0 +1,122 @@
+import * as prRepository from '../repositories/purchaseRequest.repository.js';
+import * as departmentRepository from '../repositories/department.repository.js';
+import AppError from '../utils/AppError.js';
+import { logAudit } from '../utils/audit.js';
+import prisma from '../config/db.js';
+
+const getEmployeeIdByUserId = async (userId) => {
+  const employee = await prisma.employee.findUnique({ where: { userId } });
+  if (!employee) throw new AppError('Only mapped employees can create Purchase Requests', 403);
+  return employee.id;
+};
+
+export const createPurchaseRequest = async (data, performerId, tenantId) => {
+  const employeeId = await getEmployeeIdByUserId(performerId);
+
+  const department = await departmentRepository.findDepartmentById(data.departmentId);
+  if (!department || (tenantId !== null && department.tenantId !== tenantId)) {
+    throw new AppError('Department not found', 404);
+  }
+
+  const { items, ...prData } = data;
+  prData.requestedBy = employeeId;
+  prData.status = 'draft';
+
+  const newPr = await prRepository.createPurchaseRequest(prData, items, tenantId);
+
+  await logAudit({
+    module: 'PURCHASE_REQUESTS',
+    action: 'CREATE',
+    description: `Created PR ${newPr.prNumber}`,
+    newValue: newPr,
+    performedBy: performerId
+  });
+
+  return newPr;
+};
+
+export const getPurchaseRequests = async (tenantId, query) => {
+  return await prRepository.findAllPurchaseRequests(tenantId, query);
+};
+
+export const getPurchaseRequestById = async (id, tenantId) => {
+  const pr = await prRepository.findPurchaseRequestById(id);
+  if (!pr || (tenantId !== null && pr.tenantId !== tenantId)) {
+    throw new AppError('Purchase Request not found', 404);
+  }
+  return pr;
+};
+
+export const updatePurchaseRequest = async (id, data, tenantId, performerId) => {
+  const pr = await getPurchaseRequestById(id, tenantId);
+
+  if (pr.status !== 'draft') {
+    throw new AppError(`Cannot update PR in ${pr.status} status`, 400);
+  }
+
+  const { items, ...prData } = data;
+  const updatedPr = await prRepository.updatePurchaseRequest(id, prData, items);
+
+  await logAudit({
+    module: 'PURCHASE_REQUESTS',
+    action: 'UPDATE',
+    description: `Updated PR ${pr.prNumber}`,
+    oldValue: pr,
+    newValue: updatedPr,
+    performedBy: performerId
+  });
+
+  return updatedPr;
+};
+
+export const updatePurchaseRequestStatus = async (id, status, tenantId, performerId) => {
+  const pr = await getPurchaseRequestById(id, tenantId);
+
+  // Status transitions
+  const validTransitions = {
+    'draft': ['submitted', 'cancelled'],
+    'submitted': ['department_approved', 'rejected', 'cancelled'],
+    'department_approved': ['procurement_review', 'rejected'],
+    'procurement_review': ['approved', 'rejected'],
+    'approved': ['rfq_created'], // automatically updated when RFQ is made
+    'rejected': [],
+    'cancelled': []
+  };
+
+  if (!validTransitions[pr.status].includes(status)) {
+    throw new AppError(`Invalid status transition from ${pr.status} to ${status}`, 400);
+  }
+
+  const updatedPr = await prRepository.updatePurchaseRequestStatus(id, status);
+
+  await logAudit({
+    module: 'PURCHASE_REQUESTS',
+    action: 'STATUS_CHANGE',
+    description: `PR ${pr.prNumber} status changed to ${status}`,
+    oldValue: pr,
+    newValue: updatedPr,
+    performedBy: performerId
+  });
+
+  return updatedPr;
+};
+
+export const deletePurchaseRequest = async (id, tenantId, performerId) => {
+  const pr = await getPurchaseRequestById(id, tenantId);
+
+  if (pr.status !== 'draft' && pr.status !== 'cancelled') {
+    throw new AppError(`Cannot delete PR in ${pr.status} status`, 400);
+  }
+
+  await prRepository.deletePurchaseRequest(id);
+
+  await logAudit({
+    module: 'PURCHASE_REQUESTS',
+    action: 'DELETE',
+    description: `Deleted PR ${pr.prNumber}`,
+    oldValue: pr,
+    performedBy: performerId
+  });
+
+  return true;
+};

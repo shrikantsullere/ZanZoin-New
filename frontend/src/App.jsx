@@ -17,6 +17,7 @@ const Vendors = lazy(() => import('./pages/Common/Vendors'));
 const Orders = lazy(() => import('./pages/Common/Orders'));
 const Inventory = lazy(() => import('./pages/Common/Inventory'));
 const Reports = lazy(() => import('./pages/Admin/Reports'));
+const Analytics = lazy(() => import('./pages/Admin/Analytics'));
 const Users = lazy(() => import('./pages/Admin/Users'));
 const RolesPermissions = lazy(() => import('./pages/Admin/RolesPermissions'));
 const Settings = lazy(() => import('./pages/Common/Settings'));
@@ -62,6 +63,7 @@ const EmployeePortal = lazy(() => import('./pages/Staff/EmployeePortal'));
 const Login = lazy(() => import('./pages/Common/Login'));
 const Payroll = lazy(() => import('./pages/Admin/Payroll'));
 const Invoices = lazy(() => import('./pages/Common/Invoices'));
+const Payments = lazy(() => import('./pages/Common/Payments'));
 const StaffAudits = lazy(() => import('./pages/Admin/StaffAudits'));
 const SaaSManagement = lazy(() => import('./pages/Admin/SaaSManagement'));
 const SaaSClients = lazy(() => import('./pages/Admin/SaaSClients'));
@@ -71,6 +73,9 @@ const Audits = lazy(() => import('./pages/Common/Audits'));
 const StaffSignup = lazy(() => import('./pages/Common/StaffSignup'));
 const Signup = lazy(() => import('./pages/Common/Signup'));
 const LeaveManagement = lazy(() => import('./pages/Admin/LeaveManagement'));
+const Tenants = lazy(() => import('./pages/Admin/Tenants'));
+const Departments = lazy(() => import('./pages/Admin/Departments'));
+const Employees = lazy(() => import('./pages/Admin/Employees'));
 
 import { GlobalDataProvider } from './context/GlobalDataContext';
 import { normalizeRole, menuPathGrantsAccess } from './utils/authUtils';
@@ -244,9 +249,29 @@ function App() {
                   <Reports />
                 </RoleProtectedRoute>
               } />
+              <Route path="analytics" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'admin', 'finance', 'operations']}>
+                  <Analytics />
+                </RoleProtectedRoute>
+              } />
               <Route path="users" element={
                 <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'client', 'admin', 'saas_client', 'operations', 'procurement', 'logistics', 'inventory', 'concierge']}>
                   <Users />
+                </RoleProtectedRoute>
+              } />
+              <Route path="tenants" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin']}>
+                  <Tenants />
+                </RoleProtectedRoute>
+              } />
+              <Route path="departments" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'admin']}>
+                  <Departments />
+                </RoleProtectedRoute>
+              } />
+              <Route path="employees" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'admin']}>
+                  <Employees />
                 </RoleProtectedRoute>
               } />
               <Route path="staff-audits" element={

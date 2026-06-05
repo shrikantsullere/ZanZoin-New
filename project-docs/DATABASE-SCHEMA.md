@@ -46,9 +46,75 @@ subscriptions
 
 users
 
-roles
+### `roles`
+Stores RBAC roles.
+- `id` (INT, PK)
+- `name` (VARCHAR, UNIQUE)
+- `description` (TEXT)
+- `createdAt` (DATETIME)
+- `updatedAt` (DATETIME)
 
-permissions
+### `permissions`
+Stores RBAC permissions.
+- `id` (INT, PK)
+- `name` (VARCHAR)
+- `module` (VARCHAR)
+- `action` (VARCHAR)
+
+### `role_permissions`
+Maps roles to permissions.
+- `roleId` (INT, FK -> roles.id)
+- `permissionId` (INT, FK -> permissions.id)
+
+### `user_roles`
+Maps users to roles.
+- `userId` (INT, FK -> users.id)
+- `roleId` (INT, FK -> roles.id)
+
+### `refresh_tokens`
+Stores JWT refresh tokens for users.
+- `id` (INT, PK)
+- `token` (VARCHAR, UNIQUE)
+- `userId` (INT, FK -> users.id)
+- `expiresAt` (DATETIME)
+- `createdAt` (DATETIME)
+
+### `plans`
+Stores SaaS subscription plans.
+- `id` (INT, PK)
+- `name` (VARCHAR)
+- `price` (FLOAT)
+- `billingCycle` (VARCHAR)
+- `maxUsers` (INT)
+- `maxStorage` (INT)
+- `isActive` (BOOLEAN)
+
+### `subscriptions`
+Stores tenant subscriptions.
+- `id` (INT, PK)
+- `tenantId` (INT, FK -> tenants.id)
+- `planId` (INT, FK -> plans.id)
+- `startDate` (DATETIME)
+- `endDate` (DATETIME)
+- `status` (VARCHAR)
+- `paymentStatus` (VARCHAR)
+
+### `organizations`
+Stores root organizations.
+- `id` (INT, PK)
+- `name` (VARCHAR)
+- `email` (VARCHAR, UNIQUE)
+- `status` (VARCHAR)
+
+### `tenants`
+Stores instances under organizations.
+- `id` (INT, PK)
+- `organizationId` (INT, FK -> organizations.id)
+- `subscriptionId` (INT, FK -> subscriptions.id)
+- `tenantCode` (VARCHAR, UNIQUE)
+- `status` (VARCHAR)
+
+---permissions
 
 role_permissions
 

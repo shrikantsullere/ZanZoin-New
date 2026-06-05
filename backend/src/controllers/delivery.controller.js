@@ -1,0 +1,50 @@
+import * as deliveryService from '../services/delivery.service.js';
+import { sendResponse } from '../utils/response.js';
+
+export const createDelivery = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+
+    const delivery = await deliveryService.createDelivery(req.body, req.user.id, tenantIdToUse);
+    sendResponse(res, 201, 'Delivery created successfully', delivery);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDeliveries = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null : (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
+
+    const result = await deliveryService.getDeliveries(tenantIdToFilter, req.query);
+    sendResponse(res, 200, 'Deliveries fetched successfully', result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDeliveryById = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    const delivery = await deliveryService.getDeliveryById(Number(req.params.id), tenantIdToFilter);
+    sendResponse(res, 200, 'Delivery fetched successfully', delivery);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelDelivery = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    await deliveryService.cancelDelivery(Number(req.params.id), tenantIdToFilter, req.user.id);
+    sendResponse(res, 200, 'Delivery cancelled successfully');
+  } catch (error) {
+    next(error);
+  }
+};

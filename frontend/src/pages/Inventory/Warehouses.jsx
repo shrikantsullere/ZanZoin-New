@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import Table from '../../components/Table';
 import Modal from '../../components/Modal';
-import { Warehouse as WarehouseIcon, MapPin, Plus, Package, Store } from 'lucide-react';
+import { Warehouse as WarehouseIcon, MapPin, Plus, Package, Store, RefreshCcw } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
+import { useWarehouses } from '../../hooks/api/useInventory';
 
 const Warehouses = () => {
-  const { warehouses, addWarehouse, updateWarehouse, deleteWarehouse, fetchWarehouses, hasMenuPermission, users, fetchStaff } = useData();
+  const { addWarehouse, updateWarehouse, deleteWarehouse, hasMenuPermission, users, fetchStaff } = useData();
+
+  const { data: whData, isLoading, error } = useWarehouses();
+  const warehouses = whData?.data || [];
 
   React.useEffect(() => {
-    fetchWarehouses();
     fetchStaff();
-  }, [fetchWarehouses, fetchStaff]);
+  }, [fetchStaff]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
@@ -94,16 +97,22 @@ const Warehouses = () => {
       </div>
 
       <div className="glass-card p-6">
-        <Table
-          columns={columns}
-          data={filteredWarehouses}
-          actions={true}
-          onView={(item) => handleAction('view', item)}
-          onEdit={(item) => handleAction('edit', item)}
-          onDelete={(item) => handleAction('delete', item)}
-          canEdit={hasMenuPermission('Warehouses', 'can_edit')}
-          canDelete={hasMenuPermission('Warehouses', 'can_delete')}
-        />
+        {isLoading ? (
+          <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+        ) : error ? (
+          <div className="text-danger p-4">Failed to load warehouses.</div>
+        ) : (
+          <Table
+            columns={columns}
+            data={filteredWarehouses}
+            actions={true}
+            onView={(item) => handleAction('view', item)}
+            onEdit={(item) => handleAction('edit', item)}
+            onDelete={(item) => handleAction('delete', item)}
+            canEdit={hasMenuPermission('Warehouses', 'can_edit')}
+            canDelete={hasMenuPermission('Warehouses', 'can_delete')}
+          />
+        )}
       </div>
 
       <Modal

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import Table from '../../components/Table';
 import { swalWarning } from '../../utils/swal';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, RefreshCcw } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
 import RequestModal from '../../components/RequestModal';
 import Pagination from '../../components/Common/Pagination';
 import { normalizeRole } from '../../utils/authUtils';
 import { formatDateTimeEst } from '../../utils/dateEst';
+import { usePurchaseRequests, useCreatePR } from '../../hooks/api/useProcurement';
 
 const PurchaseRequests = () => {
   const {
-    purchaseRequests,
     addPurchaseRequest,
     updatePurchaseRequest,
     deletePurchaseRequest,
@@ -24,6 +24,12 @@ const PurchaseRequests = () => {
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const { data: prData, isLoading, error } = usePurchaseRequests(page, 10, searchTerm);
+  const purchaseRequests = prData?.data || [];
+  const meta = prData?.meta || { totalPages: 1, totalItems: 0 };
+  const createPRMutation = useCreatePR();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -38,20 +44,7 @@ const PurchaseRequests = () => {
     fetchClients();
   }, [fetchProcurement, fetchCustomerUsers, fetchStaff, fetchClients]);
 
-  const filteredRequests = purchaseRequests.filter(r => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      String(r.id).toLowerCase().includes(term) ||
-      r.requester?.toLowerCase().includes(term) ||
-      r.item_name?.toLowerCase().includes(term) ||
-      (r.items && JSON.stringify(r.items).toLowerCase().includes(term))
-    );
-  });
 
-  const itemsPerPage = 10;
-  const currentRequests = filteredRequests.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
 
   const handleAction = (type, req) => {
     setSelectedRequest(req);
@@ -59,9 +52,13 @@ const PurchaseRequests = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
     if (modalType === 'add') {
-      addPurchaseRequest(formData);
+      try {
+        await createPRMutation.mutateAsync(formData);
+      } catch (e) {
+        console.error("Failed to create PR", e);
+      }
     } else if (modalType === 'edit') {
       updatePurchaseRequest({ ...selectedRequest, ...formData });
     }
@@ -148,20 +145,26 @@ const PurchaseRequests = () => {
           </div>
         </div>
 
-        <Table
-          columns={columns}
-          data={currentRequests}
-          actions={true}
-          onView={(item) => handleAction('view', item)}
-          onEdit={(item) => handleAction('edit', item)}
-          onDelete={(item) => handleDelete(item.id)}
-          canEdit={!isCustomer && hasMenuPermission('Purchase Requests', 'can_edit')}
-          canDelete={!isCustomer && hasMenuPermission('Purchase Requests', 'can_delete')}
-        />
-        {filteredRequests.length > itemsPerPage && (
-          <div className="mt-6 border-t border-white/5 pt-6">
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={filteredRequests.length} />
-          </div>
+        {isLoading ? (
+          <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+        ) : error ? (
+          <div className="text-danger p-4">Failed to load purchase requests.</div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              data={purchaseRequests}
+              actions={true}
+              onView={(item) => handleAction('view', item)}
+              onEdit={(item) => handleAction('edit', item)}
+              onDelete={(item) => handleDelete(item.id)}
+              canEdit={!isCustomer && hasMenuPermission('Purchase Requests', 'can_edit')}
+              canDelete={!isCustomer && hasMenuPermission('Purchase Requests', 'can_delete')}
+            />
+            <div className="mt-6 border-t border-white/5 pt-6">
+              <Pagination currentPage={page} totalPages={meta.totalPages} onPageChange={setPage} totalItems={meta.totalItems} />
+            </div>
+          </>
         )}
       </div>
 

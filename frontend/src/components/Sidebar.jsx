@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const menuItems = {
   superadmin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Users, label: 'Clients', path: '/dashboard/clients' },
     { icon: Store, label: 'Vendors', path: '/dashboard/vendors' },
     { icon: UserCog, label: 'HQ Personnel', path: '/dashboard/users' },
@@ -22,11 +23,13 @@ const menuItems = {
   ],
   operations: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Briefcase, label: 'Projects', path: '/dashboard/projects' },
     { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
     { icon: Navigation, label: 'Missions', path: '/dashboard/missions' },
     { icon: Truck, label: 'Deliveries', path: '/dashboard/deliveries' },
     { icon: FileText, label: 'Invoices', path: '/dashboard/invoices' },
+    { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
     { icon: Smartphone, label: 'Staff Terminal', path: '/dashboard/staff-terminal' },
     { icon: Calendar, label: 'Leave & Absence', path: '/dashboard?tab=leave' },
     { icon: History, label: 'Pay & Records', path: '/dashboard?tab=pay' },
@@ -78,6 +81,7 @@ const menuItems = {
   ],
   admin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Users, label: 'Customers', path: '/dashboard/clients' },
     { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
     { icon: Briefcase, label: 'Projects', path: '/dashboard/projects' },
@@ -86,6 +90,7 @@ const menuItems = {
     { icon: Package, label: 'Inventory', path: '/dashboard/inventory' },
     { icon: UserCog, label: 'Staff Management', path: '/dashboard/users' },
     { icon: FileText, label: 'Invoices', path: '/dashboard/invoices' },
+    { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
     { icon: CreditCard, label: 'Payroll', path: '/dashboard/payroll' },
     { icon: BarChart3, label: 'Reports', path: '/dashboard/reports' },
     { icon: Headphones, label: 'Support', path: '/dashboard/support-tickets' },

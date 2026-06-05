@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { swalSuccess, swalError, swalWarning, swalInfo, swalConfirm, swalCredentials, swalCopied } from '../../utils/swal';
 import { createPortal } from 'react-dom';
 import { useData } from '../../context/GlobalDataContext';
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '../../hooks/api/useCRM';
 import { Search, Plus, Download, User, MapPin, Package, CreditCard, Eye, Edit2, ToggleLeft, ToggleRight, XCircle, X, Mail, Phone, Globe, Calendar, Shield, Activity, Trash2, ShoppingCart, ChevronDown, FileText, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BootstrapPagination from '../../components/Common/Pagination';
@@ -10,7 +11,7 @@ import { normalizeRole } from '../../utils/authUtils';
 
 const Clients = () => {
   const {
-    clients, addClient, updateClient, deleteClient, fetchClients, currentUser,
+    currentUser,
     subscriptionRequests, fetchSubscriptionRequests, updateSubscriptionRequest,
     generateInvoiceFromOrder, addDelivery, hasMenuPermission, cancelPersonalMembership
   } = useData();
@@ -25,6 +26,16 @@ const Clients = () => {
   const [clientTypeFilter, setClientTypeFilter] = useState(isAdminRole ? 'Customers' : 'SaaS'); // 'SaaS' | 'Personal' | 'Customers'
   const itemsPerPage = 10;
 
+  const activeClientType = isAdminRole ? 'Personal' : (clientTypeFilter === 'Website' ? undefined : (clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined)));
+  
+  const { data: clientsData, isLoading: isLoadingClients } = useClients(currentPage, itemsPerPage, debounceSearch, activeClientType);
+  const clientsList = clientsData?.data || [];
+  const meta = clientsData?.meta || { totalItems: 0, totalPages: 1 };
+  
+  const createMutation = useCreateClient();
+  const updateMutation = useUpdateClient();
+  const deleteMutation = useDeleteClient();
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebounceSearch(searchTerm);
@@ -35,22 +46,12 @@ const Clients = () => {
 
   React.useEffect(() => {
     const loadData = async () => {
-      if (isAdminRole) {
-        // Admin/Client role: only show customers
-        await fetchClients({ search: debounceSearch, client_type: 'Personal' });
-      } else {
-        // Super Admin: show filtered by type
-        const filterParam = clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined);
-        
-        if (clientTypeFilter === 'Website') {
-          if (fetchSubscriptionRequests) await fetchSubscriptionRequests();
-        } else {
-          await fetchClients({ search: debounceSearch, client_type: filterParam });
-        }
+      if (!isAdminRole && clientTypeFilter === 'Website') {
+        if (fetchSubscriptionRequests) await fetchSubscriptionRequests();
       }
     };
     loadData();
-  }, [fetchClients, fetchSubscriptionRequests, debounceSearch, clientTypeFilter, isAdminRole]);
+  }, [fetchSubscriptionRequests, clientTypeFilter, isAdminRole]);
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -168,7 +169,7 @@ const Clients = () => {
         }));
     }
 
-    return clients.map(c => ({ ...c, isRequest: false }));
+    return clientsList.map(c => ({ ...c, isRequest: false }));
   })();
 
   const filteredClients = allClients;
@@ -248,7 +249,7 @@ const Clients = () => {
         }
         swalSuccess('Updated', 'Request updated successfully');
       } else {
-        const result = await updateClient({ ...selectedClient, ...formData, client_type: formData.clientType });
+        const result = await updateMutation.mutateAsync({ id: selectedClient.id, data: { ...selectedClient, ...formData, client_type: formData.clientType } });
         if (result?.credentials) {
           swalCredentials("Account Activated", result.credentials.email, result.credentials.password, result.credentials.message);
         } else {
@@ -256,11 +257,6 @@ const Clients = () => {
         }
       }
       setShowEditModal(false);
-      setSelectedClient(null);
-      const refreshType = isAdminRole 
-        ? 'Personal' 
-        : (clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined));
-      await fetchClients({ search: debounceSearch, client_type: refreshType });
     } catch (e) {
       swalError('Error', e.message);
     }
@@ -268,7 +264,7 @@ const Clients = () => {
 
   const handleSaveAdd = async () => {
     try {
-      const result = await addClient({
+      const result = await createMutation.mutateAsync({
         ...formData,
         source: 'Manual',
         client_type: formData.clientType,
@@ -278,10 +274,6 @@ const Clients = () => {
         swalCredentials("Account Created", result.credentials.email, result.credentials.password);
       }
       setShowAddModal(false);
-      const refreshType = isAdminRole 
-        ? 'Personal' 
-        : (clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined));
-      await fetchClients({ search: debounceSearch, client_type: refreshType });
     } catch (e) {
       swalError('Error', e.message);
     }
@@ -293,10 +285,9 @@ const Clients = () => {
     try {
       if (client.isRequest) {
         const numericId = client.id.toString().replace('REQ-', '');
-        // We'll use deleteClient for both as it handles the logic, or add deleteSubscriptionRequest if separate
-        await deleteClient(numericId); 
+        await updateSubscriptionRequest(numericId, 'Rejected');
       } else {
-        await deleteClient(client.id);
+        await deleteMutation.mutateAsync(client.id);
       }
       swalSuccess('Removed', 'Client removal protocol executed.');
     } catch (e) {
@@ -315,7 +306,7 @@ const Clients = () => {
         }
       }
     } else {
-      const result = await updateClient({ ...client, status: newStatus.toLowerCase(), client_type: client.clientType || client.client_type });
+      const result = await updateMutation.mutateAsync({ id: client.id, data: { ...client, status: newStatus.toLowerCase(), client_type: client.clientType || client.client_type } });
       if (result?.credentials) {
         swalCredentials("Account Activated", result.credentials.email, result.credentials.password, result.credentials.message);
       } else {

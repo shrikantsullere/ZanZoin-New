@@ -7,9 +7,45 @@ import Modal from '../../components/Modal';
 import MembershipConciergeAfterJoin from '../../components/MembershipConciergeAfterJoin';
 
 import { useData } from '../../context/GlobalDataContext';
+import { usePlans } from '../../hooks/api/usePlans';
 
 const Plans = () => {
-    const { activePlan, setActivePlan, accessPlans, fetchAccessPlans, dispatchSubscriptionRequest, currentUser, activatePersonalMembership } = useData();
+    const { activePlan, setActivePlan, dispatchSubscriptionRequest, currentUser, activatePersonalMembership } = useData();
+    const { data: plansResponse, isLoading } = usePlans(1, 50);
+
+    const accessPlans = React.useMemo(() => {
+        const rawData = plansResponse?.data || [];
+        if (rawData.length === 0) return [];
+        return rawData.map((row) => {
+            let features = [];
+            if (row.features != null) {
+                try {
+                    features = typeof row.features === 'string' ? JSON.parse(row.features) : row.features;
+                } catch {
+                    features = [];
+                }
+            }
+            if (!Array.isArray(features)) features = [];
+            const priceNum = parseFloat(row.price || 0);
+            const cycle = row.billingCycle || 'Monthly';
+            const isAnnual = String(cycle).toLowerCase() === 'yearly' || String(cycle).toLowerCase() === 'annually';
+            return {
+                id: row.id || row.name?.toLowerCase().replace(/\s+/g, '_'),
+                name: row.name,
+                tier: cycle,
+                price: `$${priceNum.toLocaleString(undefined, { minimumFractionDigits: priceNum % 1 ? 2 : 0, maximumFractionDigits: 2 })}`,
+                period: isAnnual ? 'per year' : 'per month',
+                yearlyPrice: isAnnual
+                    ? `$${priceNum.toLocaleString(undefined, { minimumFractionDigits: priceNum % 1 ? 2 : 0, maximumFractionDigits: 2 })}`
+                    : `$${Math.round(priceNum * 12 * 0.8).toLocaleString()}`,
+                description: row.description || '',
+                features,
+                commitment: `${cycle} subscription.`,
+                max_users: row.maxUsers,
+                status: row.isActive ? 'active' : 'inactive',
+            };
+        });
+    }, [plansResponse]);
 
     const [activatingPlan, setActivatingPlan] = useState(null);
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
@@ -67,9 +103,7 @@ const Plans = () => {
         }, 1500);
     };
 
-    React.useEffect(() => {
-        fetchAccessPlans();
-    }, [fetchAccessPlans]);
+    // fetchAccessPlans not needed due to React Query
 
     return (
         <div className="space-y-12 pb-12">

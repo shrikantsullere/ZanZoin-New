@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 import { resolvePortalRole } from '../../utils/authUtils';
 import { shouldDenyStaffLogin } from '../../utils/staffLoginGate';
 
@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
   const [otpValue, setOtpValue] = useState(''); // Store OTP momentarily for testing
 
   const demoCredentials = {
-    'superadmin': { email: 'admin@zanezion.com',      password: 'superadmin' },
+    'superadmin': { email: 'admin@zanezion.com',      password: 'Admin@123' },
     'admin':      { email: 'admin@example.com',       password: 'admin' },
     'procurement': { email: 'procurement@example.com', password: 'procurement' },
     'operations': { email: 'operation@example.com',   password: 'operations' },
@@ -52,48 +52,13 @@ const Login = ({ onLogin }) => {
     { id: 'staff', label: 'Field Staff', icon: Smartphone, color: 'bg-orange-500' },
   ];
 
-  const handleLogin = async (e) => {
-    if (e) e.preventDefault();
+  const performLogin = async (loginEmail, loginPassword) => {
     setLoading(true);
     setError(null);
-
-    // Bypass backend for dummy credentials
-    const dummyRole = Object.keys(demoCredentials).find(
-      role => demoCredentials[role].email === String(email || '').trim() && demoCredentials[role].password === password
-    );
-
-    if (dummyRole) {
-      const userData = {
-        id: `dummy-${dummyRole}`,
-        email: demoCredentials[dummyRole].email,
-        firstName: dummyRole.charAt(0).toUpperCase() + dummyRole.slice(1),
-        lastName: 'User',
-        role: dummyRole,
-        status: 'active'
-      };
-      
-      localStorage.setItem('token', `dummy-token-${dummyRole}`);
-      localStorage.setItem('userRole', dummyRole);
-      localStorage.setItem('userEmail', userData.email);
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('menuPermissions', JSON.stringify([]));
-
-      setMenuPermissions([]);
-      setCurrentUser(userData);
-      onLogin(dummyRole);
-
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 50);
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Real API login (trim email — trailing space breaks lookup)
       const res = await api.post('/auth/login', {
-        email: String(email || '').trim(),
-        password,
+        email: String(loginEmail || '').trim(),
+        password: loginPassword,
       });
 
       if (res.data?.success) {
@@ -148,6 +113,11 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+    await performLogin(email, password);
+  };
+
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -197,7 +167,7 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  const handleQuickLogin = (role) => {
+  const handleQuickLogin = async (role) => {
     const credentials = demoCredentials[role];
     if (credentials) {
       setEmail(credentials.email);
@@ -205,29 +175,7 @@ const Login = ({ onLogin }) => {
       setError(null);
       
       // Auto-submit login with these credentials directly
-      setLoading(true);
-      const userData = {
-        id: `dummy-${role}`,
-        email: credentials.email,
-        firstName: role.charAt(0).toUpperCase() + role.slice(1),
-        lastName: 'User',
-        role: role,
-        status: 'active'
-      };
-      
-      localStorage.setItem('token', `dummy-token-${role}`);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userEmail', userData.email);
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('menuPermissions', JSON.stringify([]));
-
-      setMenuPermissions([]);
-      setCurrentUser(userData);
-      onLogin(role);
-
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 50);
+      await performLogin(credentials.email, credentials.password);
     } else {
       setError(`Credentials for ${role} not found.`);
     }

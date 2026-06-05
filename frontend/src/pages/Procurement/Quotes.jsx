@@ -13,6 +13,8 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Common/Pagination';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuotes } from '../../hooks/api/useProcurement';
+import { RefreshCcw } from 'lucide-react';
 
 /** API may return items as JSON string, object, or array — form always uses [{ name, qty, price }]. */
 function normalizeQuoteItems(items) {
@@ -45,18 +47,18 @@ function normalizeQuoteItems(items) {
 }
 
 const Quotes = () => {
-  const { quotes, vendors, addQuote, updateQuote, deleteQuote, addOrder, fetchQuotes, hasMenuPermission, currentUser } = useData();
+  const { vendors, addQuote, updateQuote, deleteQuote, addOrder, hasMenuPermission, currentUser } = useData();
   const location = useLocation();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const { data: quotesData, isLoading, error } = useQuotes(page, 10, searchTerm);
+  const quotes = quotesData?.data || [];
+  const meta = quotesData?.meta || { totalPages: 1, totalItems: 0 };
 
   const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isCustomer = ['customer', 'saas_client', 'client'].includes(userRole);
-
-  React.useEffect(() => {
-    fetchQuotes({ search: searchTerm });
-  }, [fetchQuotes, searchTerm]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
@@ -92,9 +94,8 @@ const Quotes = () => {
   }, [location.search, location.pathname, navigate]);
 
   const filteredQuotes = quotes;
-  const itemsPerPage = 10;
-  const currentQuotes = filteredQuotes.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredQuotes.length / itemsPerPage);
+  const currentQuotes = quotes; // API already paginates
+  const totalPages = meta.totalPages;
 
   const handleAction = (type, quote) => {
     setSelectedQuote(quote);
@@ -345,43 +346,49 @@ const Quotes = () => {
           </div>
         </div>
 
-        <Table
-          columns={columns}
-          data={currentQuotes}
-          actions={true}
-          customAction={(quote) => (
-            <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePrint(quote); }}
-              className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
-              title="Print / download quote"
-            >
-              <Printer size={16} />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); handleDownloadPdf(quote); }}
-              className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
-              title="Download quote PDF"
-            >
-              <HardDrive size={16} />
-            </button>
-            </div>
-          )}
-          onView={(item) => handleAction('view', item)}
-          onEdit={(item) => handleAction('edit', item)}
-          onDelete={(item) => handleAction('delete', item)}
-          canEdit={!isCustomer && hasMenuPermission('Quotes', 'can_edit')}
-          canDelete={!isCustomer && hasMenuPermission('Quotes', 'can_delete')}
-        />
-        {filteredQuotes.length > itemsPerPage && (
-          <div className="mt-6 border-t border-white/5 pt-6">
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              totalItems={filteredQuotes.length}
+        {isLoading ? (
+          <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+        ) : error ? (
+          <div className="text-danger p-4">Failed to load quotes.</div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              data={currentQuotes}
+              actions={true}
+              customAction={(quote) => (
+                <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handlePrint(quote); }}
+                  className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
+                  title="Print / download quote"
+                >
+                  <Printer size={16} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDownloadPdf(quote); }}
+                  className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
+                  title="Download quote PDF"
+                >
+                  <HardDrive size={16} />
+                </button>
+                </div>
+              )}
+              onView={(item) => handleAction('view', item)}
+              onEdit={(item) => handleAction('edit', item)}
+              onDelete={(item) => handleAction('delete', item)}
+              canEdit={!isCustomer && hasMenuPermission('Quotes', 'can_edit')}
+              canDelete={!isCustomer && hasMenuPermission('Quotes', 'can_delete')}
             />
-          </div>
+            <div className="mt-6 border-t border-white/5 pt-6">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                totalItems={meta.totalItems}
+              />
+            </div>
+          </>
         )}
       </div>
 

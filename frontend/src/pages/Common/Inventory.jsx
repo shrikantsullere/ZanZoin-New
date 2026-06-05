@@ -4,12 +4,14 @@ import Table from '../../components/Table';
 import KpiCard from '../../components/KpiCard';
 import Modal from '../../components/Modal';
 import { useData } from '../../context/GlobalDataContext';
-import { Package, AlertTriangle, ArrowUp, Plus, MapPin, Box, Warehouse, ClipboardCheck, History, DollarSign, Calendar, ClipboardList, Image as ImageIcon } from 'lucide-react';
+import { Package, AlertTriangle, ArrowUp, Plus, MapPin, Box, Warehouse, ClipboardCheck, History, DollarSign, Calendar, ClipboardList, Image as ImageIcon, RefreshCcw } from 'lucide-react';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import Pagination from '../../components/Common/Pagination';
 import StatusBadge from '../../components/StatusBadge';
 import { CLIENTS as CLIENTS_SEED, marketplaceCategorySelectOptions, normalizeToMarketplaceCategory, canonicalMarketplaceCategory } from '../../utils/data';
 import { useLocation } from 'react-router-dom';
 import { toAbsoluteImageUrl } from '../../utils/api';
+import { useItems, useWarehouses } from '../../hooks/api/useInventory';
 
 /** Normalize for enum match (handles spaces / casing). */
 function normClientEnum(v) {
@@ -34,15 +36,23 @@ function isSaaSPortfolioClient(c) {
 
 const Inventory = () => {
   const location = useLocation();
-  const { inventory, addInventory, updateInventory, deleteInventory, users, currentUser, marketplaceVendors = [], stockMovements, addStockEntry, issueStock, projects, purchaseRequests, addPurchaseRequest, updateProject, recordLoss, clients, fetchInventory, fetchClients, fetchVendors, hasMenuPermission, warehouses, fetchWarehouses, fetchPurchaseRequests } = useData();
+  const { addInventory, updateInventory, deleteInventory, users, currentUser, marketplaceVendors = [], stockMovements, addStockEntry, issueStock, projects, purchaseRequests, addPurchaseRequest, updateProject, recordLoss, clients, fetchClients, fetchVendors, hasMenuPermission, fetchPurchaseRequests } = useData();
+
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const { data: itemsData, isLoading, error } = useItems(page, 10, searchTerm);
+  const inventory = itemsData?.data || [];
+  const meta = itemsData?.meta || { totalPages: 1, totalItems: 0 };
+  
+  const { data: warehousesData } = useWarehouses();
+  const warehouses = warehousesData?.data || [];
 
   React.useEffect(() => {
-    fetchInventory();
     fetchClients();
     fetchVendors();
-    fetchWarehouses();
     fetchPurchaseRequests();
-  }, [fetchInventory, fetchClients, fetchVendors, fetchWarehouses, fetchPurchaseRequests]);
+  }, [fetchClients, fetchVendors, fetchPurchaseRequests]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -398,34 +408,45 @@ const Inventory = () => {
                 </div>
               )}
             </div>
-            <Table
-              columns={columns}
-              data={displayedInventory}
-              actions={true}
-              onView={(item) => handleAction('view', item)}
-              onEdit={(item) => handleAction('edit', item)}
-              onDelete={(item) => handleAction('delete', item)}
-              canEdit={hasMenuPermission('Inventory', 'can_edit')}
-              canDelete={hasMenuPermission('Inventory', 'can_delete')}
-              customAction={(item) => (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleAction('issue', item)}
-                    className="p-2 hover:bg-accent/10 text-accent rounded-lg transition-colors"
-                    title="Issue this item"
-                  >
-                    <ArrowUp size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleAction('loss', item)}
-                    className="p-2 hover:bg-danger/10 text-danger rounded-lg transition-colors"
-                    title="Record Loss"
-                  >
-                    <AlertTriangle size={16} />
-                  </button>
+            {isLoading ? (
+              <div className="flex justify-center p-12"><RefreshCcw className="animate-spin text-accent" /></div>
+            ) : error ? (
+              <div className="text-danger p-4">Failed to load inventory.</div>
+            ) : (
+              <>
+                <Table
+                  columns={columns}
+                  data={displayedInventory}
+                  actions={true}
+                  onView={(item) => handleAction('view', item)}
+                  onEdit={(item) => handleAction('edit', item)}
+                  onDelete={(item) => handleAction('delete', item)}
+                  canEdit={hasMenuPermission('Inventory', 'can_edit')}
+                  canDelete={hasMenuPermission('Inventory', 'can_delete')}
+                  customAction={(item) => (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleAction('issue', item)}
+                        className="p-2 hover:bg-accent/10 text-accent rounded-lg transition-colors"
+                        title="Issue this item"
+                      >
+                        <ArrowUp size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleAction('loss', item)}
+                        className="p-2 hover:bg-danger/10 text-danger rounded-lg transition-colors"
+                        title="Record Loss"
+                      >
+                        <AlertTriangle size={16} />
+                      </button>
+                    </div>
+                  )}
+                />
+                <div className="mt-6 border-t border-white/5 pt-6">
+                  <Pagination currentPage={page} totalPages={meta.totalPages} onPageChange={setPage} totalItems={meta.totalItems} />
                 </div>
-              )}
-            />
+              </>
+            )}
           </div>
 
           <div className="glass-card p-6 border-accent/10">

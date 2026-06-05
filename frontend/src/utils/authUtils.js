@@ -6,8 +6,11 @@
  */
 export const normalizeRole = (role) => {
     if (!role) return 'staff';
-
-    const r = role.toLowerCase().trim();
+    
+    // If role is an object (e.g., Prisma relation), extract its name
+    const roleStr = typeof role === 'object' ? (role.name || role.label || '') : String(role);
+    
+    const r = roleStr.toLowerCase().trim();
 
     if (r.includes('superadmin') || r.includes('super admin') || r.includes('super_admin')) return 'superadmin';
     // 'admin' = either ZaneZion internal manager OR SaaS tenant admin — both get full access

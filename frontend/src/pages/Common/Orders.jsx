@@ -33,8 +33,15 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: ordersData, isLoading, error } = useOrders(page, 10, searchTerm);
-  const orders = ordersData?.data || [];
-  const meta = ordersData?.meta || { totalPages: 1, totalItems: 0 };
+  const orders = ordersData?.data?.orders || [];
+  const pagination = ordersData?.data
+    ? {
+        page: ordersData.data.page || 1,
+        total: ordersData.data.total || 0,
+        limit: 10,
+        totalPages: ordersData.data.totalPages || 1,
+      }
+    : null;
   const updateOrderStatusMutation = useUpdateOrderStatus();
 
   React.useEffect(() => {
@@ -86,9 +93,7 @@ const Orders = () => {
     }
   };
 
-  const filteredOrders = orders;
   const currentOrders = orders;
-  const totalPages = meta.totalPages;
 
   const handleAction = (type, order) => {
     setSelectedOrder(order);
@@ -297,6 +302,8 @@ const Orders = () => {
           <Table
             columns={columns}
             data={currentOrders}
+            pagination={pagination}
+            onPageChange={setPage}
             actions={true}
             onView={(item) => handleAction('view', item)}
             onEdit={(item) => handleAction('edit', item)}

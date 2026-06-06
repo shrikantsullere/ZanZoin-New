@@ -31,8 +31,8 @@ const Vendors = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredVendors = vendors.filter(v =>
-    v.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (v.companyName || v.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (v.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(v.id).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -60,8 +60,8 @@ const Vendors = () => {
     setModalType(type);
     setFormData(vendor.id ? {
       ...vendor,
-      name: vendor.name ?? vendor.vendor_name ?? vendor.business_name ?? vendor.company_name ?? '',
-      contact: vendor.contact ?? vendor.contact_name ?? vendor.contactPerson ?? '',
+      name: vendor.companyName ?? vendor.name ?? vendor.vendor_name ?? vendor.business_name ?? vendor.company_name ?? '',
+      contact: vendor.contactPerson ?? vendor.contact ?? vendor.contact_name ?? '',
     } : { name: '', rating: 90, delivery: 90, category: 'General', contact: '', address: '', phone: '', email: '' });
     setIsModalOpen(true);
   };
@@ -176,8 +176,8 @@ const Vendors = () => {
   };
 
   const columns = [
-    { header: "Vendor Name", accessor: "name" },
-    { header: "Contact Person", accessor: "contact" },
+    { header: "Vendor Name", accessor: "name", render: (row) => row.companyName || row.name || row.business_name || row.company_name || 'N/A' },
+    { header: "Contact Person", accessor: "contact", render: (row) => row.contactPerson || row.contact || row.contact_name || 'N/A' },
     { header: "Phone Number", accessor: "phone" },
     { header: "Email", accessor: "email" },
     {
@@ -308,7 +308,7 @@ const Vendors = () => {
               <Store size={32} className="text-accent" />
             </div>
             <div>
-              <h4 className="text-xl font-bold font-heading italic">{spotlightVendor?.name || 'No active vendors'}</h4>
+              <h4 className="text-xl font-bold font-heading italic">{spotlightVendor?.companyName || spotlightVendor?.name || 'No active vendors'}</h4>
               <div className="flex items-center gap-1 text-accent">
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} fill={i <= ((spotlightVendor?.rating || 0) / 20) ? "currentColor" : "none"} />)}
               </div>

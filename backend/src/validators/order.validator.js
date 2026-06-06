@@ -11,7 +11,10 @@ const orderItemSchema = z.object({
 }).passthrough();
 
 export const createOrderSchema = z.object({
-  clientId: z.number().int().positive('Client ID is required'),
+  clientId: z.number({
+    required_error: "Client selection is required",
+    invalid_type_error: "Client ID must be a number",
+  }).int().positive('Client ID must be a positive number'),
   priority: z.enum(['normal', 'high', 'urgent']).optional().default('normal'),
   items: z.array(z.any()).optional()
 }).passthrough();

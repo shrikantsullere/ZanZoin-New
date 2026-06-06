@@ -5,10 +5,30 @@ export const createUser = async (req, res, next) => {
   try {
     const data = req.body;
     // ensure tenant isolation
-    data.tenantId = req.user.tenantId; 
+    data.tenantId = req.user.tenantId || data.tenantId || 1; 
+
+    // robust payload prep for prisma
+    const payload = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      roleId: Number(data.roleId),
+      phone: data.phone || null,
+      tenantId: data.tenantId,
+      status: data.status || 'Active',
+      vacationBalance: data.vacationBalance ? Number(data.vacationBalance) : 0,
+      birthday: data.birthday ? new Date(data.birthday) : null,
+      nibNumber: data.nibNumber || null,
+      employmentStatus: data.employmentStatus || 'Full Time',
+      hasPassport: !!data.hasPassport,
+      hasLicense: !!data.hasLicense,
+      hasNIB: !!data.hasNIB,
+      hasResume: !!data.hasResume,
+      bankingInfo: data.bankingInfo || {}
+    };
 
     const user = await userService.createUser(
-      data, 
+      payload, 
       req.user.id, 
       req.ip, 
       req.headers['user-agent']
@@ -67,7 +87,23 @@ export const updateUser = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const updatedUser = await userService.updateUser(Number(req.params.id), req.body, tenantIdToFilter, req.ip, req.headers['user-agent']);
+    const data = req.body;
+    const payload = {};
+    if (data.name !== undefined) payload.name = data.name;
+    if (data.phone !== undefined) payload.phone = data.phone;
+    if (data.roleId !== undefined && data.roleId) payload.roleId = Number(data.roleId);
+    if (data.status !== undefined) payload.status = data.status;
+    if (data.vacationBalance !== undefined) payload.vacationBalance = Number(data.vacationBalance) || 0;
+    if (data.birthday !== undefined) payload.birthday = data.birthday ? new Date(data.birthday) : null;
+    if (data.nibNumber !== undefined) payload.nibNumber = data.nibNumber || null;
+    if (data.employmentStatus !== undefined) payload.employmentStatus = data.employmentStatus || 'Full Time';
+    if (data.hasPassport !== undefined) payload.hasPassport = !!data.hasPassport;
+    if (data.hasLicense !== undefined) payload.hasLicense = !!data.hasLicense;
+    if (data.hasNIB !== undefined) payload.hasNIB = !!data.hasNIB;
+    if (data.hasResume !== undefined) payload.hasResume = !!data.hasResume;
+    if (data.bankingInfo !== undefined) payload.bankingInfo = data.bankingInfo || {};
+
+    const updatedUser = await userService.updateUser(Number(req.params.id), payload, tenantIdToFilter, req.ip, req.headers['user-agent']);
     sendResponse(res, 200, 'User updated successfully', updatedUser);
   } catch (error) {
     next(error);

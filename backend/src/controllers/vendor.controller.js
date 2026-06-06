@@ -3,7 +3,26 @@ import { sendResponse } from '../utils/response.js';
 
 export const createVendor = async (req, res, next) => {
   try {
-    const vendor = await vendorService.createVendor(req.body, req.user.id, req.user.tenantId);
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    let tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+
+    if (!tenantIdToUse) {
+      tenantIdToUse = 1; // Fallback to a default tenant ID if none provided
+    }
+
+    const payload = req.body;
+    
+    const vendorData = {
+      vendorCode: payload.vendorCode || `VND-${Date.now().toString().slice(-6)}`,
+      companyName: payload.companyName || payload.name || "Unknown Company",
+      contactPerson: payload.contactPerson || payload.contact || null,
+      email: payload.email,
+      phone: payload.phone || null,
+      address: payload.address || null,
+      status: payload.status || "active"
+    };
+
+    const vendor = await vendorService.createVendor(vendorData, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Vendor created successfully', vendor);
   } catch (error) {
     next(error);
@@ -39,7 +58,20 @@ export const updateVendor = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const updatedVendor = await vendorService.updateVendor(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    const payload = req.body;
+    const vendorData = {};
+
+    if (payload.vendorCode !== undefined) vendorData.vendorCode = payload.vendorCode;
+    if (payload.companyName !== undefined) vendorData.companyName = payload.companyName;
+    if (payload.name !== undefined && !vendorData.companyName) vendorData.companyName = payload.name;
+    if (payload.contactPerson !== undefined) vendorData.contactPerson = payload.contactPerson;
+    if (payload.contact !== undefined && !vendorData.contactPerson) vendorData.contactPerson = payload.contact;
+    if (payload.email !== undefined) vendorData.email = payload.email;
+    if (payload.phone !== undefined) vendorData.phone = payload.phone;
+    if (payload.address !== undefined) vendorData.address = payload.address;
+    if (payload.status !== undefined) vendorData.status = payload.status;
+
+    const updatedVendor = await vendorService.updateVendor(Number(req.params.id), vendorData, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Vendor updated successfully', updatedVendor);
   } catch (error) {
     next(error);

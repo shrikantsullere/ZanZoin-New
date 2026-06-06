@@ -23,6 +23,14 @@ model User {
   avatar    String?
   status    String    @default("active")
   vacationBalance Int @default(0)
+  birthday          DateTime?
+  nibNumber         String?
+  employmentStatus  String?
+  hasPassport       Boolean   @default(false)
+  hasLicense        Boolean   @default(false)
+  hasNIB            Boolean   @default(false)
+  hasResume         Boolean   @default(false)
+  bankingInfo       Json?
   lastLogin DateTime?
   resetToken       String?
   resetTokenExpiry DateTime?

@@ -212,19 +212,19 @@ const Clients = () => {
   const handleEdit = (client) => {
     setSelectedClient(client);
     setFormData({
-      name: client.name || client.business_name || '',
+      name: client.companyName || client.name || client.business_name || '',
       email: client.email || '',
       phone: client.phone || '',
       password: '',
-      location: client.location || client.country || '',
+      location: client.city || client.location || client.country || '',
       source: client.source || 'Manual',
       clientType: client.clientType || client.client_type || 'SaaS',
       companyName: client.companyName || client.company_name || client.business_name || '',
-      logo: client.logo || client.logo_url || '',
+      logo: client.logoUrl || client.logo || client.logo_url || '',
       plan: client.plan || 'Starter',
       billingCycle: client.billingCycle || client.billing_cycle || 'Monthly',
       paymentMethod: client.paymentMethod || client.payment_method || 'Wire Transfer',
-      contact: client.contact || client.contact_person || '',
+      contact: client.contactPerson || client.contact || client.contact_person || '',
       address: client.address || '',
       status: client.status || 'active'
     });
@@ -307,7 +307,7 @@ const Clients = () => {
   };
 
   const handleDelete = async (client) => {
-    { const _r = await swalConfirm('Remove Client', `Remove ${client.name || client.business_name}? This cannot be undone.`); if (!_r.isConfirmed) return; }
+    { const _r = await swalConfirm('Remove Client', `Remove ${client.companyName || client.name || client.business_name}? This cannot be undone.`); if (!_r.isConfirmed) return; }
 
     try {
       if (client.isRequest) {
@@ -345,7 +345,7 @@ const Clients = () => {
   const handleExport = () => {
     const headers = ['Name', 'Email', 'Phone', 'Status', 'Plan', 'Location', 'Source'].join(',');
     const rows = filteredClients.map(c => [
-      `"${c.name || c.business_name || ''}"`,
+      `"${c.companyName || c.name || c.business_name || ''}"`,
       `"${c.email || ''}"`,
       `"${c.phone || ''}"`,
       `"${c.status || ''}"`,
@@ -526,10 +526,10 @@ const Clients = () => {
                     <td className="p-6">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs uppercase">
-                          {(client.name || client.business_name || 'C')[0]}
+                          {(client.companyName || client.name || client.business_name || 'C')[0]}
                         </div>
                         <div>
-                          <span className="text-sm font-bold text-white uppercase tracking-tight block">{client.name || client.business_name || 'N/A'}</span>
+                          <span className="text-sm font-bold text-white uppercase tracking-tight block">{client.companyName || client.name || client.business_name || 'N/A'}</span>
                           <span className="text-[10px] text-muted font-medium">{client.phone || ''}</span>
                         </div>
                       </div>
@@ -611,7 +611,7 @@ const Clients = () => {
                             onClick={async () => {
                               const isPersonal = client.client_type === 'Personal' || client.clientType === 'Personal';
                               const confirmTitle = isPersonal ? 'Cancel Membership' : 'Cancel Subscription';
-                              const ok = await swalConfirm(confirmTitle, `Cancel plan for ${client.name || client.business_name || client.email}?`);
+                              const ok = await swalConfirm(confirmTitle, `Cancel plan for ${client.companyName || client.name || client.business_name || client.email}?`);
                               if (!ok) return;
                               try {
                                 if (isPersonal) {
@@ -721,10 +721,10 @@ const Clients = () => {
                     {/* Client Header Card */}
                     <div className="flex items-center gap-5 p-6 bg-white/[0.03] border border-white/5 rounded-2xl">
                       <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center text-accent font-black text-2xl uppercase">
-                        {(selectedClient.name || selectedClient.business_name || 'C')[0]}
+                        {(selectedClient.companyName || selectedClient.name || selectedClient.business_name || 'C')[0]}
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-lg font-black text-white uppercase tracking-tight">{selectedClient.name || selectedClient.business_name}</h4>
+                        <h4 className="text-lg font-black text-white uppercase tracking-tight">{selectedClient.companyName || selectedClient.name || selectedClient.business_name}</h4>
                         <p className="text-xs text-secondary mt-1">{selectedClient.email}</p>
                         <div className="flex items-center gap-3 mt-2">
                           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedClient.status)}`}>

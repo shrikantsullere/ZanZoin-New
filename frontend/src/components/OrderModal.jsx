@@ -234,6 +234,11 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
             window.alert('Only staff can create orders. Customers can use Marketplace and view their orders.');
             return;
         }
+        if (!formData.clientId) {
+            window.alert('Please select a client');
+            return;
+        }
+
         const requestDate = normalizeIsoDate(formData.requestDate) || todayIso();
         const dueDate = clampDueDateToRequest(requestDate, formData.dueDate);
         const payload = { 

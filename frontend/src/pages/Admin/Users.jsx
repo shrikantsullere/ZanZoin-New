@@ -138,9 +138,10 @@ const Users = () => {
       });
     } else {
       // New user — empty form
+      const adminRole = (roles || []).find(r => r.name === 'ADMIN');
       setFormData({
         name: '', email: '', phone: '', password: '',
-        roleId: '',
+        roleId: adminRole ? adminRole.id : '',
         status: 'Active',
         birthday: '', nibNumber: '', vacationBalance: 0,
         employmentStatus: 'Full Time',
@@ -154,11 +155,26 @@ const Users = () => {
   const handleSave = async () => {
     if (modalType === 'add') {
       if (!formData.name || !formData.email || !formData.password) {
-        alert('Name, Email aur Password required hai.');
+        alert('Name, Email and Password are required.');
         return;
       }
+      if (formData.password.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+      let roleIdToSubmit = formData.roleId;
+      if (!roleIdToSubmit) {
+        const adminRole = (roles || []).find(r => r.name === 'ADMIN');
+        if (adminRole) {
+          roleIdToSubmit = adminRole.id;
+        } else {
+          alert('Admin role could not be loaded. Please refresh the page.');
+          return;
+        }
+      }
+
       try {
-        const payload = { ...formData, tenantId: currentUser?.tenantId || 1 };
+        const payload = { ...formData, roleId: Number(roleIdToSubmit), tenantId: currentUser?.tenantId || 1 };
         const rawCompanyId = payload.company_id ?? payload.companyId;
         const parsedCompanyId = Number(rawCompanyId);
         if (
@@ -951,13 +967,17 @@ const Users = () => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Role</label>
                   <select
-                    value={formData.roleId}
+                    value={formData.roleId || (roles || []).find(r => r.name === 'ADMIN')?.id || ''}
                     onChange={(e) => setFormData({ ...formData, roleId: Number(e.target.value) })}
-                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
-                    disabled={modalType === 'view' || isSuperAdmin}
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none cursor-not-allowed opacity-70"
+                    disabled={true}
                   >
-                    {(roles || []).filter(r => isSuperAdmin || r.name !== 'superadmin').map(r => (
-                      <option key={r.id} value={r.id}>{r.name.replace(/_/g, ' ').toUpperCase()}</option>
+                    {(roles || [])
+                      .filter(r => r.name === 'ADMIN' || formData.roleId === r.id)
+                      .map(r => (
+                      <option key={r.id} value={r.id}>
+                        {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ').toUpperCase()}
+                      </option>
                     ))}
                   </select>
                 </div>

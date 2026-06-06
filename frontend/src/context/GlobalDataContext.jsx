@@ -1503,8 +1503,10 @@ export const GlobalDataProvider = ({ children }) => {
       const url = `/users/customers${params.toString() ? `?${params.toString()}` : ""}`;
       const res = await api.get(url);
       if (res.data?.success) {
-        setCustomerUsers(res.data.data);
-        return res.data.data;
+        // Extract array if backend returned paginated object { users: [...] }
+        const usersArray = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.users || []);
+        setCustomerUsers(usersArray);
+        return usersArray;
       }
     } catch (e) {
       console.error("Fetch customer users failed", e);
@@ -2348,8 +2350,6 @@ export const GlobalDataProvider = ({ children }) => {
   useEffect(() => {
     if (!currentUser || !localStorage.getItem("token")) return;
     fetchTickets();
-    const interval = setInterval(fetchTickets, 10000); // Poll every 10 seconds for real-time updates
-    return () => clearInterval(interval);
   }, [currentUser, fetchTickets]);
 
   // Keep cross-portal operational state in sync when another role changes an order or delivery.

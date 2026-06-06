@@ -3,6 +3,21 @@ import { sendResponse } from '../utils/response.js';
 
 export const createOrder = async (req, res, next) => {
   try {
+    const { clientId } = req.body;
+    
+    // Explicitly validate clientId to prevent Prisma crashes
+    const parsedClientId = clientId ? Number(clientId) : null;
+    
+    if (!parsedClientId || isNaN(parsedClientId) || parsedClientId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Client selection is required",
+        field: "clientId"
+      });
+    }
+
+    req.body.clientId = parsedClientId;
+
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
 

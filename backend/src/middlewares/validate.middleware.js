@@ -13,10 +13,13 @@ export const validate = (schema) => (req, res, next) => {
     }
     next();
   } catch (err) {
-    if (err.errors) {
-      const errorMessages = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+    if (err && err.errors) {
+      const errorMessages = err.errors.map((e) => {
+        const field = e.path[e.path.length - 1];
+        return `${field}: ${e.message}`;
+      }).join(', ');
       return sendResponse(res, 400, `Validation Failed: ${errorMessages}`);
     }
-    return sendResponse(res, 400, `Validation Error: ${err.message}`);
+    return sendResponse(res, 400, `Validation Error: ${err.message || err}`);
   }
 };

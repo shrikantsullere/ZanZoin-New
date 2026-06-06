@@ -80,8 +80,24 @@ export const createOrder = async (data, performerId, tenantId) => {
   }
 
   const client = await clientRepo.findClientById(data.clientId);
-  if (!client || (tenantId !== null && client.tenantId !== tenantId)) {
-    throw new AppError('Client not found', 404);
+  
+  // Detailed logging as requested
+  console.log(`[Order Creation] Received clientId: ${data.clientId}, tenantId: ${tenantId}`);
+  console.log(`[Order Creation] Prisma query result:`, client ? `Found (ID: ${client.id}, Tenant: ${client.tenantId}, Status: ${client.status})` : 'Null');
+
+  if (!client) {
+    throw new AppError('Selected client does not exist', 404);
+  }
+
+  // Filter out soft-deleted or inactive clients
+  if (client.status === 'deleted' || client.status === 'inactive') {
+    throw new AppError('Selected client does not exist', 404);
+  }
+
+  // Ensure strict tenant isolation using Number casting to prevent type mismatch (string vs int)
+  if (tenantId !== null && Number(client.tenantId) !== Number(tenantId)) {
+    console.error(`[Order Creation] Tenant mismatch! Client belongs to ${client.tenantId}, request from ${tenantId}`);
+    throw new AppError('Selected client does not exist', 404);
   }
 
   // Fetch employee creator ID

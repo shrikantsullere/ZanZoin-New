@@ -166,7 +166,7 @@ const Warehouses = () => {
                   >
                     <option value="">Select facility manager…</option>
                     {(users || []).filter(u => u?.name).map(u => (
-                      <option key={u.id} value={String(u.id)}>{u.name}{u.role ? ` (${u.role})` : ''}</option>
+                      <option key={u.id} value={String(u.id)}>{u.name}{u.role ? ` (${u.role?.name || u.role})` : ''}</option>
                     ))}
                   </select>
                 </div>

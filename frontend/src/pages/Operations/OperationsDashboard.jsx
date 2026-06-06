@@ -402,7 +402,7 @@ const OperationsDashboard = () => {
                 >
                   <option value="">Operational Queue (Unassigned)</option>
                   {users.filter(u => u.role !== 'Client').map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    <option key={u.id} value={u.id}>{u.name} ({String(u.role?.name || u.role || '')})</option>
                   ))}
                 </select>
               </div>

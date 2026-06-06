@@ -19,6 +19,16 @@ export const getPlans = async (req, res, next) => {
   }
 };
 
+export const getPublicPlans = async (req, res, next) => {
+  try {
+    // Force isActive to 'true' for public requests
+    const plans = await planService.getPlans({ ...req.query, isActive: 'true', limit: 100 });
+    sendResponse(res, 200, 'Public plans fetched successfully', plans);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getPlanById = async (req, res, next) => {
   try {
     const plan = await planService.getPlanById(Number(req.params.id));

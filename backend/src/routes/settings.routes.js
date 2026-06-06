@@ -11,6 +11,9 @@ router.use(authenticate);
 router.get('/system', settingsController.getSystemSettings);
 router.put('/system', settingsController.updateSystemSettings);
 
+router.get('/user/notifications', settingsController.getUserNotifications);
+router.put('/user/notifications', settingsController.updateUserNotifications);
+
 router.get('/', checkPermission('SETTINGS', 'READ'), settingsController.getSettings);
 router.put('/:key', checkPermission('SETTINGS', 'UPDATE'), validate(updateSettingSchema), settingsController.updateSetting);
 

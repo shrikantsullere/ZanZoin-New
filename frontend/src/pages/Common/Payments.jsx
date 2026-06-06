@@ -20,8 +20,9 @@ const Payments = () => {
         }
     });
 
-    const payments = paymentsData?.data || [];
-    const meta = paymentsData?.meta || { totalPages: 1, totalItems: 0 };
+    const payments = paymentsData?.data?.payments || [];
+    const totalItems = paymentsData?.data?.total || 0;
+    const totalPages = paymentsData?.data?.totalPages || 1;
 
     const columns = [
         { header: "Payment ID", accessor: "id" },
@@ -93,13 +94,13 @@ const Payments = () => {
                                 </button>
                             )}
                         />
-                        {meta.totalItems > 10 && (
+                        {totalItems > 10 && (
                             <div className="mt-6 border-t border-white/5 pt-6">
                                 <Pagination
                                     currentPage={page}
-                                    totalPages={meta.totalPages}
+                                    totalPages={totalPages}
                                     onPageChange={setPage}
-                                    totalItems={meta.totalItems}
+                                    totalItems={totalItems}
                                 />
                             </div>
                         )}

@@ -15,14 +15,15 @@ import Pagination from '../../components/Common/Pagination';
 import { normalizeRole } from '../../utils/authUtils';
 
 const Invoices = () => {
-    const { orders, clients, customerUsers, currentUser, fetchOrders, fetchClients, fetchCustomerUsers, hasMenuPermission } = useData();
+    const { orders, deliveries, clients, customerUsers, currentUser, fetchOrders, fetchDeliveries, fetchClients, fetchCustomerUsers, hasMenuPermission } = useData();
 
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
 
     const { data: invoicesData, isLoading, error } = useInvoices(page, 10, searchTerm);
-    const invoices = invoicesData?.data || [];
-    const meta = invoicesData?.meta || { totalPages: 1, totalItems: 0 };
+    const invoices = invoicesData?.data?.invoices || [];
+    const totalItems = invoicesData?.data?.total || 0;
+    const totalPages = invoicesData?.data?.totalPages || 1;
     
     const createInvoiceMutation = useCreateInvoice();
     const updateInvoiceStatusMutation = useUpdateInvoiceStatus();
@@ -30,9 +31,10 @@ const Invoices = () => {
 
     React.useEffect(() => {
         fetchOrders();
+        fetchDeliveries();
         fetchClients();
         fetchCustomerUsers();
-    }, [fetchOrders, fetchClients, fetchCustomerUsers]);
+    }, [fetchOrders, fetchDeliveries, fetchClients, fetchCustomerUsers]);
 
     // Merge company clients + personal customers for the dropdown
     const allClientsForDropdown = React.useMemo(() => {
@@ -73,24 +75,47 @@ const Invoices = () => {
 
     const filteredInvoices = invoices;
     const currentInvoices = invoices;
-    const totalPages = meta.totalPages;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (procurementInvoiceReadOnly && (modalType === 'add' || modalType === 'edit')) return;
-        const client = findClientById(formData.clientId);
         if (modalType === 'add') {
-            await createInvoiceMutation.mutateAsync({
-                deliveryId: formData.orderId, // In phase 9, invoices are generated against a delivery. (mapping orderId -> deliveryId here for now)
-                invoiceItems: [{ 
+            const matchedDelivery = (deliveries || []).find(d => {
+                const rowOrderNum = Number(formData.orderId);
+                const deliveryOrderNum = Number(d?.order_id_raw) || Number(String(d?.orderId ?? '').replace(/\D/g, '')) || null;
+                return rowOrderNum != null && deliveryOrderNum != null && rowOrderNum === deliveryOrderNum;
+            });
+            const deliveryId = matchedDelivery ? Number(matchedDelivery.db_id) : Number(formData.orderId);
+
+            const selectedOrder = orders.find(o => String(o.id) === String(formData.orderId));
+            const items = (selectedOrder?.items && selectedOrder.items.length > 0)
+                ? selectedOrder.items.map(item => ({
+                    itemId: Number(item.itemId || item.id || 1),
+                    quantity: Number(item.quantity || item.qty || 1),
+                    unitPrice: Number(item.unitPrice || item.price || 0),
+                    tax: 0,
+                    discount: 0
+                }))
+                : [{ 
                     itemId: 1, 
                     quantity: 1, 
-                    unitPrice: formData.totalAmount, 
-                    totalPrice: formData.totalAmount 
-                }] // Stub for items
-            }).catch(err => {
-                alert("Failed to generate invoice. Please ensure the order/delivery is completed with POD.");
-            });
+                    unitPrice: Number(formData.totalAmount) || 0,
+                    tax: 0,
+                    discount: 0
+                }];
+
+            const isoDueDate = formData.dueDate ? new Date(formData.dueDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            try {
+                await createInvoiceMutation.mutateAsync({
+                    deliveryId,
+                    dueDate: isoDueDate,
+                    items
+                });
+            } catch (err) {
+                const apiErrorMsg = err.response?.data?.message || err.message || '';
+                alert(`Failed to generate invoice. ${apiErrorMsg || "Please ensure the order/delivery is completed with POD."}`);
+            }
         }
         setIsModalOpen(false);
         setFormData({ orderId: '', clientId: '', totalAmount: 0, paidAmount: 0, status: 'Unpaid', dueDate: '' });
@@ -275,7 +300,7 @@ const Invoices = () => {
                                     currentPage={page}
                                     totalPages={totalPages}
                                     onPageChange={setPage}
-                                    totalItems={meta.totalItems}
+                                    totalItems={totalItems}
                                 />
                             </div>
                         </>

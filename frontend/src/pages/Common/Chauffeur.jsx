@@ -736,7 +736,7 @@ const Chauffeur = () => {
                                                                     const r = String(u.role || '').toLowerCase().replace(/\s+/g, '_');
                                                                     return ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
                                                                 }).map(u => (
-                                                                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                                                                    <option key={u.id} value={u.id}>{u.name} ({String(u.role?.name || u.role || '')})</option>
                                                                 ))}
                                                             </select>
                                                         </div>
@@ -1062,7 +1062,7 @@ const Chauffeur = () => {
                                                                     const r = String(u.role || '').toLowerCase().replace(/\s+/g, '_');
                                                                     return ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
                                                                 }).map(u => (
-                                                                    <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
+                                                                    <option key={u.id} value={u.name}>{u.name} ({String(u.role?.name || u.role || '')})</option>
                                                                 ))}
                                                             </select>
                                                         </div>

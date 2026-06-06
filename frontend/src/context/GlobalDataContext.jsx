@@ -1370,7 +1370,7 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchAccessPlans = React.useCallback(async () => {
     try {
-      const res = await api.get("/saas/plans");
+      const res = await api.get("/plans");
       let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
@@ -1384,37 +1384,51 @@ export const GlobalDataProvider = ({ children }) => {
         return;
       }
       const mapped = rawData.map((row) => {
-        let features = [];
+        let featureObj = {};
         if (row.features != null) {
           try {
-            features =
-              typeof row.features === "string"
-                ? JSON.parse(row.features)
-                : row.features;
+            featureObj = typeof row.features === "string" ? JSON.parse(row.features) : row.features;
           } catch {
-            features = [];
+            featureObj = {};
           }
         }
-        if (!Array.isArray(features)) features = [];
+
+        let featureList = [];
+        let tier = row.billingCycle || row.billing_cycle || "Monthly";
+        let yearlyPriceNum = 0;
+        let commitment = `${tier} subscription.`;
+
+        if (Array.isArray(featureObj)) {
+          featureList = featureObj;
+        } else if (featureObj && typeof featureObj === 'object') {
+          featureList = featureObj.list || [];
+          if (featureObj.tier) tier = featureObj.tier;
+          if (featureObj.yearlyPrice) yearlyPriceNum = parseFloat(featureObj.yearlyPrice);
+          if (featureObj.commitment) commitment = featureObj.commitment;
+        }
+
         const priceNum = parseFloat(row.price || 0);
-        const cycle = row.billing_cycle || "Monthly";
-        const isAnnual = String(cycle).toLowerCase() === "annually";
+        const cycle = row.billing_cycle || row.billingCycle || "Monthly";
+        const isAnnual = String(cycle).toLowerCase() === "annually" || String(cycle).toLowerCase() === "yearly";
+
+        if (!yearlyPriceNum) {
+          yearlyPriceNum = isAnnual ? priceNum : Math.round(priceNum * 12 * 0.8);
+        }
+
         return {
           id: row.id,
           name: row.name,
-          tier: cycle,
+          tier: tier,
           price: `$${priceNum.toLocaleString(undefined, { minimumFractionDigits: priceNum % 1 ? 2 : 0, maximumFractionDigits: 2 })}`,
           period: isAnnual ? "per year" : "per month",
-          yearlyPrice: isAnnual
-            ? `$${priceNum.toLocaleString(undefined, { minimumFractionDigits: priceNum % 1 ? 2 : 0, maximumFractionDigits: 2 })}`
-            : `$${Math.round(priceNum * 12 * 0.8).toLocaleString()}`,
+          yearlyPrice: `$${yearlyPriceNum.toLocaleString(undefined, { minimumFractionDigits: yearlyPriceNum % 1 ? 2 : 0, maximumFractionDigits: 2 })}`,
           description: row.description || "",
-          features,
-          commitment: `${cycle} subscription.`,
+          features: featureList,
+          commitment: commitment,
           billing_cycle: cycle,
-          max_users: row.max_users,
-          max_orders: row.max_orders,
-          status: row.status,
+          max_users: row.maxUsers || row.max_users,
+          max_orders: row.maxOrders || row.max_orders,
+          status: row.isActive ? "Active" : row.status || "Inactive",
         };
       });
       setAccessPlans(mapped);
@@ -2626,7 +2640,23 @@ export const GlobalDataProvider = ({ children }) => {
 
   const addPlan = async (plan) => {
     try {
-      await api.post("/saas/plans", plan);
+      const priceNum = parseFloat(String(plan.price).replace(/[^0-9.-]+/g, "")) || 0;
+      const yearlyPriceNum = parseFloat(String(plan.yearlyPrice).replace(/[^0-9.-]+/g, "")) || 0;
+      const apiPayload = {
+        name: plan.name,
+        description: plan.description || "",
+        price: priceNum,
+        billingCycle: "MONTHLY",
+        maxUsers: 100,
+        maxStorage: 1024,
+        features: {
+          tier: plan.tier || "",
+          yearlyPrice: yearlyPriceNum,
+          commitment: plan.commitment || "",
+          list: plan.features || []
+        }
+      };
+      await api.post("/plans", apiPayload);
       addLog({
         action: "Plan Created",
         detail: `Super Admin created new protocol: ${plan.name}`,
@@ -2635,12 +2665,27 @@ export const GlobalDataProvider = ({ children }) => {
       await fetchAccessPlans();
     } catch (error) {
       console.error("Failed to add access plan:", error);
+      if (!silentUi) window.alert(`Failed to add plan: ${error?.response?.data?.message || error.message}`);
     }
   };
 
   const updatePlan = async (updated) => {
     try {
-      await api.put(`/saas/plans/${updated.id}`, updated);
+      const priceNum = parseFloat(String(updated.price).replace(/[^0-9.-]+/g, "")) || 0;
+      const yearlyPriceNum = parseFloat(String(updated.yearlyPrice).replace(/[^0-9.-]+/g, "")) || 0;
+      const apiPayload = {
+        name: updated.name,
+        description: updated.description || "",
+        price: priceNum,
+        billingCycle: "MONTHLY",
+        features: {
+          tier: updated.tier || "",
+          yearlyPrice: yearlyPriceNum,
+          commitment: updated.commitment || "",
+          list: updated.features || []
+        }
+      };
+      await api.put(`/plans/${updated.id}`, apiPayload);
       addLog({
         action: "Plan Updated",
         detail: `Super Admin modified protocol: ${updated.name}`,
@@ -2649,12 +2694,13 @@ export const GlobalDataProvider = ({ children }) => {
       await fetchAccessPlans();
     } catch (error) {
       console.error("Failed to update access plan:", error);
+      if (!silentUi) window.alert(`Failed to update plan: ${error?.response?.data?.message || error.message}`);
     }
   };
 
   const deletePlan = async (id) => {
     try {
-      await api.delete(`/saas/plans/${id}`);
+      await api.delete(`/plans/${id}`);
       addLog({
         action: "Plan Deleted",
         detail: `Super Admin removed protocol ID: ${id}`,

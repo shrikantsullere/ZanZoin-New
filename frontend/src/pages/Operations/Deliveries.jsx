@@ -883,7 +883,7 @@ const Deliveries = () => {
                     >
                       <option value="">Assign Personnel...</option>
                       {(users || []).filter((u) => isAssignableDeliveryRole(u.role)).map((u) => (
-                        <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
+                        <option key={u.id} value={u.name}>{u.name} ({String(u.role?.name || u.role || '')})</option>
                       ))}
                     </select>
                   </div>

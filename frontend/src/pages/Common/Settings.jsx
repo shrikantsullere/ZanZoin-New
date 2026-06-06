@@ -380,7 +380,7 @@ const Settings = () => {
                           </label>
                           <div className="w-full min-w-0 max-w-full box-border bg-accent/[0.03] border border-accent/20 rounded-xl px-4 sm:px-5 py-3 text-xs text-accent font-black flex flex-wrap items-center gap-2">
                             <Shield size={14} className="shrink-0" />
-                            <span className="tracking-wider truncate">{profile.role?.toUpperCase()}</span>
+                            <span className="tracking-wider truncate">{String(profile.role?.name || profile.role || '').toUpperCase()}</span>
                           </div>
                         </div>
                       </div>
@@ -760,7 +760,7 @@ const Settings = () => {
                   <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-3xl bg-white/[0.01] hover:bg-white/[0.03] transition-all group">
                     <div className="relative mb-4">
                       <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl p-3 group-hover:scale-105 transition-all duration-500">
-                        <img src={branding.logo} className="w-full h-full object-contain brightness-0" alt="Logo Preview" />
+                        {branding.logo ? <img src={branding.logo} className="w-full h-full object-contain brightness-0" alt="Logo Preview" /> : <span className="text-gray-400 text-xs">No Logo</span>}
                       </div>
                     </div>
                     <input

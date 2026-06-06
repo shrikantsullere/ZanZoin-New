@@ -7,7 +7,7 @@ import {
     Calendar, Globe, FileText, Image, Award, AlertCircle, Camera, Truck
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 import { ageFromBirthday } from '../../utils/dateEst';
 
 const StaffSignup = () => {

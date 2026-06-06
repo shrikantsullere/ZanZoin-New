@@ -4,7 +4,7 @@ import Modal from '../../components/Modal';
 import { DollarSign, Plus, Download, Filter, User, Calendar, CreditCard, History, AlertTriangle, Trash2, Clock } from 'lucide-react';
 import StatusBadge from '../../components/StatusBadge';
 import { useData } from '../../context/GlobalDataContext';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 import { normalizeRole } from '../../utils/authUtils';
 
 const Payroll = () => {
@@ -484,3 +484,4 @@ const Payroll = () => {
 };
 
 export default Payroll;
+

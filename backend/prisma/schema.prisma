@@ -68,6 +68,7 @@ model Role {
   users           User[]
   rolePermissions RolePermission[]
   userRoles       UserRole[]
+  roleMenus       RoleMenu[]
 
   @@map("roles")
 }
@@ -93,6 +94,34 @@ model RolePermission {
   permission Permission @relation(fields: [permissionId], references: [id])
 
   @@map("role_permissions")
+}
+
+model Menu {
+  id     Int    @id @default(autoincrement())
+  name   String
+  path   String
+  icon   String
+  module String?
+
+  roleMenus RoleMenu[]
+
+  @@map("menus")
+}
+
+model RoleMenu {
+  id         Int     @id @default(autoincrement())
+  roleId     Int
+  menuId     Int
+  can_view   Boolean @default(false)
+  can_add    Boolean @default(false)
+  can_edit   Boolean @default(false)
+  can_delete Boolean @default(false)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@map("role_menus")
 }
 
 model UserRole {
@@ -315,6 +344,9 @@ model Employee {
   departmentId  Int
   designationId Int
   joiningDate   DateTime
+  vehicleType   String?
+  vehiclePlate  String?
+  vehicleModel  String?
   status        String   @default("active")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -553,6 +585,7 @@ model Item {
   name         String
   description  String?  @db.Text
   reorderLevel Float    @default(0)
+  inventoryType String   @default("INTERNAL") // INTERNAL, MARKETPLACE
   status       String   @default("active")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -655,6 +688,7 @@ model InventoryStock {
   tenantId         Int
   warehouseId      Int
   itemId           Int
+  stockType        String   @default("INTERNAL") // INTERNAL, MARKETPLACE
   quantity         Float    @default(0)
   reservedQuantity Float    @default(0) // Added in Phase 7
   lastUpdated      DateTime @default(now()) @updatedAt
@@ -708,6 +742,12 @@ model Client {
   city          String?
   country       String?
   status        String   @default("active")
+  clientType    String?
+  billingCycle  String?
+  paymentMethod String?
+  plan          String?
+  logoUrl       String?  @db.Text
+  source        String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -750,6 +790,8 @@ model Order {
   createdById Int
   status      String   @default("draft") // draft, submitted, review, approved, ready_for_delivery, rejected, cancelled
   priority    String   @default("normal") // normal, high, urgent
+  orderType   String   @default("PRODUCT") // PRODUCT, CHAUFFEUR, CONCIERGE
+  metadata    Json?
   totalAmount Float    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -759,6 +801,7 @@ model Order {
   creator   Employee    @relation("OrderCreator", fields: [createdById], references: [id])
   items     OrderItem[]
   deliveries Delivery[]
+  missions   Mission[]
   invoices   Invoice[]
 
   @@index([tenantId])
@@ -857,17 +900,21 @@ model Mission {
   id                 Int      @id @default(autoincrement())
   tenantId           Int
   missionNumber      String
-  deliveryId         Int
+  missionType        String   @default("DELIVERY") // DELIVERY, LOGISTICS, CHAUFFEUR
+  deliveryId         Int?
+  orderId            Int?
   assignedEmployeeId Int
   startDate          DateTime?
   endDate            DateTime?
   status             String   @default("assigned") // assigned, in_progress, completed, cancelled
+  metadata           Json?
   remarks            String?  @db.Text
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
-  delivery Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  delivery Delivery?  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  order    Order?     @relation(fields: [orderId], references: [id])
   assignee Employee  @relation("MissionAssignee", fields: [assignedEmployeeId], references: [id])
 
   @@index([tenantId])

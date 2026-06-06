@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { LIFESTYLE_SERVICES } from '../../utils/data';
 import { useData } from '../../context/GlobalDataContext';
 import Modal from '../../components/Modal';
-import { BACKEND_ORIGIN } from '../../utils/api';
+import { BACKEND_ORIGIN } from '../../utils/apiHelpers.js';
 
 const Landing = () => {
     const { accessPlans, fetchAccessPlans, dispatchSubscriptionRequest } = useData();
@@ -821,3 +821,5 @@ const Landing = () => {
 };
 
 export default Landing;
+
+

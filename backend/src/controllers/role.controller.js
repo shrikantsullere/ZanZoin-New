@@ -1,6 +1,24 @@
 import * as roleService from '../services/role.service.js';
 import { sendResponse } from '../utils/response.js';
 
+export const getMenus = async (req, res, next) => {
+  try {
+    const menus = await roleService.getMenus();
+    sendResponse(res, 200, 'Menus fetched successfully', menus);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRolePermissions = async (req, res, next) => {
+  try {
+    const permissions = await roleService.getRolePermissions(Number(req.params.id));
+    sendResponse(res, 200, 'Role permissions fetched successfully', permissions);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createRole = async (req, res, next) => {
   try {
     const role = await roleService.createRole(req.body, req.user.id);
@@ -48,7 +66,8 @@ export const deleteRole = async (req, res, next) => {
 
 export const assignPermissions = async (req, res, next) => {
   try {
-    await roleService.assignPermissions(Number(req.params.id), req.body.permissionIds, req.user.id);
+    // Expecting req.body.permissions array like [{ menu_id, can_view, can_add, can_edit, can_delete }]
+    await roleService.assignPermissions(Number(req.params.id), req.body.permissions, req.user.id);
     sendResponse(res, 200, 'Permissions assigned successfully');
   } catch (error) {
     next(error);

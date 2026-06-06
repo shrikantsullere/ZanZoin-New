@@ -236,7 +236,14 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
         }
         const requestDate = normalizeIsoDate(formData.requestDate) || todayIso();
         const dueDate = clampDueDateToRequest(requestDate, formData.dueDate);
-        const payload = { ...formData, requestDate, dueDate, total_amount: parseFloat(calculateTotal()), client_id: formData.clientId };
+        const payload = { 
+            ...formData, 
+            requestDate, 
+            dueDate, 
+            totalAmount: parseFloat(calculateTotal()), 
+            clientId: Number(formData.clientId),
+            orderType: formData.type || 'Custom Order'
+        };
         if (!canEditOrderStatus) {
             delete payload.status;
         }

@@ -9,6 +9,7 @@ const router = express.Router();
 router.use(authenticate);
 
 // CRUD
+router.get('/menus', checkPermission('ROLES', 'READ'), roleController.getMenus);
 router.get('/', checkPermission('ROLES', 'READ'), roleController.getRoles);
 router.get('/:id', checkPermission('ROLES', 'READ'), roleController.getRoleById);
 router.post('/', checkPermission('ROLES', 'CREATE'), validate(createRoleSchema), roleController.createRole);
@@ -16,7 +17,8 @@ router.put('/:id', checkPermission('ROLES', 'UPDATE'), validate(updateRoleSchema
 router.delete('/:id', checkPermission('ROLES', 'DELETE'), roleController.deleteRole);
 
 // Permissions Assignment
-router.post('/:id/permissions', checkPermission('ROLES', 'ASSIGN_PERMISSIONS'), validate(assignPermissionsSchema), roleController.assignPermissions);
-router.delete('/:id/permissions', checkPermission('ROLES', 'ASSIGN_PERMISSIONS'), validate(assignPermissionsSchema), roleController.removePermissions);
+router.get('/:id/permissions', checkPermission('ROLES', 'READ'), roleController.getRolePermissions);
+router.post('/:id/permissions', checkPermission('ROLES', 'ASSIGN_PERMISSIONS'), roleController.assignPermissions);
+router.delete('/:id/permissions', checkPermission('ROLES', 'ASSIGN_PERMISSIONS'), roleController.removePermissions);
 
 export default router;

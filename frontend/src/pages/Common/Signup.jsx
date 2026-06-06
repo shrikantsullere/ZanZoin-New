@@ -6,7 +6,7 @@ import {
   ShieldCheck, Globe, CreditCard, AlertCircle, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 
 // ─── Account type definitions ─────────────────────────────────────────────────
 const ACCOUNT_TYPES = [

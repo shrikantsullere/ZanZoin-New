@@ -42,7 +42,7 @@ const Orders = () => {
     fetchClients();
   }, [fetchVendors, fetchClients]);
 
-  const normalizedRole = currentUser?.role?.toLowerCase().replace(/\s/g, '');
+  const normalizedRole = normalizeRole(currentUser?.role);
   const portalRole = normalizeRole(currentUser?.role);
   const canStaffCreateOrder = roleCanCreateInstitutionalOrder(portalRole);
   const canManageOrders = ['superadmin', 'admin', 'operations', 'procurement', 'inventory', 'logistics', 'concierge'].includes(normalizedRole);
@@ -126,31 +126,36 @@ const Orders = () => {
 
   const columns = [
     { header: "Order ID", accessor: "id" },
-    { header: "Client", accessor: "client" },
+    { 
+      header: "Client", 
+      accessor: "client",
+      render: (row) => row.client?.companyName || row.client?.name || row.client || row.customer_name || row.created_by_name || "—"
+    },
     {
       header: "Order Type",
       accessor: "type",
       render: (row) => (
         <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-accent">
-          {row.type || "Custom Order"}
+          {row.orderType || row.type || "Custom Order"}
         </span>
       )
     },
     {
       header: "Items",
       accessor: "items",
-      render: (item) => {
-        if (!item.items || item.items.length === 0) return item.product || "No Items";
-        if (item.items.length === 1) return item.items[0].name;
-        return `${item.items[0].name} (+${item.items.length - 1} more)`;
+      render: (row) => {
+        if (!row.items || row.items.length === 0) return row.product || "No Items";
+        const firstItemName = row.items[0]?.item?.name || row.items[0]?.name || "Unknown Item";
+        if (row.items.length === 1) return firstItemName;
+        return `${firstItemName} (+${row.items.length - 1} more)`;
       }
     },
-    { header: "Vendor", accessor: "vendor", render: (item) => item.vendor || "N/A" },
+    { header: "Vendor", accessor: "vendor", render: (row) => row.vendor?.name || row.vendor || "N/A" },
     {
       header: "Total Value",
       accessor: "total",
-      render: (item) => {
-        const total = item.total || (item.items ? item.items.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0);
+      render: (row) => {
+        const total = row.totalAmount ?? row.total ?? (row.items ? row.items.reduce((acc, i) => acc + (parseFloat(i.price || i.unitPrice || 0) * parseInt(i.qty || i.quantity || 0)), 0) : 0);
         return `$${parseFloat(total).toLocaleString()}`;
       }
     },

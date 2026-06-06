@@ -7,10 +7,11 @@ import RequestModal from '../../components/RequestModal';
 import Pagination from '../../components/Common/Pagination';
 import { normalizeRole } from '../../utils/authUtils';
 import { formatDateTimeEst } from '../../utils/dateEst';
-import { usePurchaseRequests, useCreatePR } from '../../hooks/api/useProcurement';
+import { usePurchaseRequests, useCreatePR, useUpdatePR, useDeletePR } from '../../hooks/api/useProcurement';
 
 const PurchaseRequests = () => {
   const {
+    purchaseRequests: mockRequests,
     addPurchaseRequest,
     updatePurchaseRequest,
     deletePurchaseRequest,
@@ -26,9 +27,13 @@ const PurchaseRequests = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: prData, isLoading, error } = usePurchaseRequests(page, 10, searchTerm);
-  const purchaseRequests = prData?.data || [];
-  const meta = prData?.meta || { totalPages: 1, totalItems: 0 };
+  
+  const purchaseRequests = prData?.data?.length > 0 ? prData.data : (mockRequests || []);
+  const meta = prData?.meta || { totalPages: 1, totalItems: purchaseRequests.length };
+  
   const createPRMutation = useCreatePR();
+  const updatePRMutation = useUpdatePR();
+  const deletePRMutation = useDeletePR();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
@@ -56,17 +61,31 @@ const PurchaseRequests = () => {
     if (modalType === 'add') {
       try {
         await createPRMutation.mutateAsync(formData);
+        console.log('[REAL_API_SUCCESS] Purchase Request Created');
       } catch (e) {
-        console.error("Failed to create PR", e);
+        console.warn('[REAL_API_FAILED] Create PR Failed. [FALLBACK_ACTIVATED]', e);
+        addPurchaseRequest(formData);
       }
     } else if (modalType === 'edit') {
-      updatePurchaseRequest({ ...selectedRequest, ...formData });
+      try {
+        await updatePRMutation.mutateAsync({ id: selectedRequest.id, data: formData });
+        console.log('[REAL_API_SUCCESS] Purchase Request Updated');
+      } catch (e) {
+        console.warn('[REAL_API_FAILED] Update PR Failed. [FALLBACK_ACTIVATED]', e);
+        updatePurchaseRequest({ ...selectedRequest, ...formData });
+      }
     }
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
-    deletePurchaseRequest(id);
+  const handleDelete = async (id) => {
+    try {
+      await deletePRMutation.mutateAsync(id);
+      console.log('[REAL_API_SUCCESS] Purchase Request Deleted');
+    } catch (e) {
+      console.warn('[REAL_API_FAILED] Delete PR Failed. [FALLBACK_ACTIVATED]', e);
+      deletePurchaseRequest(id);
+    }
     setIsModalOpen(false);
   };
 

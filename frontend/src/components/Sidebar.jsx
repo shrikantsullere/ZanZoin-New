@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const menuItems = {
   superadmin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
+    // { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Users, label: 'Clients', path: '/dashboard/clients' },
     { icon: Store, label: 'Vendors', path: '/dashboard/vendors' },
     { icon: UserCog, label: 'HQ Personnel', path: '/dashboard/users' },
@@ -23,13 +23,13 @@ const menuItems = {
   ],
   operations: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
+    // { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Briefcase, label: 'Projects', path: '/dashboard/projects' },
     { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
     { icon: Navigation, label: 'Missions', path: '/dashboard/missions' },
     { icon: Truck, label: 'Deliveries', path: '/dashboard/deliveries' },
     { icon: FileText, label: 'Invoices', path: '/dashboard/invoices' },
-    { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
+    // { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
     { icon: Smartphone, label: 'Staff Terminal', path: '/dashboard/staff-terminal' },
     { icon: Calendar, label: 'Leave & Absence', path: '/dashboard?tab=leave' },
     { icon: History, label: 'Pay & Records', path: '/dashboard?tab=pay' },
@@ -90,7 +90,7 @@ const menuItems = {
     { icon: Package, label: 'Inventory', path: '/dashboard/inventory' },
     { icon: UserCog, label: 'Staff Management', path: '/dashboard/users' },
     { icon: FileText, label: 'Invoices', path: '/dashboard/invoices' },
-    { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
+    // { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
     { icon: CreditCard, label: 'Payroll', path: '/dashboard/payroll' },
     { icon: BarChart3, label: 'Reports', path: '/dashboard/reports' },
     { icon: Headphones, label: 'Support', path: '/dashboard/support-tickets' },
@@ -274,75 +274,6 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
   };
 
   const currentMenu = (() => {
-    // Company admin & SaaS Admin: poora institutional menu milega (staff wala alag, permissions se)
-    if (userRole === 'admin') {
-      return menuItems.admin;
-    }
-    if (userRole === 'saas_client') {
-      return menuItems.saas_client || menuItems.superadmin;
-    }
-    if (menuPermissions && menuPermissions.length > 0 && !isSuperAdmin) {
-      const iconMap = {
-        'LayoutDashboard': LayoutDashboard, 'Users': Users, 'Shield': ShieldCheck, 'ShieldCheck': ShieldCheck,
-        'CloudCog': Globe, 'Globe': Globe, 'Building': Users, 'Briefcase': Briefcase, 'Box': Box,
-        'MapPin': Navigation, 'Navigation': Navigation, 'ShoppingCart': ShoppingCart, 'Target': Navigation,
-        'Truck': Truck, 'Zap': AlertCircle, 'AlertCircle': AlertCircle, 'FileText': FileText,
-        'ShoppingBag': ShoppingBag, 'Package': Package, 'Building2': Store, 'Store': Store,
-        'Bell': AlertCircle, 'BellConcierge': Heart, 'Heart': Heart, 'Diamond': Gift, 'Gift': Gift,
-        'Ticket': Calendar, 'Calendar': Calendar, 'Car': Car, 'Sparkles': Sparkles, 'CheckSquare': Smartphone, 'Smartphone': Smartphone,
-        'BarChart2': BarChart3, 'BarChart3': BarChart3, 'DollarSign': CreditCard, 'CreditCard': CreditCard, 'Settings': Settings,
-        'Headphones': Headphones, 'History': History, 'ClipboardList': ClipboardList, 'Activity': Activity, 'UserCog': UserCog
-      };
-      let items = menuPermissions
-        .filter(p => p.can_view && p.path)
-        .map(p => ({
-          icon: iconMap[p.icon] || LayoutDashboard,
-          label: p.name,
-          path: p.path,
-          can_add: p.can_add,
-          can_edit: p.can_edit,
-          can_delete: p.can_delete,
-        }));
-      const hasDashboard = items.some(i => (i.path || '').split('?')[0] === '/dashboard');
-      if (userRole === 'client' && !hasDashboard) {
-        items = [{ icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' }, ...items];
-      }
-      // Business client: if API permissions resolve to nothing useful (only Dashboard / empty), use full default portal menu
-      if (userRole === 'client') {
-        const paths = items.map(i => (i.path || '').split('?')[0]);
-        const onlyDashboard =
-          items.length === 0 ||
-          (items.length === 1 && paths[0] === '/dashboard') ||
-          items.every(i => (i.path || '').split('?')[0] === '/dashboard');
-        if (onlyDashboard) {
-          return businessClientMenu;
-        }
-      }
-      // Personal customers: chauffeur + membership should always be reachable (DB menu may omit them)
-      if (userRole === 'customer') {
-        const paths = (p) => String(p || '').split('?')[0];
-        if (!items.some(i => paths(i.path) === '/dashboard/chauffeur')) {
-          items = [...items, { icon: Car, label: 'Chauffeur', path: '/dashboard/chauffeur' }];
-        }
-        if (!items.some(i => paths(i.path) === '/dashboard/membership')) {
-          items = [...items, { icon: Sparkles, label: 'Membership', path: '/dashboard/membership' }];
-        }
-      }
-      // Personnel roles: Leave/Pay must remain available even if DB permissions are disabled by mistake.
-      if (['operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'].includes(userRole)) {
-        const hasLeave = items.some(i => String(i.label || '').toLowerCase() === 'leave & absence');
-        const hasPay = items.some(i => String(i.label || '').toLowerCase() === 'pay & records');
-        items = items.map((i) => {
-          const lower = String(i.label || '').toLowerCase();
-          if (lower === 'leave & absence') return { ...i, path: '/dashboard?tab=leave' };
-          if (lower === 'pay & records') return { ...i, path: '/dashboard?tab=pay' };
-          return i;
-        });
-        if (!hasLeave) items.push({ icon: Calendar, label: 'Leave & Absence', path: '/dashboard?tab=leave' });
-        if (!hasPay) items.push({ icon: History, label: 'Pay & Records', path: '/dashboard?tab=pay' });
-      }
-      return items;
-    }
     if (userRole === 'client') {
       return businessClientMenu;
     }

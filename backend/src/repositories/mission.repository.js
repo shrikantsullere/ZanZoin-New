@@ -19,11 +19,13 @@ export const createMission = async (data, tenantId) => {
       include: { assignee: true, delivery: true }
     });
 
-    // Update Delivery Status
-    await tx.delivery.update({
-      where: { id: data.deliveryId },
-      data: { status: 'assigned', assignedTo: data.assignedEmployeeId }
-    });
+    // Update Delivery Status ONLY if deliveryId exists
+    if (data.deliveryId) {
+      await tx.delivery.update({
+        where: { id: data.deliveryId },
+        data: { status: 'assigned', assignedTo: data.assignedEmployeeId }
+      });
+    }
 
     return mission;
   });

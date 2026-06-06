@@ -8,7 +8,8 @@ import { logAudit } from '../utils/audit.js';
 // --- Order Reservation Engine ---
 
 const validateAndReserveStock = async (tx, items) => {
-  for (const item of items) {
+  const itemsArray = items || [];
+  for (const item of itemsArray) {
     const stock = await tx.inventoryStock.findUnique({
       where: { warehouseId_itemId: { warehouseId: item.warehouseId, itemId: item.itemId } }
     });
@@ -31,7 +32,8 @@ const validateAndReserveStock = async (tx, items) => {
 };
 
 const releaseReservedStock = async (tx, items) => {
-  for (const item of items) {
+  const itemsArray = items || [];
+  for (const item of itemsArray) {
     const stock = await tx.inventoryStock.findUnique({
       where: { warehouseId_itemId: { warehouseId: item.warehouseId, itemId: item.itemId } }
     });
@@ -52,6 +54,31 @@ const releaseReservedStock = async (tx, items) => {
 export const createOrder = async (data, performerId, tenantId) => {
   const { items, ...orderData } = data;
 
+  const validOrderItems = [];
+  const customItems = [];
+
+  if (items && Array.isArray(items)) {
+    for (const item of items) {
+      if (item.itemId && item.warehouseId) {
+        validOrderItems.push({
+            itemId: Number(item.itemId),
+            warehouseId: Number(item.warehouseId),
+            quantity: Number(item.quantity || item.qty || 1),
+            unitPrice: Number(item.unitPrice || item.price || 0)
+        });
+      } else {
+        customItems.push(item);
+      }
+    }
+  }
+
+  if (customItems.length > 0) {
+    orderData.metadata = {
+      ...(orderData.metadata || {}),
+      customItems
+    };
+  }
+
   const client = await clientRepo.findClientById(data.clientId);
   if (!client || (tenantId !== null && client.tenantId !== tenantId)) {
     throw new AppError('Client not found', 404);
@@ -66,7 +93,7 @@ export const createOrder = async (data, performerId, tenantId) => {
   orderData.createdById = employee.id;
   orderData.status = 'draft';
 
-  const newOrder = await orderRepo.createOrder(orderData, items, tenantId);
+  const newOrder = await orderRepo.createOrder(orderData, validOrderItems, tenantId);
 
   await logAudit({
     module: 'ORDERS',

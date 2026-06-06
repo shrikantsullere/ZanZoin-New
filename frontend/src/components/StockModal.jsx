@@ -140,3 +140,5 @@ const StockModal = ({ isOpen, onClose, onSave }) => {
 };
 
 export default StockModal;
+
+

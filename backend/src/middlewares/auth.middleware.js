@@ -3,6 +3,37 @@ import { sendResponse } from '../utils/response.js';
 import { config } from '../config/env.js';
 import prisma from '../config/db.js';
 
+const MENU_NAME_MAPPING = {
+  'ORDERS': 'Orders',
+  'MISSIONS': 'Missions',
+  'DELIVERIES': 'Deliveries',
+  'USERS': 'Personnel',
+  'ROLES': 'Security',
+  'PERMISSIONS': 'Security',
+  'INVOICES': 'Invoices',
+  'CLIENTS': 'Clients',
+  'ITEMS': 'Inventory',
+  'WAREHOUSES': 'Warehouses',
+  'STOCK': 'Inventory',
+  'GRN': 'Warehouses',
+  'VENDORS': 'Vendors',
+  'PURCHASE_REQUESTS': 'Purchase Requests',
+  'QUOTATIONS': 'Quotes',
+  'PURCHASE_ORDERS': 'Purchase Orders',
+  'RFQS': 'Quotes',
+  'PAYMENTS': 'Payments',
+  'RECEIPTS': 'Payments',
+  'PLANS': 'Plans',
+  'SETTINGS': 'Settings',
+  'TENANTS': 'Tenants', 
+  'SUBSCRIPTIONS': 'Subscriptions',
+  'ORGANIZATIONS': 'Organizations',
+  'DEPARTMENTS': 'Personnel',
+  'DESIGNATIONS': 'Personnel',
+  'EMPLOYEES': 'Personnel',
+  'EMPLOYEE_DOCUMENTS': 'Personnel'
+};
+
 export const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -46,30 +77,54 @@ export const authorize = (allowedRoles) => {
   };
 };
 
-export const checkPermission = (moduleName, action) => {
+export const checkPermission = (routeIdentifier, action) => {
   return async (req, res, next) => {
     try {
       const { roleId } = req.user;
+      const roleName = req.user.role?.name || 'UNKNOWN';
 
-      const hasPermission = await prisma.rolePermission.findFirst({
-        where: {
-          roleId,
-          permission: { 
-            module: moduleName, 
-            OR: [
-              { action },
-              { action: 'MANAGE' }
-            ]
+      const implicitModules = ['NOTIFICATIONS', 'PROFILE', 'AUTH', 'SYSTEM'];
+      if (implicitModules.includes(routeIdentifier)) {
+        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Implicit)`);
+        return next();
+      }
+
+      const mappedMenuName = MENU_NAME_MAPPING[routeIdentifier];
+      let hasAccess = false;
+
+      if (mappedMenuName) {
+        const roleMenu = await prisma.roleMenu.findFirst({
+          where: {
+            roleId,
+            menu: { name: mappedMenuName }
+          }
+        });
+
+        if (roleMenu) {
+          switch (action) {
+            case 'READ': hasAccess = roleMenu.can_view; break;
+            case 'CREATE': hasAccess = roleMenu.can_add; break;
+            case 'UPDATE': hasAccess = roleMenu.can_edit; break;
+            case 'DELETE': hasAccess = roleMenu.can_delete; break;
+            case 'MANAGE': hasAccess = roleMenu.can_edit || roleMenu.can_add; break;
+            default: hasAccess = roleMenu.can_edit; break; // ADJUST, TRANSFER, ASSIGN_PERMISSIONS etc.
           }
         }
-      });
+      }
 
-      if (!hasPermission) {
+      const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'superadmin';
+      
+      if (!hasAccess && !isSuperAdmin) {
+        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Mapped Menu: ${mappedMenuName || 'UNMAPPED'} | Action: ${action} | Result: DENIED`);
         return sendResponse(res, 403, 'Forbidden: Insufficient permissions for this action');
       }
 
+      const resultStr = isSuperAdmin && !hasAccess ? 'ALLOWED (Super Admin Bypass)' : 'ALLOWED';
+      console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Mapped Menu: ${mappedMenuName || 'UNMAPPED'} | Action: ${action} | Result: ${resultStr}`);
+      
       next();
     } catch (error) {
+      console.error(`[RBAC Error]`, error);
       return sendResponse(res, 500, 'Error checking permissions');
     }
   };

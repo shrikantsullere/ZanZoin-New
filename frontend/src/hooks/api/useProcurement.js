@@ -23,6 +23,28 @@ export const useCreatePR = () => {
   });
 };
 
+export const useUpdatePR = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await api.put(`/purchase-requests/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['purchaseRequests'])
+  });
+};
+
+export const useDeletePR = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const res = await api.delete(`/purchase-requests/${id}`);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['purchaseRequests'])
+  });
+};
+
 // Request For Quotation (RFQ)
 export const useRFQs = (page = 1, limit = 10) => {
   return useQuery({
@@ -34,12 +56,72 @@ export const useRFQs = (page = 1, limit = 10) => {
   });
 };
 
-// Quotes
+export const useCreateRFQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await api.post('/rfqs', data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['rfqs'])
+  });
+};
+
+export const useUpdateRFQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await api.put(`/rfqs/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['rfqs'])
+  });
+};
+
+export const useCreateQuotation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await api.post('/quotations', data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['quotations']);
+      queryClient.invalidateQueries(['quotes']);
+    }
+  });
+};
+
+export const useUpdateQuotation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await api.put(`/quotations/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['quotations']);
+      queryClient.invalidateQueries(['quotes']);
+    }
+  });
+};
+
+// Quotes (Quotations)
+export const useQuotations = (page = 1, limit = 10) => {
+  return useQuery({
+    queryKey: ['quotations', page, limit],
+    queryFn: async () => {
+      const res = await api.get('/quotations', { params: { page, limit } });
+      return res.data?.data || [];
+    }
+  });
+};
+
 export const useQuotes = (page = 1, limit = 10) => {
   return useQuery({
     queryKey: ['quotes', page, limit],
     queryFn: async () => {
-      const res = await api.get('/quotes', { params: { page, limit } });
+      const res = await api.get('/quotations', { params: { page, limit } });
       return res.data?.data || [];
     }
   });
@@ -53,5 +135,27 @@ export const usePurchaseOrders = (page = 1, limit = 10, search = '') => {
       const res = await api.get('/purchase-orders', { params: { page, limit, search } });
       return res.data?.data || [];
     }
+  });
+};
+
+export const useCreatePurchaseOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await api.post('/purchase-orders', data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['purchaseOrders'])
+  });
+};
+
+export const useUpdatePurchaseOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await api.put(`/purchase-orders/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['purchaseOrders'])
   });
 };

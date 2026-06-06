@@ -53,6 +53,9 @@ export const createEmployee = async (data, performerId, tenantId) => {
     departmentId: data.departmentId,
     designationId: data.designationId,
     joiningDate: new Date(data.joiningDate),
+    vehicleType: data.vehicleType || null,
+    vehiclePlate: data.vehiclePlate || null,
+    vehicleModel: data.vehicleModel || null,
     status: data.status || 'active'
   };
 
@@ -118,6 +121,9 @@ export const updateEmployee = async (id, data, tenantId, performerId) => {
   if (data.joiningDate) {
     employeeUpdateData.joiningDate = new Date(data.joiningDate);
   }
+  if (data.vehicleType !== undefined) employeeUpdateData.vehicleType = data.vehicleType;
+  if (data.vehiclePlate !== undefined) employeeUpdateData.vehiclePlate = data.vehiclePlate;
+  if (data.vehicleModel !== undefined) employeeUpdateData.vehicleModel = data.vehicleModel;
 
   if (data.firstName || data.lastName) {
     const fName = data.firstName || employee.firstName;

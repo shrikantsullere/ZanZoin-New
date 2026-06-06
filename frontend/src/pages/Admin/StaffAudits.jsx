@@ -7,7 +7,8 @@ import {
     Search, Filter, Loader2, AlertCircle, ExternalLink,
     MapPin, Smartphone, Briefcase
 } from 'lucide-react';
-import api, { BACKEND_ORIGIN } from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
+import { BACKEND_ORIGIN } from '../../utils/apiHelpers.js';
 import { addBlockedStaffEmail, removeBlockedStaffEmail } from '../../utils/staffLoginGate';
 
 const StaffAudits = () => {
@@ -252,3 +253,4 @@ const StaffAudits = () => {
 };
 
 export default StaffAudits;
+

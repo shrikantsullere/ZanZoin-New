@@ -9,8 +9,8 @@ export const createOrder = async (data, items, tenantId) => {
   return await prisma.$transaction(async (tx) => {
     const orderNumber = await generateOrderNumber(tenantId);
     
-    // Calculate total amount
-    const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const itemsArray = items || [];
+    const totalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
     return await tx.order.create({
       data: {
@@ -18,13 +18,15 @@ export const createOrder = async (data, items, tenantId) => {
         orderNumber,
         tenantId,
         totalAmount,
-        items: {
-          create: items.map(item => ({
-            ...item,
-            tenantId,
-            totalPrice: item.quantity * item.unitPrice
-          }))
-        }
+        ...(itemsArray.length > 0 && {
+          items: {
+            create: itemsArray.map(item => ({
+              ...item,
+              tenantId,
+              totalPrice: item.quantity * item.unitPrice
+            }))
+          }
+        })
       },
       include: { items: true, client: true }
     });

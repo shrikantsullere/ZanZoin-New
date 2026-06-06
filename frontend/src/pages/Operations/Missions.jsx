@@ -7,7 +7,7 @@ import {
   Calendar, MapPin, Navigation, Package, 
   CheckCircle2, AlertCircle, Clock
 } from 'lucide-react';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 
 const Missions = () => {
   const {
@@ -367,3 +367,4 @@ const Missions = () => {
 };
 
 export default Missions;
+

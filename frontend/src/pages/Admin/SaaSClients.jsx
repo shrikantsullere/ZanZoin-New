@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { swalSuccess, swalError, swalWarning, swalInfo, swalConfirm, swalCredentials, swalCopied } from '../../utils/swal';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
 import { Users, Shield, Eye, Plus, Pencil, Trash2, Check, X, Zap, Save, RefreshCcw, Search, ShieldAlert, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -335,3 +335,4 @@ const SaaSClients = () => {
 };
 
 export default SaaSClients;
+

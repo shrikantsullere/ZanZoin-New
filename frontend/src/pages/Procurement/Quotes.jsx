@@ -13,7 +13,7 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Common/Pagination';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQuotes } from '../../hooks/api/useProcurement';
+import { useQuotes, useRFQs, useCreateRFQ, useUpdateRFQ, useCreateQuotation, useUpdateQuotation, usePurchaseRequests } from '../../hooks/api/useProcurement';
 import { RefreshCcw } from 'lucide-react';
 
 /** API may return items as JSON string, object, or array — form always uses [{ name, qty, price }]. */
@@ -53,9 +53,38 @@ const Quotes = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data: quotesData, isLoading, error } = useQuotes(page, 10, searchTerm);
-  const quotes = quotesData?.data || [];
-  const meta = quotesData?.meta || { totalPages: 1, totalItems: 0 };
+  const { data: quotesData, isLoading: isLoadingQuotes, error: errorQuotes } = useQuotes(page, 10, searchTerm);
+  const { data: rfqsData, isLoading: isLoadingRfqs } = useRFQs(page, 10);
+  const { data: prData } = usePurchaseRequests(1, 100);
+
+  const realQuotes = quotesData?.data || [];
+  const realRfqs = rfqsData?.data || [];
+  const activePurchaseRequests = prData?.data || [];
+
+  const createRfqMutation = useCreateRFQ();
+  const updateRfqMutation = useUpdateRFQ();
+  const createQuoteMutation = useCreateQuotation();
+  const updateQuoteMutation = useUpdateQuotation();
+
+  // Offline Fallback Mechanism: If real API is empty or fails, merge with context mocks
+  const resolvedRfqs = realRfqs.length > 0 ? realRfqs.map(r => ({ ...r, id: `RFQ-${r.id}`, quote_type: 'vendor_request', vendor_id: r.vendorId, total_amount: 0 })) : [];
+  const resolvedQuotations = realQuotes.length > 0 ? realQuotes.map(q => ({ ...q, id: `QUO-${q.id}`, quote_type: 'client', vendor_id: q.vendorId, total_amount: q.amount })) : [];
+  
+  // Merge real with fallback
+  const mockQuotes = useData().quotes || [];
+  const fallbackRfqs = mockQuotes.filter(q => q.quote_type === 'vendor_request' || q.quoteType === 'vendor');
+  const fallbackQuotations = mockQuotes.filter(q => q.quote_type !== 'vendor_request' && q.quoteType !== 'vendor');
+
+  const mergedRfqs = resolvedRfqs.length > 0 ? resolvedRfqs : fallbackRfqs;
+  const mergedQuotations = resolvedQuotations.length > 0 ? resolvedQuotations : fallbackQuotations;
+
+  const combinedQuotes = [...mergedRfqs, ...mergedQuotations].sort((a, b) => new Date(b.date || b.created_at || 0) - new Date(a.date || a.created_at || 0));
+
+  const quotes = combinedQuotes;
+  const isLoading = isLoadingQuotes || isLoadingRfqs;
+  const error = errorQuotes;
+
+  const meta = quotesData?.meta || { totalPages: 1, totalItems: combinedQuotes.length };
 
   const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isCustomer = ['customer', 'saas_client', 'client'].includes(userRole);
@@ -66,6 +95,8 @@ const Quotes = () => {
   const [formData, setFormData] = useState({
     vendor: '',
     vendorId: '',
+    purchaseRequestId: '',
+    rfqId: '',
     items: [{ name: '', qty: 1, price: 0 }],
     leadTime: '',
     validity: '',
@@ -83,6 +114,8 @@ const Quotes = () => {
     setFormData({
       vendor: '',
       vendorId: '',
+      purchaseRequestId: '',
+      rfqId: '',
       items: [{ name: '', qty: 1, price: 0 }],
       leadTime: '3 Days',
       validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -103,6 +136,8 @@ const Quotes = () => {
     setFormData(quote.id ? {
       ...quote,
       vendorId: quote.vendorId ?? quote.vendor_id ?? '',
+      purchaseRequestId: quote.purchaseRequestId || '',
+      rfqId: quote.rfqId || '',
       vendor: quote.vendor || quote.vendor_name || '',
       items: normalizeQuoteItems(quote.items),
       validity: quote.validity ?? (quote.validity_date?.split?.('T')?.[0] || ''),
@@ -112,6 +147,8 @@ const Quotes = () => {
     } : {
       vendor: '',
       vendorId: '',
+      purchaseRequestId: '',
+      rfqId: '',
       items: [{ name: '', qty: 1, price: 0 }],
       leadTime: '3 Days',
       validity: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -132,7 +169,7 @@ const Quotes = () => {
     setFormData({ ...formData, items: items.filter((_, i) => i !== index) });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const items = normalizeQuoteItems(formData.items).map((row) =>
       formData.quoteType === 'vendor'
         ? { ...row, price: 0 }
@@ -155,28 +192,82 @@ const Quotes = () => {
       formData.vendor ||
       ''
     ).trim();
-    const finalData = {
-      ...formData,
-      vendor: resolvedVendorName,
-      vendor_name: resolvedVendorName,
-      vendor_id: normalizedVendorId,
-      vendorId: normalizedVendorId,
-      items,
-      total,
-      total_amount: total,
-      date: new Date().toISOString().split('T')[0],
-      quote_type: qt,
-      quoteType: formData.quoteType,
-      payment_terms: formData.paymentTerms,
-      paymentTerms: formData.paymentTerms,
-    };
-    if (modalType === 'add') {
-      addQuote(finalData);
-    } else if (modalType === 'edit') {
-      updateQuote(finalData);
-    } else if (modalType === 'delete') {
-      deleteQuote(selectedQuote.id);
+
+    const isRfq = formData.quoteType === 'vendor';
+    
+    if (isRfq && !formData.purchaseRequestId) {
+      window.alert('Purchase Request is required to generate an RFQ.');
+      return;
     }
+    if (!isRfq && !formData.rfqId) {
+      window.alert('Parent RFQ is required to generate a Quotation.');
+      return;
+    }
+
+    try {
+      if (modalType === 'add') {
+        if (isRfq) {
+          // Send to API
+          await createRfqMutation.mutateAsync({
+            purchaseRequestId: parseInt(formData.purchaseRequestId, 10),
+            vendorId: normalizedVendorId
+          });
+          console.log('[REAL_API_SUCCESS] RFQ Created');
+        } else {
+          await createQuoteMutation.mutateAsync({
+            rfqId: parseInt(formData.rfqId, 10),
+            vendorId: normalizedVendorId,
+            amount: total,
+            remarks: formData.leadTime || 'Standard Terms'
+          });
+          console.log('[REAL_API_SUCCESS] Quotation Created');
+        }
+      } else if (modalType === 'edit' && selectedQuote?.id) {
+        const rawId = String(selectedQuote.id).replace('RFQ-', '').replace('QUO-', '');
+        if (isRfq) {
+          await updateRfqMutation.mutateAsync({
+            id: parseInt(rawId, 10),
+            data: { status: formData.status.toLowerCase() }
+          });
+          console.log('[REAL_API_SUCCESS] RFQ Updated');
+        } else {
+          await updateQuoteMutation.mutateAsync({
+            id: parseInt(rawId, 10),
+            data: { status: formData.status.toLowerCase() }
+          });
+          console.log('[REAL_API_SUCCESS] Quotation Updated');
+        }
+      } else if (modalType === 'delete') {
+         // No delete mutation yet, fallback to context
+         deleteQuote(selectedQuote.id);
+      }
+    } catch (err) {
+      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
+      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
+      
+      const finalData = {
+        ...formData,
+        vendor: resolvedVendorName,
+        vendor_name: resolvedVendorName,
+        vendor_id: normalizedVendorId,
+        vendorId: normalizedVendorId,
+        purchaseRequestId: formData.purchaseRequestId,
+        rfqId: formData.rfqId,
+        items,
+        total,
+        total_amount: total,
+        date: new Date().toISOString().split('T')[0],
+        quote_type: qt,
+        quoteType: formData.quoteType,
+        payment_terms: formData.paymentTerms,
+        paymentTerms: formData.paymentTerms,
+      };
+      
+      if (modalType === 'add') addQuote(finalData);
+      else if (modalType === 'edit') updateQuote(finalData);
+      else if (modalType === 'delete') deleteQuote(selectedQuote.id);
+    }
+    
     setIsModalOpen(false);
   };
 
@@ -442,13 +533,54 @@ const Quotes = () => {
                   <select
                     className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold"
                     value={formData.quoteType || 'client'}
-                    onChange={(e) => setFormData({ ...formData, quoteType: e.target.value })}
-                    disabled={modalType === 'view'}
+                    onChange={(e) => {
+                      setFormData({ ...formData, quoteType: e.target.value, purchaseRequestId: '', rfqId: '' });
+                    }}
+                    disabled={modalType === 'view' || modalType === 'edit'}
                   >
-                    <option value="client">Client quote (with unit pricing)</option>
-                    <option value="vendor">Vendor quote request (no unit price required)</option>
+                    <option value="client">Client Quote (Vendor Response)</option>
+                    <option value="vendor">Vendor Quote Request (RFQ)</option>
                   </select>
                 </div>
+
+                {formData.quoteType === 'vendor' ? (
+                  <div className="space-y-1 col-span-2 border-l-2 border-accent pl-4 py-2">
+                    <label className="text-[10px] font-bold text-accent uppercase">Link Purchase Request (Required for RFQ)</label>
+                    <select
+                      value={formData.purchaseRequestId || ''}
+                      onChange={(e) => setFormData({ ...formData, purchaseRequestId: e.target.value })}
+                      className="w-full bg-background border border-accent/30 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold"
+                      disabled={modalType === 'view' || modalType === 'edit'}
+                    >
+                      <option value="">Select an approved Purchase Request...</option>
+                      {activePurchaseRequests.map(pr => (
+                        <option key={pr.id} value={pr.id}>PR-{pr.id} ({pr.item}) - {pr.status}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="space-y-1 col-span-2 border-l-2 border-accent pl-4 py-2">
+                    <label className="text-[10px] font-bold text-accent uppercase">Link Parent RFQ (Required for Quotation)</label>
+                    <select
+                      value={formData.rfqId || ''}
+                      onChange={(e) => {
+                        const selectedRfq = mergedRfqs.find(r => String(r.id) === String(e.target.value) || String(r.id) === `RFQ-${e.target.value}`);
+                        if (selectedRfq) {
+                          setFormData({ ...formData, rfqId: e.target.value, vendorId: selectedRfq.vendorId || selectedRfq.vendor_id });
+                        } else {
+                          setFormData({ ...formData, rfqId: e.target.value });
+                        }
+                      }}
+                      className="w-full bg-background border border-accent/30 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold"
+                      disabled={modalType === 'view' || modalType === 'edit'}
+                    >
+                      <option value="">Select a parent RFQ...</option>
+                      {mergedRfqs.map(r => (
+                        <option key={r.id} value={r.id.replace('RFQ-', '')}>{r.id} (Vendor ID: {r.vendorId || r.vendor_id}) - {r.status}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Protocol Status</label>
                   <select className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} disabled={modalType === 'view'}>

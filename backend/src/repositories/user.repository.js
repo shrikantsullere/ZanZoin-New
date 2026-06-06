@@ -23,7 +23,7 @@ export const findUserById = async (id) => {
 };
 
 export const findAllUsersByTenant = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', roleId, status } = query;
+  const { page = 1, limit = 10, search = '', roleId, roleName, status } = query;
   const skip = (page - 1) * limit;
 
   const where = {
@@ -36,6 +36,7 @@ export const findAllUsersByTenant = async (tenantId, query) => {
       ]
     }),
     ...(roleId && { roleId: Number(roleId) }),
+    ...(roleName && { role: { name: roleName } }),
     ...(status && { status })
   };
 

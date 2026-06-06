@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const createClientSchema = z.object({
-  clientCode: z.string().min(2, 'Client Code must be at least 2 characters'),
-  companyName: z.string().min(2, 'Company Name is required'),
-  contactPerson: z.string().min(2, 'Contact Person is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(5, 'Phone number is required'),
+  clientCode: z.string().optional(),
+  companyName: z.string().optional().or(z.literal('')),
+  contactPerson: z.string().optional().or(z.literal('')),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional()

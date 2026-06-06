@@ -5,7 +5,7 @@ import Modal from '../../components/Modal';
 import { Calendar, MapPin, Plus, Star, Search, Clock, Users } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
-import { BACKEND_ORIGIN } from '../../utils/api';
+import { BACKEND_ORIGIN } from '../../utils/apiHelpers.js';
 
 const BACKEND_URL = BACKEND_ORIGIN;
 const toAbsoluteImageUrl = (rawPath) => {
@@ -414,3 +414,4 @@ const Events = () => {
 };
 
 export default Events;
+

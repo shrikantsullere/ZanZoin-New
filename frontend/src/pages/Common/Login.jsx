@@ -29,15 +29,15 @@ const Login = ({ onLogin }) => {
   const [otpValue, setOtpValue] = useState(''); // Store OTP momentarily for testing
 
   const demoCredentials = {
-    'superadmin': { email: 'admin@zanezion.com',      password: 'Admin@123' },
-    'admin':      { email: 'admin@example.com',       password: 'admin' },
-    'procurement': { email: 'procurement@example.com', password: 'procurement' },
-    'operations': { email: 'operation@example.com',   password: 'operations' },
-    'logistics':  { email: 'logistics@example.com',   password: 'logistics' },
-    'inventory':  { email: 'inventory@example.com',   password: 'inventory' },
-    'concierge':  { email: 'concierge@example.com',   password: 'concierge' },
-    'client':     { email: 'customer1@example.com',   password: 'client' },
-    'staff':      { email: 'staff@example.com',       password: 'staff' },
+    'superadmin': { email: 'superadmin@zanezion.com',      password: 'password123' },
+    'admin':      { email: 'admin@zanezion.com',           password: 'password123' },
+    'procurement': { email: 'procurement@zanezion.com',     password: 'password123' },
+    'operations': { email: 'operations@zanezion.com',      password: 'password123' },
+    'logistics':  { email: 'logistics@zanezion.com',       password: 'password123' },
+    'inventory':  { email: 'inventory@zanezion.com',       password: 'password123' },
+    'concierge':  { email: 'concierge@zanezion.com',       password: 'password123' },
+    'client':     { email: 'businessclient@zanezion.com',  password: 'password123' },
+    'staff':      { email: 'fieldstaff@zanezion.com',      password: 'password123' },
   };
 
   const roles = [

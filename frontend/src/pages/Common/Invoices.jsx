@@ -12,6 +12,7 @@ import StatusBadge from '../../components/StatusBadge';
 import { useInvoices, useCreateInvoice, useUpdateInvoiceStatus, useCreatePayment } from '../../hooks/api/useFinance';
 import { RefreshCcw } from 'lucide-react';
 import Pagination from '../../components/Common/Pagination';
+import { normalizeRole } from '../../utils/authUtils';
 
 const Invoices = () => {
     const { orders, clients, customerUsers, currentUser, fetchOrders, fetchClients, fetchCustomerUsers, hasMenuPermission } = useData();
@@ -39,9 +40,9 @@ const Invoices = () => {
         const personal = (customerUsers || []).map(u => ({ id: `user_${u.id}`, name: u.name, type: 'customer' }));
         return [...companyClients, ...personal];
     }, [clients, customerUsers]);
-    const isClient = currentUser?.role?.toLowerCase() === 'client';
-    const isSuperAdmin = currentUser?.role?.toLowerCase().replace(/\s/g, '') === 'superadmin';
-    const procurementInvoiceReadOnly = currentUser?.role?.toLowerCase().replace(/\s+/g, '') === 'procurement';
+    const isClient = normalizeRole(currentUser?.role) === 'client';
+    const isSuperAdmin = normalizeRole(currentUser?.role) === 'superadmin';
+    const procurementInvoiceReadOnly = normalizeRole(currentUser?.role) === 'procurement';
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);

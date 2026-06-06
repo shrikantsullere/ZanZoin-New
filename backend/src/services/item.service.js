@@ -17,13 +17,16 @@ export const createItem = async (data, performerId, tenantId) => {
     throw new AppError('Unit not found', 404);
   }
 
+  // Auto-generate SKU if not provided
+  const finalSku = data.sku || ('SKU-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000));
+
   // Check unique SKU per tenant
-  const existingItem = await itemRepo.findItemBySku(data.sku, tenantId);
+  const existingItem = await itemRepo.findItemBySku(finalSku, tenantId);
   if (existingItem) {
     throw new AppError('Item with this SKU already exists', 400);
   }
 
-  const newItem = await itemRepo.createItem({ ...data, tenantId });
+  const newItem = await itemRepo.createItem({ ...data, sku: finalSku, tenantId });
 
   await logAudit({
     module: 'ITEMS',

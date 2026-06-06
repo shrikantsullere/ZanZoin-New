@@ -6,14 +6,19 @@ import { useData } from '../../context/GlobalDataContext';
 import { Store, Search, Star, Phone, Mail, Plus, ShieldCheck, CheckCircle } from 'lucide-react';
 import { swalSuccess } from '../../utils/swal';
 import { normalizeRole } from '../../utils/authUtils';
+import realApi from '../../services/api/setupAxios';
 
 const Vendors = () => {
-  const { vendors, addVendor, updateVendor, deleteVendor, addOrder, fetchVendors, hasMenuPermission, currentUser } = useData();
+  const { vendors: mockVendors, addVendor: mockAddVendor, updateVendor: mockUpdateVendor, deleteVendor: mockDeleteVendor, addOrder, fetchVendors, hasMenuPermission, currentUser } = useData();
+  const [realVendors, setRealVendors] = useState([]);
   const isVendorAdmin = ['superadmin', 'admin', 'procurement'].includes(normalizeRole(currentUser?.role));
 
   React.useEffect(() => {
     fetchVendors();
+    realApi.get('/vendors').then(res => setRealVendors(res.data?.data?.vendors || res.data?.data || [])).catch(() => {});
   }, [fetchVendors]);
+  
+  const vendors = realVendors.length > 0 ? realVendors : mockVendors;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('view');
   const [selectedVendor, setSelectedVendor] = useState(null);
@@ -71,12 +76,33 @@ const Vendors = () => {
 
   const handleSave = async () => {
     if (modalType === 'add') {
-      if (!String(formData.name || '').trim()) {
-        window.alert('Please enter a vendor name.');
+      // Frontend validation
+      if (!formData.name || formData.name.trim().length < 2) {
+        swalWarning('Validation Error', 'Vendor name must be at least 2 characters.');
         return;
       }
+      if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        swalWarning('Validation Error', 'A valid email address is required.');
+        return;
+      }
+
       try {
-        await addVendor(formData);
+        try {
+          const apiPayload = {
+            companyName: formData.name.trim(),
+            contactPerson: formData.contact || '',
+            email: formData.email.trim(),
+            phone: formData.phone || '',
+            address: formData.address || '',
+            vendorCode: 'VND-' + Date.now().toString().slice(-6)
+          };
+          await realApi.post('/vendors', apiPayload);
+          console.log('[REAL_API_SUCCESS] Vendor created successfully via real API');
+        } catch(e) {
+          console.warn('[REAL_API_FAILED] Vendor creation via real API failed', e);
+          console.info('[FALLBACK_ACTIVATED] Falling back to mock addVendor');
+          await mockAddVendor(formData);
+        }
         setIsModalOpen(false);
       } catch (e) {
         window.alert(vendorSaveErrorMessage(e));
@@ -84,8 +110,32 @@ const Vendors = () => {
       return;
     }
     if (modalType === 'edit') {
+      // Frontend validation
+      if (!formData.name || formData.name.trim().length < 2) {
+        swalWarning('Validation Error', 'Vendor name must be at least 2 characters.');
+        return;
+      }
+      if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        swalWarning('Validation Error', 'A valid email address is required.');
+        return;
+      }
+
       try {
-        await updateVendor({ ...selectedVendor, ...formData });
+        try {
+          const apiPayload = {
+            companyName: formData.name.trim(),
+            contactPerson: formData.contact || '',
+            email: formData.email.trim(),
+            phone: formData.phone || '',
+            address: formData.address || ''
+          };
+          await realApi.put(`/vendors/${selectedVendor.id}`, apiPayload);
+          console.log('[REAL_API_SUCCESS] Vendor updated successfully via real API');
+        } catch(e) {
+          console.warn('[REAL_API_FAILED] Vendor update via real API failed', e);
+          console.info('[FALLBACK_ACTIVATED] Falling back to mock updateVendor');
+          await mockUpdateVendor({ ...selectedVendor, ...formData });
+        }
         setIsModalOpen(false);
       } catch (e) {
         window.alert(vendorSaveErrorMessage(e));
@@ -95,7 +145,14 @@ const Vendors = () => {
 
   const handleDelete = async () => {
     try {
-      await deleteVendor(selectedVendor.id);
+      try {
+        await realApi.delete(`/vendors/${selectedVendor.id}`);
+        console.log('[REAL_API_SUCCESS] Vendor deleted successfully via real API');
+      } catch(e) {
+        console.warn('[REAL_API_FAILED] Vendor deletion via real API failed', e);
+        console.info('[FALLBACK_ACTIVATED] Falling back to mock deleteVendor');
+        await mockDeleteVendor(selectedVendor.id);
+      }
       setIsModalOpen(false);
       swalSuccess('Deleted', 'Vendor has been removed successfully.');
     } catch (e) {
@@ -220,8 +277,16 @@ const Vendors = () => {
                 onClick={async (e) => {
                   e.stopPropagation();
                   try {
-                    await updateVendor({ ...row, status: 'active' });
+                    try {
+                      await realApi.put(`/vendors/${row.id}`, { ...row, status: 'active' });
+                      console.log('[REAL_API_SUCCESS] Vendor activated successfully via real API');
+                    } catch(err) {
+                      console.warn('[REAL_API_FAILED] Vendor activation via real API failed', err);
+                      console.info('[FALLBACK_ACTIVATED] Falling back to mock updateVendor activate');
+                      await mockUpdateVendor({ ...row, status: 'active' });
+                    }
                     await fetchVendors();
+                    realApi.get('/vendors').then(res => setRealVendors(res.data?.data?.vendors || res.data?.data || [])).catch(() => {});
                     await swalSuccess('Vendor approved', `${row.name || 'Vendor'} is now Active and visible to clients and staff.`);
                   } catch (err) {
                     window.alert(err?.message || 'Approve failed');

@@ -11,6 +11,9 @@ router.use(authenticate);
 
 // Must have read users permission
 router.get('/', checkPermission('USERS', 'READ'), userController.getUsers);
+// Customers route (must be before /:id)
+router.get('/customers', checkPermission('USERS', 'READ'), userController.getCustomers);
+
 router.get('/:id', checkPermission('USERS', 'READ'), userController.getUserById);
 
 // Must have create users permission

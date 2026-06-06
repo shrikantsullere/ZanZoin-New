@@ -7,12 +7,12 @@ export const login = async (req, res, next) => {
     const ipAddress = req.ip;
     const userAgent = req.headers['user-agent'];
 
-    const { user, token, refreshToken } = await authService.loginUser(email, password, tenantId, ipAddress, userAgent);
+    const { user, token, refreshToken, menuPermissions } = await authService.loginUser(email, password, tenantId, ipAddress, userAgent);
 
     // Remove sensitive data
     user.password = undefined;
 
-    sendResponse(res, 200, 'Login successful', { user, token, refreshToken });
+    sendResponse(res, 200, 'Login successful', { user, token, refreshToken, menuPermissions });
   } catch (error) {
     next(error);
   }

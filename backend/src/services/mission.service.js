@@ -6,13 +6,14 @@ import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
 
 export const createMission = async (data, performerId, tenantId) => {
-  const delivery = await deliveryRepo.findDeliveryById(data.deliveryId);
-  if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
-    throw new AppError('Delivery not found', 404);
-  }
-
-  if (delivery.status !== 'pending') {
-    throw new AppError(`Cannot assign a mission for a delivery in ${delivery.status} status`, 400);
+  if (data.deliveryId) {
+    const delivery = await deliveryRepo.findDeliveryById(data.deliveryId);
+    if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
+      throw new AppError('Delivery not found', 404);
+    }
+    if (delivery.status !== 'pending') {
+      throw new AppError(`Cannot assign a mission for a delivery in ${delivery.status} status`, 400);
+    }
   }
 
   const employee = await employeeRepo.findEmployeeById(data.assignedEmployeeId);
@@ -45,8 +46,9 @@ export const startMission = async (id, tenantId, performerId) => {
     // 1. Update Mission
     await missionRepo.updateMissionStatus(tx, id, 'in_progress', { startDate: new Date() });
     
-    // 2. Update Delivery
-    await deliveryRepo.updateDeliveryStatus(tx, delivery.id, 'dispatched', { dispatchDate: new Date() });
+    // 2. Update Delivery and Inventory ONLY if this is a Delivery Mission
+    if (delivery) {
+      await deliveryRepo.updateDeliveryStatus(tx, delivery.id, 'dispatched', { dispatchDate: new Date() });
 
     // 3. Dispatch Engine: Deduct Inventory Stock (Quantity & Reserved)
     for (const item of delivery.items) {
@@ -79,12 +81,13 @@ export const startMission = async (id, tenantId, performerId) => {
         }
       });
     }
+    } // End if delivery
   });
 
   await logAudit({
     module: 'MISSIONS',
     action: 'START',
-    description: `Mission ${mission.missionNumber} started. Delivery ${delivery.deliveryNumber} dispatched.`,
+    description: `Mission ${mission.missionNumber} started. ${delivery ? `Delivery ${delivery.deliveryNumber} dispatched.` : ''}`,
     performedBy: performerId
   });
 
@@ -98,14 +101,18 @@ export const submitPOD = async (id, podData, tenantId, performerId) => {
   if (mission.status !== 'in_progress') throw new AppError(`Cannot complete a mission in ${mission.status} status`, 400);
 
   await prisma.$transaction(async (tx) => {
-    // 1. Create POD
-    await missionRepo.createPOD(tx, mission.deliveryId, mission.tenantId, podData);
+    // 1. Create POD if delivery exists
+    if (mission.deliveryId && podData && Object.keys(podData).length > 0) {
+      await missionRepo.createPOD(tx, mission.deliveryId, mission.tenantId, podData);
+    }
 
     // 2. Update Mission
     await missionRepo.updateMissionStatus(tx, id, 'completed', { endDate: new Date() });
     
     // 3. Update Delivery
-    await deliveryRepo.updateDeliveryStatus(tx, mission.deliveryId, 'delivered', { deliveryDate: new Date() });
+    if (mission.deliveryId) {
+      await deliveryRepo.updateDeliveryStatus(tx, mission.deliveryId, 'delivered', { deliveryDate: new Date() });
+    }
   });
 
   await logAudit({

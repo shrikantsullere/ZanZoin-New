@@ -50,7 +50,23 @@ export const loginUser = async (email, password, tenantId, ipAddress, userAgent)
     performedBy: user.id
   });
 
-  return { user, token, refreshToken };
+  const roleMenus = await prisma.roleMenu.findMany({
+    where: { roleId: user.roleId },
+    include: { menu: true }
+  });
+
+  const menuPermissions = roleMenus.map(rm => ({
+    name: rm.menu.name,
+    path: rm.menu.path,
+    icon: rm.menu.icon,
+    module: rm.menu.module,
+    can_view: rm.can_view,
+    can_add: rm.can_add,
+    can_edit: rm.can_edit,
+    can_delete: rm.can_delete
+  }));
+
+  return { user, token, refreshToken, menuPermissions };
 };
 
 export const refreshToken = async (tokenStr, ipAddress, userAgent) => {

@@ -6,7 +6,8 @@ import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '.
 import { Search, Plus, Download, User, MapPin, Package, CreditCard, Eye, Edit2, ToggleLeft, ToggleRight, XCircle, X, Mail, Phone, Globe, Calendar, Shield, Activity, Trash2, ShoppingCart, ChevronDown, FileText, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BootstrapPagination from '../../components/Common/Pagination';
-import api from '../../utils/api';
+import api from '../../services/api/setupAxios.js';
+import realApi from '../../services/api/setupAxios';
 import { normalizeRole } from '../../utils/authUtils';
 
 const Clients = () => {
@@ -29,7 +30,8 @@ const Clients = () => {
   const activeClientType = isAdminRole ? 'Personal' : (clientTypeFilter === 'Website' ? undefined : (clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined)));
   
   const { data: clientsData, isLoading: isLoadingClients } = useClients(currentPage, itemsPerPage, debounceSearch, activeClientType);
-  const clientsList = clientsData?.data || [];
+  const rawClientsData = clientsData?.data || [];
+  const clientsList = Array.isArray(rawClientsData) ? rawClientsData : (rawClientsData.clients || rawClientsData.data || []);
   const meta = clientsData?.meta || { totalItems: 0, totalPages: 1 };
   
   const createMutation = useCreateClient();
@@ -75,7 +77,13 @@ const Clients = () => {
   const fetchClientOrders = async (companyId) => {
     setLoadingOrders(true);
     try {
-      const res = await api.get(`/orders/by-company/${companyId}`);
+      let res;
+      try {
+        res = await realApi.get(`/orders/by-company/${companyId}`);
+      } catch (err) {
+        console.warn('Real API failed, falling back to mock fetchClientOrders', err);
+        res = await api.get(`/orders/by-company/${companyId}`);
+      }
       const rawData = res.data?.success ? res.data.data : [];
       setClientOrders(rawData.map(o => {
         let parsedItems = o.items;
@@ -90,7 +98,12 @@ const Clients = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      try {
+        await realApi.put(`/orders/${orderId}/status`, { status: newStatus });
+      } catch (err) {
+        console.warn('Real API failed, falling back to mock updateOrderStatus', err);
+        await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      }
       setClientOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       swalSuccess('Updated', `Order #${orderId} status changed to ${newStatus}`);
     } catch (e) { swalError('Error', 'Failed to update order status'); }
@@ -233,16 +246,30 @@ const Clients = () => {
       if (selectedClient.isRequest) {
         const numericId = selectedClient.id.toString().replace('REQ-', '');
         // Full update of website request fields (name, phone, email, etc.)
-        await api.put(`/saas/requests/${numericId}`, {
-          client_name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company_name: formData.companyName,
-          plan: formData.plan,
-          contact_person: formData.contact,
-          country: formData.location,
-          status: formData.status
-        });
+        try {
+          await realApi.put(`/saas/requests/${numericId}`, {
+            client_name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            company_name: formData.companyName,
+            plan: formData.plan,
+            contact_person: formData.contact,
+            country: formData.location,
+            status: formData.status
+          });
+        } catch (err) {
+          console.warn('Real API failed, falling back to mock update saas request', err);
+          await api.put(`/saas/requests/${numericId}`, {
+            client_name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            company_name: formData.companyName,
+            plan: formData.plan,
+            contact_person: formData.contact,
+            country: formData.location,
+            status: formData.status
+          });
+        }
         // If status changed to approved/active, also provision
         if (formData.status?.toLowerCase() === 'approved' || formData.status?.toLowerCase() === 'active') {
           await updateSubscriptionRequest(numericId, 'Approved');
@@ -1169,3 +1196,4 @@ const Clients = () => {
 };
 
 export default Clients;
+

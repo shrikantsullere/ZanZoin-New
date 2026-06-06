@@ -4,9 +4,13 @@ import { Calendar, User, Package, ClipboardList, Plus, Trash2, Tag, DollarSign, 
 import CustomDatePicker from './CustomDatePicker';
 import { useData } from '../context/GlobalDataContext';
 import { formatDateTimeEst } from '../utils/dateEst';
+import { useDepartments } from '../hooks/api/useAdminCore';
 
 const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'add' }) => {
   const { currentUser, users = [], customerUsers = [], clients = [] } = useData();
+  const { data: deptData } = useDepartments(1, 100);
+  const departmentsList = deptData?.data?.departments || [];
+  
   const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isAdmin = ['admin', 'super_admin', 'procurement', 'operations'].includes(userRole);
 
@@ -20,6 +24,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
     timestamp: new Date().toLocaleTimeString(),
     status: 'Pending',
     department: ['customer', 'client', 'saas_client'].includes(userRole) ? 'Customer' : 'Operations',
+    departmentId: 1, // Defaulting to 1 (Operations)
     connectedEntity: '',
     requestType: 'Individual' // 'Individual' or 'Company'
   });
@@ -50,6 +55,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
           timestamp: selectedRequest.created_at?.split('T')[1]?.split('.')[0] || new Date().toLocaleTimeString(),
           status: selectedRequest.status || 'Pending',
           department: selectedRequest.department || 'Operations',
+          departmentId: selectedRequest.departmentId || 1,
           connectedEntity: selectedRequest.connectedEntity || '',
           requestType: selectedRequest.requestType || 'Individual'
         });
@@ -67,6 +73,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
           timestamp: new Date().toLocaleTimeString(),
           status: 'Pending',
           department: ['customer', 'client', 'saas_client'].includes(userRole) ? 'Customer' : 'Operations',
+          departmentId: 1,
           connectedEntity: '',
           requestType: 'Individual'
         });
@@ -119,14 +126,32 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
     return formData.items.reduce((acc, item) => acc + (item.price * item.qty), 0).toFixed(2);
   };
 
+  const getNormalizedPayload = (statusOverride) => {
+    return {
+      ...formData,
+      status: statusOverride || formData.status,
+      total: parseFloat(calculateTotal()),
+      // Backend mapping properties
+      title: formData.title || formData.items[0]?.name || 'Purchase Request',
+      departmentId: parseInt(formData.departmentId || 1, 10),
+      priority: 'medium',
+      items: formData.items.map(item => ({
+        ...item,
+        itemName: item.name,
+        quantity: Number(item.qty) || 1,
+        estimatedCost: Number(item.price) || 0,
+        unit: item.unit || 'Pieces'
+      }))
+    };
+  };
+
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
-    onSave({ ...formData, total: parseFloat(calculateTotal()) });
+    onSave(getNormalizedPayload());
   };
 
   const handleStatusChange = (newStatus) => {
-    const updatedData = { ...formData, status: newStatus, total: parseFloat(calculateTotal()) };
-    onSave(updatedData);
+    onSave(getNormalizedPayload(newStatus));
   };
 
   const isView = modalType === 'view';
@@ -317,20 +342,22 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
           <div className="space-y-1 text-white">
             <label className="text-[10px] font-bold text-muted uppercase">Department</label>
             <select
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              value={formData.departmentId}
+              onChange={(e) => {
+                const deptId = e.target.value;
+                const deptName = departmentsList.find(d => String(d.id) === String(deptId))?.name || 'Operations';
+                setFormData({ ...formData, departmentId: deptId, department: deptName });
+              }}
               className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold disabled:opacity-50"
               disabled={isView}
             >
-              <option>Operations</option>
-              <option>Catering</option>
-              <option>Housekeeping</option>
-              <option>Maintenance</option>
-              <option>Guest Services</option>
-              <option>Beverage</option>
-              <option>Events</option>
-              <option>Procurement</option>
-              <option>Customer</option>
+              {departmentsList.length > 0 ? (
+                departmentsList.map(dept => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))
+              ) : (
+                <option value={1}>Operations (Fallback)</option>
+              )}
             </select>
           </div>
           )}

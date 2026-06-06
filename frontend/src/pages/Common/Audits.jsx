@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
 import Table from '../../components/Table';
 import StatusBadge from '../../components/StatusBadge';
+import { normalizeRole } from '../../utils/authUtils';
 
 const Audits = () => {
     const { 
@@ -22,7 +23,7 @@ const Audits = () => {
     const [activeTab, setActiveTab] = useState('Inventory'); // Inventory, Procurement
     const [searchTerm, setSearchTerm] = useState('');
 
-    const isAdmin = ['superadmin', 'super_admin', 'inventory', 'procurement', 'operations'].includes(currentUser?.role?.toLowerCase());
+    const isAdmin = ['superadmin', 'inventory', 'procurement', 'operations'].includes(normalizeRole(currentUser?.role));
 
     const inventoryAudits = stockMovements.map(m => ({
         ...m,

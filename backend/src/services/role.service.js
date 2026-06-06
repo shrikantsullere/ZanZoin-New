@@ -1,6 +1,18 @@
 import * as roleRepository from '../repositories/role.repository.js';
 import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
+import prisma from '../config/db.js';
+
+export const getMenus = async () => {
+  return await prisma.menu.findMany({ orderBy: { id: 'asc' } });
+};
+
+export const getRolePermissions = async (roleId) => {
+  return await prisma.roleMenu.findMany({
+    where: { roleId },
+    include: { menu: true }
+  });
+};
 
 export const createRole = async (data, performerId) => {
   const exists = await roleRepository.findRoleByName(data.name);
@@ -64,17 +76,41 @@ export const deleteRole = async (id, performerId) => {
   return true;
 };
 
-export const assignPermissions = async (roleId, permissionIds, performerId) => {
+export const assignPermissions = async (roleId, permissions, performerId) => {
   const role = await roleRepository.findRoleById(roleId);
   if (!role) throw new AppError('Role not found', 404);
 
-  await roleRepository.assignPermissionsToRole(roleId, permissionIds);
+  // permissions is an array: [{ menu_id, can_view, can_add, can_edit, can_delete }]
+  for (const perm of permissions) {
+    await prisma.roleMenu.upsert({
+      where: {
+        roleId_menuId: {
+          roleId: roleId,
+          menuId: perm.menu_id
+        }
+      },
+      update: {
+        can_view: perm.can_view,
+        can_add: perm.can_add,
+        can_edit: perm.can_edit,
+        can_delete: perm.can_delete
+      },
+      create: {
+        roleId: roleId,
+        menuId: perm.menu_id,
+        can_view: perm.can_view,
+        can_add: perm.can_add,
+        can_edit: perm.can_edit,
+        can_delete: perm.can_delete
+      }
+    });
+  }
 
   await logAudit({
     module: 'ROLES',
     action: 'ASSIGN_PERMISSIONS',
-    description: `Assigned permissions to role ${role.name}`,
-    newValue: { permissionIds },
+    description: `Updated menu matrix for role ${role.name}`,
+    newValue: { permissions },
     performedBy: performerId
   });
 

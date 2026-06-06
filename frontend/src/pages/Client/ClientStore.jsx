@@ -9,7 +9,7 @@ import { localDateISO } from '../../utils/orderWorkflow';
 import { MARKETPLACE_CATEGORIES, canonicalMarketplaceCategory } from '../../utils/data';
 import { normalizeRole } from '../../utils/authUtils';
 import { calculateOSRMRouteDistance } from '../../utils/distanceHelper';
-import { toAbsoluteImageUrl } from '../../utils/api';
+import { toAbsoluteImageUrl } from '../../utils/apiHelpers.js';
 import { Image as ImageIcon } from 'lucide-react';
 
 const DEFAULT_TRANSPORT_EXTRA_FEE = {
@@ -1488,3 +1488,5 @@ const ClientStore = () => {
 };
 
 export default ClientStore;
+
+

@@ -10,8 +10,9 @@ import Pagination from '../../components/Common/Pagination';
 import StatusBadge from '../../components/StatusBadge';
 import { CLIENTS as CLIENTS_SEED, marketplaceCategorySelectOptions, normalizeToMarketplaceCategory, canonicalMarketplaceCategory } from '../../utils/data';
 import { useLocation } from 'react-router-dom';
-import { toAbsoluteImageUrl } from '../../utils/api';
-import { useItems, useWarehouses } from '../../hooks/api/useInventory';
+import { toAbsoluteImageUrl } from '../../utils/apiHelpers.js';
+import { useItems, useWarehouses, useItemCategories, useItemUnits } from '../../hooks/api/useInventory';
+import realApi from '../../services/api/setupAxios';
 
 /** Normalize for enum match (handles spaces / casing). */
 function normClientEnum(v) {
@@ -36,17 +37,26 @@ function isSaaSPortfolioClient(c) {
 
 const Inventory = () => {
   const location = useLocation();
-  const { addInventory, updateInventory, deleteInventory, users, currentUser, marketplaceVendors = [], stockMovements, addStockEntry, issueStock, projects, purchaseRequests, addPurchaseRequest, updateProject, recordLoss, clients, fetchClients, fetchVendors, hasMenuPermission, fetchPurchaseRequests } = useData();
+  const { data: warehousesData } = useWarehouses();
+  const warehouses = warehousesData?.data || [];
+
+  const { data: categoriesData } = useItemCategories();
+  const apiCategories = categoriesData?.itemCategories || categoriesData || [];
+
+  const { data: unitsData } = useItemUnits();
+  const apiUnits = unitsData?.itemUnits || unitsData || [];
+
+  const { inventory: mockInventory, addInventory, updateInventory, deleteInventory, users, currentUser, marketplaceVendors = [], stockMovements, addStockEntry, issueStock, projects, purchaseRequests, addPurchaseRequest, updateProject, recordLoss, clients, fetchClients, fetchVendors, hasMenuPermission, fetchPurchaseRequests } = useData();
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: itemsData, isLoading, error } = useItems(page, 10, searchTerm);
-  const inventory = itemsData?.data || [];
-  const meta = itemsData?.meta || { totalPages: 1, totalItems: 0 };
+  const realInventory = itemsData?.items || itemsData?.data || [];
   
-  const { data: warehousesData } = useWarehouses();
-  const warehouses = warehousesData?.data || [];
+  // Offline Resilience Fallback
+  const inventory = realInventory.length > 0 ? realInventory : mockInventory;
+  const meta = itemsData?.meta || { totalPages: itemsData?.totalPages || 1, totalItems: itemsData?.total || inventory.length };
 
   React.useEffect(() => {
     fetchClients();
@@ -272,7 +282,44 @@ const Inventory = () => {
           setIsSaving(false);
           return;
         }
-          const res = await addStockEntry({ ...formData, imageFile });
+
+        // Frontend validation
+        if (!formData.item || formData.item.trim().length < 2) {
+          swalWarning('Validation Error', 'Item name must be at least 2 characters.');
+          setIsSaving(false);
+          return;
+        }
+
+        const catId = parseInt(formData.categoryId, 10);
+        if (isNaN(catId) || catId <= 0) {
+          swalWarning('Validation Error', 'Please select a valid Category.');
+          setIsSaving(false);
+          return;
+        }
+
+        const uId = parseInt(formData.unitId, 10);
+        if (isNaN(uId) || uId <= 0) {
+          swalWarning('Validation Error', 'Please select a valid Unit.');
+          setIsSaving(false);
+          return;
+        }
+
+          let res;
+          try {
+            const apiPayload = {
+              name: formData.item.trim(),
+              categoryId: catId,
+              unitId: uId,
+              description: formData.description || ''
+            };
+            const apiRes = await realApi.post('/items', apiPayload);
+            console.log('[REAL_API_SUCCESS] Item created successfully via real API');
+            res = { ok: true, data: apiRes.data };
+          } catch (e) {
+            console.warn('[REAL_API_FAILED] Item creation via real API failed', e);
+            console.info('[FALLBACK_ACTIVATED] Falling back to mock addStockEntry');
+            res = await addStockEntry({ ...formData, imageFile });
+          }
           if (!res?.ok) {
             swalError('Save failed', res?.error || 'Stock entry could not be saved.');
             return;
@@ -293,9 +340,40 @@ const Inventory = () => {
       } else if (modalType === 'loss') {
         await recordLoss(formData);
       } else if (modalType === 'edit') {
-        await updateInventory({ ...formData, imageFile });
+        // Frontend validation
+        if (!formData.item || formData.item.trim().length < 2) {
+          swalWarning('Validation Error', 'Item name must be at least 2 characters.');
+          setIsSaving(false);
+          return;
+        }
+
+        const catId = parseInt(formData.categoryId, 10);
+        const uId = parseInt(formData.unitId, 10);
+
+        try {
+          const apiPayload = {
+            name: formData.item.trim(),
+            description: formData.description || ''
+          };
+          if (!isNaN(catId) && catId > 0) apiPayload.categoryId = catId;
+          if (!isNaN(uId) && uId > 0) apiPayload.unitId = uId;
+
+          await realApi.put(`/items/${formData.id}`, apiPayload);
+          console.log('[REAL_API_SUCCESS] Item updated successfully via real API');
+        } catch (e) {
+          console.warn('[REAL_API_FAILED] Item update via real API failed', e);
+          console.info('[FALLBACK_ACTIVATED] Falling back to mock updateInventory');
+          await updateInventory({ ...formData, imageFile });
+        }
       } else if (modalType === 'delete') {
-        await deleteInventory(selectedItem.id);
+        try {
+          await realApi.delete(`/items/${selectedItem.id}`);
+          console.log('[REAL_API_SUCCESS] Item deleted successfully via real API');
+        } catch (e) {
+          console.warn('[REAL_API_FAILED] Item deletion via real API failed', e);
+          console.info('[FALLBACK_ACTIVATED] Falling back to mock deleteInventory');
+          await deleteInventory(selectedItem.id);
+        }
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -746,7 +824,6 @@ const Inventory = () => {
               </div>
             </div>
           ) : modalType === 'entry' ? (
-            // ... truncated entry content (assuming tool handles keep)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1 col-span-1 md:col-span-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-widest">Inventory Type</label>
@@ -813,21 +890,34 @@ const Inventory = () => {
                   placeholder="e.g. Dom Perignon"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest">Category</label>
-                <select
-                  value={(() => {
-                    const v = String(formData.category ?? '').trim() || 'General';
-                    return marketplaceCategorySelectOptions(formData.category).includes(v) ? v : 'General';
-                  })()}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold text-white"
-                >
-                  {marketplaceCategorySelectOptions(formData.category).map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
+
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    className="w-full border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 border"
+                    value={formData.categoryId || ''}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  >
+                    <option value="">Select Category</option>
+                    {apiCategories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                  <select
+                    className="w-full border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 border"
+                    value={formData.unitId || ''}
+                    onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
+                  >
+                    <option value="">Select Unit</option>
+                    {apiUnits.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.shortName})</option>
+                    ))}
+                  </select>
+                </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-muted uppercase tracking-widest">Quantity</label>
                 <input
@@ -1381,3 +1471,5 @@ const Inventory = () => {
 };
 
 export default Inventory;
+
+

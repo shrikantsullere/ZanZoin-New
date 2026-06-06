@@ -9,6 +9,7 @@ import {
   Package, Truck, Activity, CreditCard
 } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
+import { normalizeRole } from '../../utils/authUtils';
 
 // API Hooks
 import { useOrders } from '../../hooks/api/useOrders';
@@ -22,7 +23,7 @@ const COLORS = ['#C8A96A', '#ffffff', '#6B7280', '#34d399', '#f87171', '#60a5fa'
 
 const Analytics = () => {
   const { currentUser } = useData();
-  const role = currentUser?.role?.toLowerCase().replace(/\s+/g, '') || 'staff';
+  const role = normalizeRole(currentUser?.role);
   
   const canViewFinance = ['superadmin', 'admin', 'finance'].includes(role);
   const canViewOperations = ['superadmin', 'admin', 'operations'].includes(role);
@@ -43,16 +44,18 @@ const Analytics = () => {
   const { data: deliveriesData, isLoading: loadingDeliveries } = useDeliveries(1, limit);
   const { data: missionsData, isLoading: loadingMissions } = useMissions(1, limit);
 
-  // Data parsing
-  const orders = ordersData?.data || [];
-  const invoices = invoicesData?.data || [];
-  const payments = paymentsData?.data || [];
-  const clients = clientsData?.data || [];
-  const stock = stockData || [];
-  const purchaseRequests = prData?.data || [];
-  const purchaseOrders = poData?.data || [];
-  const deliveries = deliveriesData?.data || [];
-  const missions = missionsData?.data || [];
+  // Data parsing helper
+  const getArray = (data) => Array.isArray(data) ? data : (data?.data || data?.items || data?.clients || data?.users || Object.values(data || {}).find(Array.isArray) || []);
+
+  const orders = getArray(ordersData?.data);
+  const invoices = getArray(invoicesData?.data);
+  const payments = getArray(paymentsData?.data);
+  const clients = getArray(clientsData?.data);
+  const stock = getArray(stockData);
+  const purchaseRequests = getArray(prData?.data);
+  const purchaseOrders = getArray(poData?.data);
+  const deliveries = getArray(deliveriesData?.data);
+  const missions = getArray(missionsData?.data);
 
   // --- 1. Overview Dashboard Metrics ---
   const totalOrders = orders.length;

@@ -1,44 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-// Simulated API for Chauffeur since backend ERP does not have a Chauffeur module natively.
-// This fulfills the requirement to use the React Query pattern without modifying the Sprint 1-3 backend schema.
-
-const getStoredChauffeurRequests = () => {
-  const data = localStorage.getItem('chauffeur_mock_db');
-  return data ? JSON.parse(data) : [];
-};
-
-const saveChauffeurRequests = (data) => {
-  localStorage.setItem('chauffeur_mock_db', JSON.stringify(data));
-};
+import api from '../../services/api/setupAxios';
 
 export const useChauffeurMissions = (page = 1, limit = 10, search = '') => {
   return useQuery({
     queryKey: ['chauffeurMissions', page, limit, search],
     queryFn: async () => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      let data = getStoredChauffeurRequests();
-      
-      if (search) {
-        data = data.filter(req => 
-          req.id?.toLowerCase().includes(search.toLowerCase()) || 
-          req.clientName?.toLowerCase().includes(search.toLowerCase()) || 
-          req.pickupLocation?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      // Pagination
-      const startIndex = (page - 1) * limit;
-      const paginatedData = data.slice(startIndex, startIndex + limit);
-
+      // Fetch from orders where orderType is CHAUFFEUR, or from missions.
+      // The requirement says fetch from missions if it's tracking, but Chauffeur.jsx shows all requests
+      // including unassigned. Orders hold unassigned requests. Let's fetch orders for CHAUFFEUR.
+      const response = await api.get('/orders', {
+        params: {
+          page,
+          limit,
+          search,
+          orderType: 'CHAUFFEUR'
+        }
+      });
+      // Ensure data matches what the UI expects
+      const mappedData = response.data.data.orders.map(order => ({
+          ...order,
+          id: order.id.toString(), // UI sometimes expects string id
+          ...order.metadata?.customItems?.[0], // Any custom payload fields
+          clientName: order.client?.companyName || order.client?.name || 'Guest Client',
+          status: order.status,
+      }));
       return {
         success: true,
-        data: paginatedData,
+        data: mappedData,
         meta: {
-          totalItems: data.length,
-          totalPages: Math.ceil(data.length / limit),
-          currentPage: page,
+          totalItems: response.data.data.total,
+          totalPages: response.data.data.totalPages,
+          currentPage: response.data.data.page,
           itemsPerPage: limit
         }
       };
@@ -50,15 +42,14 @@ export const useCreateChauffeurMission = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (missionData) => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const data = getStoredChauffeurRequests();
-      const newMission = {
-        id: `CHF-${Date.now()}`,
-        ...missionData,
-        createdAt: new Date().toISOString()
+      const payload = {
+          clientId: missionData.clientId,
+          orderType: 'CHAUFFEUR',
+          status: missionData.status || 'draft',
+          items: [missionData], // Shove all custom data into items so backend moves it to metadata
       };
-      saveChauffeurRequests([newMission, ...data]);
-      return { success: true, data: newMission };
+      const response = await api.post('/orders', payload);
+      return { success: true, data: response.data.data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chauffeurMissions'] });
@@ -70,15 +61,11 @@ export const useUpdateChauffeurMission = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const requests = getStoredChauffeurRequests();
-      const index = requests.findIndex(r => r.id === id);
-      if (index !== -1) {
-        requests[index] = { ...requests[index], ...data, updatedAt: new Date().toISOString() };
-        saveChauffeurRequests(requests);
-        return { success: true, data: requests[index] };
+      // For status updates
+      if (data.status) {
+          await api.patch(`/orders/${id}/status`, { status: data.status });
       }
-      throw new Error("Mission not found");
+      return { success: true, data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chauffeurMissions'] });
@@ -90,10 +77,7 @@ export const useDeleteChauffeurMission = () => {
     const queryClient = useQueryClient();
     return useMutation({
       mutationFn: async (id) => {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        let requests = getStoredChauffeurRequests();
-        requests = requests.filter(r => r.id !== id);
-        saveChauffeurRequests(requests);
+        await api.delete(`/orders/${id}`);
         return { success: true };
       },
       onSuccess: () => {

@@ -4,7 +4,7 @@ import { User, Shield, Bell, Globe, CreditCard, Save, Lock, RotateCcw, Truck, Do
 
 import { useData } from '../../context/GlobalDataContext';
 import { normalizeRole } from '../../utils/authUtils';
-import { API_BASE_URL } from '../../utils/api';
+import { API_BASE_URL } from '../../utils/apiHelpers.js';
 
 
 function pickAvatarUrl(user) {
@@ -832,3 +832,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

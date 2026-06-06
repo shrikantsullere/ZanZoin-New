@@ -257,7 +257,9 @@ const Chauffeur = () => {
                     adminApproved: true
                 };
             })() : (editingRequest?.passenger_info || editingRequest?._passengerInfo || null),
-            status: isAdmin ? (formData.get('driverName') ? 'assigned' : 'pending') : (editingRequest?.status || 'pending')
+            status: isAdmin ? (formData.get('driverName') ? 'assigned' : 'pending') : (editingRequest?.status || 'pending'),
+            orderType: 'CHAUFFEUR',
+            missionType: 'CHAUFFEUR'
         };
 
         if (editingRequest) {

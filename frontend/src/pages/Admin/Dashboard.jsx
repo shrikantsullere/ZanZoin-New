@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
+import { normalizeRole } from '../../utils/authUtils';
 
 const Dashboard = () => {
 
@@ -26,7 +27,7 @@ const Dashboard = () => {
     deliveries, projects, dashboardStats, currentUser,
     hasMenuPermission
   } = useData();
-  const isSuperAdmin = ['super_admin', 'superadmin', 'super admin'].includes(currentUser?.role?.toLowerCase());
+  const isSuperAdmin = ['super_admin', 'superadmin', 'super admin'].includes(normalizeRole(currentUser?.role));
 
   React.useEffect(() => {
     // Only fetch what is needed for the dashboard indicators
@@ -73,64 +74,27 @@ const Dashboard = () => {
 
   // --- Dashboard Intelligence Calibration ---
   const stats = useMemo(() => {
-    const openOrders = dashboardStats.totalOrders ?? (orders || []).filter(o => o.status !== 'completed' && o.status !== 'cancelled').length;
-    const completedOrders = dashboardStats.completedOrders ?? (orders || []).filter(o => o.status === 'completed').length;
-    const unpaidInvoices = dashboardStats.unpaidInvoices ?? (invoices || []).filter(i => i.status !== 'Paid').length;
-
-    const now = new Date();
-    const filterDays = { 'Daily': 1, 'Weekly': 7, 'Monthly': 30, 'Quarterly': 90, 'Annual': 365 };
-    const days = filterDays[revenueFilter] || 30;
-    const thresholdDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
-    const prevThresholdDate = new Date(thresholdDate.getTime() - (days * 24 * 60 * 60 * 1000));
-
-    // Revenue calculations (Filtered exactly by Financial Cycle)
-    const relevantRevenue = (invoices || [])
-      .filter(i => new Date(i.date || i.created_at) >= thresholdDate && i.status === 'Paid')
-      .reduce((acc, i) => acc + parseFloat(i.totalAmount || 0), 0);
-
-    const prevRevenue = (invoices || [])
-      .filter(i => {
-         const d = new Date(i.date || i.created_at);
-         return d >= prevThresholdDate && d < thresholdDate && i.status === 'Paid';
-      })
-      .reduce((acc, i) => acc + parseFloat(i.totalAmount || 0), 0);
-      
-    const revenueTrendValue = prevRevenue > 0 ? ((relevantRevenue - prevRevenue) / prevRevenue * 100).toFixed(1) : (relevantRevenue > 0 ? 100 : 0);
-    const revenueTrend = revenueTrendValue > 0 ? `+${revenueTrendValue}%` : `${revenueTrendValue}%`;
-
-    // Active Operations Trend calculation
-    const currentOrders = (orders || []).filter(o => new Date(o.date || o.created_at) >= thresholdDate).length;
-    const prevOrdersData = (orders || []).filter(o => {
-        const d = new Date(o.date || o.created_at);
-        return d >= prevThresholdDate && d < thresholdDate;
-    }).length;
-    
-    const ordersTrendValue = prevOrdersData > 0 ? ((currentOrders - prevOrdersData) / prevOrdersData * 100).toFixed(1) : (currentOrders > 0 ? 100 : 0);
-    const ordersTrend = ordersTrendValue > 0 ? `+${ordersTrendValue}%` : `${ordersTrendValue}%`;
-
-    // Inventory Value
-    const inventoryValue = dashboardStats.inventoryValue ?? (inventory || []).reduce((a, b) => a + ((b.price || 0) * (b.qty || 0)), 0);
-    const lowStockItems = (inventory || []).filter(i => i.qty <= 10).length;
-
-    const onlineStaff = dashboardStats.onlineStaff ?? (users || []).filter(u => u.role === 'Field Staff' && u.isAvailable).length;
-    const totalUsers = dashboardStats.totalStaff || dashboardStats.onlineStaff || (users || []).length;
-    const activeChauffeurs = dashboardStats.activeChauffeurs ?? 0;
-    const activeEvents = dashboardStats.activeEvents ?? 0;
-    const openTickets = dashboardStats.openTickets ?? 0;
-
-    const today = new Date().toISOString().slice(5, 10);
-    const birthdayStaff = (users || []).filter(u => u.birthday && u.birthday.slice(5, 10) === today);
-
-    return { 
-      openOrders, completedOrders, unpaidInvoices, 
-      relevantRevenue, revenueTrend, 
-      ordersTrend, 
-      inventoryValue, lowStockItems,
-      onlineStaff, totalUsers,
-      birthdayStaff,
-      activeChauffeurs, activeEvents, openTickets
+    return {
+      openOrders: dashboardStats.openOrders || 0,
+      completedOrders: dashboardStats.completedOrders || 0,
+      unpaidInvoices: dashboardStats.unpaidInvoices || 0,
+      relevantRevenue: dashboardStats.relevantRevenue || 0,
+      prevRevenue: dashboardStats.prevRevenue || 0,
+      revenueTrend: dashboardStats.revenueTrend || '0%',
+      ordersTrend: '+0%', // Can be added to backend later if needed
+      inventoryValue: dashboardStats.inventoryValue || 0,
+      lowStockItems: dashboardStats.stockWarnings || 0,
+      onlineStaff: dashboardStats.activeStaff || 0,
+      totalUsers: dashboardStats.activeStaff || 0,
+      birthdayStaff: [],
+      activeChauffeurs: dashboardStats.fleetAvailable || 0,
+      activeEvents: dashboardStats.activeEvents || 0,
+      openTickets: dashboardStats.openTickets || 0,
+      activeClients: dashboardStats.activeClients || 0,
+      pendingDeliveries: dashboardStats.pendingDeliveries || 0,
+      activeProjects: dashboardStats.activeProjects || 0
     };
-  }, [orders, invoices, revenueFilter, users, dashboardStats, inventory]);
+  }, [dashboardStats]);
 
   const columns = [
     { header: "Order ID", accessor: "id" },
@@ -262,14 +226,14 @@ const Dashboard = () => {
       {/* Primary Analytics Grid - Responsive pass */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Total Warehouse Assets', value: `$${(stats.inventoryValue / 1000).toFixed(1)}K`, icon: Package, color: 'text-accent', trend: stats.lowStockItems > 0 ? `${stats.lowStockItems} Low Stock` : 'Optimal', detail: 'Asset Valuation' },
-          { label: 'Global Revenue flow', value: `$${(stats.relevantRevenue / 1000).toFixed(1)}K`, icon: DollarSign, color: 'text-success', trend: stats.revenueTrend, detail: 'Total Settlements' },
-          { label: 'Active Operations', value: stats.openOrders, icon: ShoppingCart, color: 'text-info', trend: stats.ordersTrend, detail: 'Mission Pipeline' },
-          { label: 'Global Personnel', value: stats.totalUsers, icon: Users, color: 'text-primary', trend: stats.onlineStaff > 0 ? `${stats.onlineStaff} Online` : 'Active', detail: 'Total HQ Staff' },
-        { label: 'Chauffeur Requests', value: stats.activeChauffeurs, icon: Truck, color: 'text-accent', trend: `Active`, detail: 'Pending Rides' },
-        { label: 'Active Events', value: stats.activeEvents, icon: Calendar, color: 'text-info', trend: 'Scheduled', detail: 'Concierge Events' },
-        { label: 'Open Support Cases', value: stats.openTickets, icon: AlertTriangle, color: 'text-warning', trend: 'Need Attention', detail: 'Support Tickets' }
-        ].map((stat, idx) => (
+          { label: 'Total Warehouse Assets', value: `$${(stats.inventoryValue / 1000).toFixed(1)}K`, icon: Package, color: 'text-accent', trend: stats.lowStockItems > 0 ? `${stats.lowStockItems} Low Stock` : 'Optimal', detail: 'Asset Valuation', show: hasMenuPermission('Inventory', 'can_view') || hasMenuPermission('StockHub', 'can_view') },
+          { label: 'Global Revenue flow', value: `$${(stats.relevantRevenue / 1000).toFixed(1)}K`, icon: DollarSign, color: 'text-success', trend: stats.revenueTrend, detail: 'Total Settlements', show: hasMenuPermission('Invoices', 'can_view') || hasMenuPermission('Payments', 'can_view') },
+          { label: 'Active Operations', value: stats.openOrders, icon: ShoppingCart, color: 'text-info', trend: stats.ordersTrend, detail: 'Mission Pipeline', show: hasMenuPermission('Orders', 'can_view') },
+          { label: 'Global Personnel', value: stats.totalUsers, icon: Users, color: 'text-primary', trend: stats.onlineStaff > 0 ? `${stats.onlineStaff} Online` : 'Active', detail: 'Total HQ Staff', show: hasMenuPermission('Staff Management', 'can_view') || hasMenuPermission('HQ Personnel', 'can_view') },
+          { label: 'Chauffeur Requests', value: stats.activeChauffeurs, icon: Truck, color: 'text-accent', trend: `Active`, detail: 'Pending Rides', show: hasMenuPermission('Chauffeur', 'can_view') || hasMenuPermission('Chauffeur Protocol', 'can_view') },
+          { label: 'Active Events', value: stats.activeEvents, icon: Calendar, color: 'text-info', trend: 'Scheduled', detail: 'Concierge Events', show: hasMenuPermission('Events', 'can_view') },
+          { label: 'Open Support Cases', value: stats.openTickets, icon: AlertTriangle, color: 'text-warning', trend: 'Need Attention', detail: 'Support Tickets', show: hasMenuPermission('Support', 'can_view') }
+        ].filter(s => s.show || isSuperAdmin).map((stat, idx) => (
           <div key={idx} className="glass-card p-5 sm:p-6 relative overflow-hidden group hover:border-accent/30 transition-all border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.05] transition-all duration-700 pointer-events-none">
               <stat.icon size={100} />
@@ -288,6 +252,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Revenue Intelligence */}
+          {(hasMenuPermission('Invoices', 'can_view') || hasMenuPermission('Payments', 'can_view') || isSuperAdmin) && (
           <div className="glass-card p-8 border-white/5 relative overflow-hidden">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
               <div className="flex items-center gap-3">
@@ -333,9 +298,11 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* INVENTORY LOGISTICS */}
+            {(hasMenuPermission('Inventory', 'can_view') || hasMenuPermission('StockHub', 'can_view') || isSuperAdmin) && (
             <div className="glass-card p-6 md:p-8 border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent flex flex-col h-full">
               <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h3 className="text-xl font-bold tracking-tight">Inventory Pulse</h3>
@@ -356,7 +323,7 @@ const Dashboard = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-white/5 p-3 rounded-xl border border-white/5">
                     <p className="text-[8px] font-bold text-muted uppercase tracking-widest mb-1">Low Stock</p>
-                    <p className="text-lg font-bold text-danger">{inventory.filter(i => i.qty <= 10).length} Items</p>
+                    <p className="text-lg font-bold text-danger">{stats.lowStockItems} Items</p>
                   </div>
                   <div className="bg-white/5 p-3 rounded-xl border border-white/5">
                     <p className="text-[8px] font-bold text-muted uppercase tracking-widest mb-1">Value on Hand</p>
@@ -368,8 +335,10 @@ const Dashboard = () => {
                 Audit All Warehouses
               </button>
             </div>
+            )}
 
             {/* OPERATIONS PROTOCOL */}
+            {(hasMenuPermission('Orders', 'can_view') || hasMenuPermission('Projects', 'can_view') || hasMenuPermission('Missions', 'can_view') || isSuperAdmin) && (
             <div className="glass-card p-6 md:p-8 border-white/5 bg-gradient-to-tr from-white/[0.02] to-transparent flex flex-col h-full">
               <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h3 className="text-xl font-black italic font-heading tracking-tight">Active Operations</h3>
@@ -383,7 +352,7 @@ const Dashboard = () => {
                     <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                     <span className="text-xs font-bold text-white">Live Dispatches</span>
                   </div>
-                  <span className="text-lg font-bold text-white">{deliveries.filter(d => ['en_route','assigned'].includes(d.status)).length}</span>
+                  <span className="text-lg font-bold text-white">{stats.pendingDeliveries}</span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                   <div className="flex items-center gap-3">
@@ -404,13 +373,14 @@ const Dashboard = () => {
                     <div className="w-2 h-2 rounded-full bg-warning" />
                     <span className="text-xs font-bold text-white">Active Projects</span>
                   </div>
-                  <span className="text-lg font-bold text-white">{projects.filter(p => p.status === 'Active').length}</span>
+                  <span className="text-lg font-bold text-white">{stats.activeProjects}</span>
                 </div>
               </div>
               <button onClick={() => navigate('/dashboard/projects')} className="w-full py-3.5 md:py-4 mt-6 text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 hover:bg-primary hover:text-black rounded-2xl transition-all border border-primary/20">
                 Manage Operations
               </button>
             </div>
+            )}
           </div>
         </div>
 

@@ -11,6 +11,26 @@ export const useItems = (page = 1, limit = 10, search = '') => {
   });
 };
 
+export const useItemCategories = () => {
+  return useQuery({
+    queryKey: ['itemCategories'],
+    queryFn: async () => {
+      const res = await api.get('/item-categories');
+      return res.data?.data || [];
+    }
+  });
+};
+
+export const useItemUnits = () => {
+  return useQuery({
+    queryKey: ['itemUnits'],
+    queryFn: async () => {
+      const res = await api.get('/item-units');
+      return res.data?.data || [];
+    }
+  });
+};
+
 export const useWarehouses = () => {
   return useQuery({
     queryKey: ['warehouses'],

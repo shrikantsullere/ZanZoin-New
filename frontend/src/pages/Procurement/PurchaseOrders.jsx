@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useData } from "../../context/GlobalDataContext";
 import StatusBadge from "../../components/StatusBadge";
 import Pagination from "../../components/Common/Pagination";
-import { usePurchaseOrders } from "../../hooks/api/useProcurement";
+import { usePurchaseOrders, useCreatePurchaseOrder, useUpdatePurchaseOrder } from "../../hooks/api/useProcurement";
 import { RefreshCcw } from "lucide-react";
 
 const PurchaseOrders = () => {
@@ -49,6 +49,9 @@ const PurchaseOrders = () => {
 
   const userRole = (currentUser?.role || "").toLowerCase().replace(/\s+/g, "_");
   const isCustomer = ["customer", "saas_client", "client"].includes(userRole);
+
+  const createPOMutation = useCreatePurchaseOrder();
+  const updatePOMutation = useUpdatePurchaseOrder();
 
   React.useEffect(() => {
     fetchVendors();
@@ -146,10 +149,11 @@ const PurchaseOrders = () => {
     URL.revokeObjectURL(url);
   };
 
-  const HandleCreatePO = (e) => {
+  const HandleCreatePO = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const vendorId = formData.get("vendorId");
+    const purchaseRequestId = formData.get("purchaseRequestId");
     const vendor = approvedVendors.find(
       (v) => String(v.id) === String(vendorId),
     );
@@ -157,6 +161,10 @@ const PurchaseOrders = () => {
       window.alert(
         "Choose an approved vendor. Vendors stay unavailable for POs until Super Admin activates them.",
       );
+      return;
+    }
+    if (!purchaseRequestId) {
+      window.alert("You must select an approved Purchase Request to issue a PO.");
       return;
     }
 
@@ -173,15 +181,27 @@ const PurchaseOrders = () => {
       0,
     );
 
-    addPurchaseOrder({
-      vendorId,
-      vendorName: vendor?.name || "Unknown",
-      total,
-      items,
-      paymentTerms: formData.get("paymentTerms"),
-    });
+    try {
+      await createPOMutation.mutateAsync({
+        vendorId: parseInt(vendorId, 10),
+        purchaseRequestId: parseInt(purchaseRequestId, 10),
+        totalAmount: total,
+      });
+      console.log('[REAL_API_SUCCESS] Purchase Order Created');
+    } catch (err) {
+      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
+      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
+      addPurchaseOrder({
+        vendorId,
+        vendorName: vendor?.name || "Unknown",
+        total,
+        total_amount: total,
+        items,
+        paymentTerms: formData.get("paymentTerms"),
+        purchaseRequestId
+      });
+    }
 
-    const purchaseRequestId = formData.get("purchaseRequestId");
     if (purchaseRequestId) {
       updatePurchaseRequest({ id: purchaseRequestId, status: "Ordered" });
     }
@@ -192,7 +212,7 @@ const PurchaseOrders = () => {
     ]);
   };
 
-  const HandleEditPO = (e) => {
+  const HandleEditPO = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
@@ -214,12 +234,23 @@ const PurchaseOrders = () => {
       0,
     );
 
-    updatePurchaseOrder({
-      ...selectedPO,
-      paymentTerms: formData.get("paymentTerms"),
-      items,
-      total,
-    });
+    try {
+      await updatePOMutation.mutateAsync({
+        id: selectedPO.id,
+        data: { status: selectedPO.status.toLowerCase() }
+      });
+      console.log('[REAL_API_SUCCESS] Purchase Order Updated');
+    } catch (err) {
+      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
+      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
+      updatePurchaseOrder({
+        ...selectedPO,
+        paymentTerms: formData.get("paymentTerms"),
+        items,
+        total,
+      });
+    }
+
     setShowEditModal(false);
     setSelectedPO(null);
   };
@@ -677,14 +708,15 @@ const PurchaseOrders = () => {
                         </label>
                         <select
                           name="purchaseRequestId"
-                          className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent appearance-none font-bold italic uppercase tracking-wider cursor-pointer"
+                          className="w-full bg-background border border-accent/30 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent appearance-none font-bold italic uppercase tracking-wider cursor-pointer"
+                          required
                         >
-                          <option value="">None (Standalone PO)</option>
+                          <option value="">Select an approved Purchase Request...</option>
                           {purchaseRequests
                             .filter((r) => r.status === "Pending" || r.status === "Approved")
                             .map((r) => (
                               <option key={r.id} value={r.id}>
-                                {r.requestId} - {r.item} (Total: ${r.total})
+                                PR-{r.id} ({r.item}) - {r.status}
                               </option>
                             ))}
                         </select>

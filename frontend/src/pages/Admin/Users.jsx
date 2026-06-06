@@ -10,10 +10,11 @@ import Pagination from '../../components/Common/Pagination';
 import { normalizeRole, resolvePortalRole } from '../../utils/authUtils';
 
 const Users = () => {
-  const { leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, hasMenuPermission, cancelPersonalMembership } = useData();
+  const { leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, hasMenuPermission, cancelPersonalMembership, roles } = useData();
   const roleNormalized = normalizeRole(currentUser?.role);
   const isSuperAdmin = roleNormalized === 'superadmin';
   const isAdminOrSuper = isSuperAdmin || roleNormalized === 'admin' || roleNormalized === 'client' || roleNormalized === 'saas_client' || hasMenuPermission('Staff Management', 'can_edit') || hasMenuPermission('Staff Management', 'can_add');
+  const getRoleName = (u) => (typeof u?.role === 'object' ? u.role?.name || '' : u?.role || '').toString();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debounceSearch, setDebounceSearch] = useState('');
@@ -22,7 +23,7 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalType, setModalType] = useState('add');
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: isSuperAdmin ? 'admin' : 'operations', status: 'Active', bankingInfo: { bank: '', account: '', routing: '', method: 'Direct Deposit' } });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', roleId: '', status: 'Active', bankingInfo: { bank: '', account: '', routing: '', method: 'Direct Deposit' } });
   const [isDelegateModalOpen, setIsDelegateModalOpen] = useState(false);
   const [delegateFormData, setDelegateFormData] = useState({
     assigneeId: '', assignee: '', task: '', location: '', priority: 'Medium', missionType: 'General',
@@ -31,7 +32,8 @@ const Users = () => {
   const itemsPerPage = 10;
 
   const { data: usersData, isLoading: isUsersLoading } = useUsers(currentPage, 100, debounceSearch);
-  const users = usersData?.data || [];
+  const rawUsersData = usersData?.data || [];
+  const users = Array.isArray(rawUsersData) ? rawUsersData : (rawUsersData.users || []);
   
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -138,7 +140,7 @@ const Users = () => {
       // New user — empty form
       setFormData({
         name: '', email: '', phone: '', password: '',
-        role: isSuperAdmin ? 'admin' : 'operations',
+        roleId: '',
         status: 'Active',
         birthday: '', nibNumber: '', vacationBalance: 0,
         employmentStatus: 'Full Time',
@@ -156,7 +158,7 @@ const Users = () => {
         return;
       }
       try {
-        const payload = { ...formData };
+        const payload = { ...formData, tenantId: currentUser?.tenantId || 1 };
         const rawCompanyId = payload.company_id ?? payload.companyId;
         const parsedCompanyId = Number(rawCompanyId);
         if (
@@ -232,7 +234,7 @@ const Users = () => {
       render: (row) => (
         <div className="flex items-center gap-2">
           <Shield size={14} className="text-accent" />
-          <span>{getDisplayRole(row)}</span>
+          <span>{row.role?.name ? row.role.name.replace(/_/g, ' ') : getDisplayRole(row)}</span>
         </div>
       )
     },
@@ -438,8 +440,8 @@ const Users = () => {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {[
-              { label: 'Field Staff Available', val: users.filter(u => u.role === 'Field Staff' && u.isAvailable).length, color: 'text-success', bg: 'bg-success/10 border-success/20', icon: CheckCircle2 },
-              { label: 'Field Staff Offline', val: users.filter(u => u.role === 'Field Staff' && !u.isAvailable).length, color: 'text-danger', bg: 'bg-danger/10 border-danger/20', icon: XCircle },
+              { label: 'Field Staff Available', val: users.filter(u => getRoleName(u) === 'FIELD_STAFF' && u.isAvailable).length, color: 'text-success', bg: 'bg-success/10 border-success/20', icon: CheckCircle2 },
+              { label: 'Field Staff Offline', val: users.filter(u => getRoleName(u) === 'FIELD_STAFF' && !u.isAvailable).length, color: 'text-danger', bg: 'bg-danger/10 border-danger/20', icon: XCircle },
               { label: 'On Leave Today', val: leaveRequests.filter(r => r.status === 'Approved' && new Date(r.end) >= new Date()).length, color: 'text-warning', bg: 'bg-warning/10 border-warning/20', icon: Calendar },
               { label: 'Active Assignments', val: staffAssignments.filter(a => a.status === 'In Progress' || a.status === 'En Route').length, color: 'text-accent', bg: 'bg-accent/10 border-accent/20', icon: Radio },
             ].map((stat, i) => (
@@ -454,12 +456,12 @@ const Users = () => {
           </div>
 
           {/* Field Staff Cards */}
-          <div className="glass-card p-6">
+            <div className="glass-card p-6">
             <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
               <Truck size={18} className="text-accent" /> Field Staff — Live Availability
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {users.filter(u => u.role === 'Field Staff').map(user => {
+              {users.filter(u => getRoleName(u) === 'FIELD_STAFF' || getRoleName(u) === 'Field Staff').map(user => {
                 const activeTask = staffAssignments.find(a => (a.assigneeId === String(user.id) || a.assignee === user.name) && (a.status === 'In Progress' || a.status === 'En Route' || a.status === 'Pending'));
                 const onLeave = leaveRequests.find(r => (r.userId === user.id || r.name === user.name) && r.status === 'Approved' && new Date(r.end) >= new Date());
                 return (
@@ -514,7 +516,7 @@ const Users = () => {
                   </div>
                 );
               })}
-              {users.filter(u => u.role === 'Field Staff').length === 0 && (
+              {users.filter(u => getRoleName(u) === 'FIELD_STAFF' || getRoleName(u) === 'Field Staff').length === 0 && (
                 <p className="col-span-3 text-center text-secondary italic py-8">No Field Staff registered.</p>
               )}
             </div>
@@ -526,7 +528,7 @@ const Users = () => {
               <Briefcase size={18} className="text-accent" /> Operational Staff — Office Status
             </h3>
             <div className="space-y-3">
-              {users.filter(u => u.role === 'Operational Staff' || (!['Field Staff', 'Super Admin', 'Client'].includes(u.role))).map(user => {
+              {users.filter(u => getRoleName(u) === 'OPERATIONS' || getRoleName(u) === 'Operational Staff' || (!['FIELD_STAFF', 'Field Staff', 'Super Admin', 'SUPER_ADMIN', 'Client'].includes(getRoleName(u)))).map(user => {
                 const pendingLeave = leaveRequests.find(r => (r.userId === user.id || r.name === user.name) && r.status === 'Pending');
                 const approvedLeave = leaveRequests.find(r => (r.userId === user.id || r.name === user.name) && r.status === 'Approved' && new Date(r.end) >= new Date());
                 return (
@@ -537,7 +539,7 @@ const Users = () => {
                       </div>
                       <div>
                         <p className="font-bold text-white text-sm">{user.name}</p>
-                        <p className="text-[10px] text-muted uppercase font-bold">{user.role}</p>
+                        <p className="text-[10px] text-muted uppercase font-bold">{getRoleName(user).replace(/_/g, ' ')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -570,7 +572,7 @@ const Users = () => {
             <h3 className="text-lg font-bold uppercase tracking-tighter italic">Institutional Document Vault</h3>
           </div>
           <div className="space-y-4">
-            {users.filter(u => u.role !== 'client').map(user => (
+            {users.filter(u => getRoleName(u) !== 'BUSINESS_CLIENT' && getRoleName(u).toLowerCase() !== 'client').map(user => (
               <div key={user.id} className="p-4 sm:p-5 bg-white/[0.02] border border-border rounded-2xl flex flex-col lg:flex-row justify-between gap-6 hover:bg-white/[0.04] transition-all">
                 <div className="flex items-center gap-4 min-w-[180px]">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-black shrink-0">
@@ -578,7 +580,7 @@ const Users = () => {
                   </div>
                   <div className="min-w-0">
                     <h4 className="font-bold text-sm truncate text-white">{user.name}</h4>
-                    <p className="text-[10px] text-muted uppercase font-black tracking-widest truncate">{user.role}</p>
+                    <p className="text-[10px] text-muted uppercase font-black tracking-widest truncate">{getRoleName(user).replace(/_/g, ' ')}</p>
                   </div>
                 </div>
 
@@ -868,9 +870,9 @@ const Users = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {[
-          { label: "Admins", val: users.filter(u => u.role.includes('Admin')).length, icon: Shield },
-          { label: "Managers", val: users.filter(u => u.role.includes('Manager') || u.role.includes('Lead')).length, icon: Shield },
-          { label: "Field Staff", val: users.filter(u => u.role === 'Field Staff' || u.role === 'staff').length, icon: Shield },
+          { label: "Admins", val: users.filter(u => getRoleName(u).toUpperCase().includes('ADMIN')).length, icon: Shield },
+          { label: "Operations", val: users.filter(u => getRoleName(u).toUpperCase().includes('OPERATIONS') || getRoleName(u).toUpperCase().includes('LEAD')).length, icon: Shield },
+          { label: "Field Staff", val: users.filter(u => getRoleName(u).toUpperCase() === 'FIELD_STAFF' || getRoleName(u).toLowerCase() === 'staff').length, icon: Shield },
         ].map((stat, i) => (
           <div key={i} className="glass-card p-6 border-accent/10">
             <div className="flex justify-between items-center">
@@ -949,23 +951,14 @@ const Users = () => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Role</label>
                   <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    value={formData.roleId}
+                    onChange={(e) => setFormData({ ...formData, roleId: Number(e.target.value) })}
                     className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
                     disabled={modalType === 'view' || isSuperAdmin}
                   >
-                    {isSuperAdmin ? (
-                      <option value="admin">Admin (Internal Manager)</option>
-                    ) : (
-                      <>
-                        <option value="operations">Operations</option>
-                        <option value="procurement">Procurement</option>
-                        <option value="logistics">Logistics</option>
-                        <option value="inventory">Inventory</option>
-                        <option value="concierge">Concierge</option>
-                        <option value="staff">Field Staff</option>
-                      </>
-                    )}
+                    {(roles || []).filter(r => isSuperAdmin || r.name !== 'superadmin').map(r => (
+                      <option key={r.id} value={r.id}>{r.name.replace(/_/g, ' ').toUpperCase()}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -1156,7 +1149,7 @@ const Users = () => {
                   <div className="flex items-center gap-3 text-sm pt-1 border-t border-white/5">
                     <Shield size={14} className="text-accent shrink-0" />
                     <span className="text-secondary w-32">Role:</span>
-                    <span className="font-bold text-white capitalize">{formData.role}</span>
+                    <span className="font-bold text-white capitalize">{(roles || []).find(r => r.id === formData.roleId)?.name || 'Unknown'}</span>
                   </div>
                 </div>
               )}
@@ -1187,7 +1180,7 @@ const Users = () => {
               >
                 <option value="" disabled>Select Staff Member...</option>
                 {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} - {u.role}</option>
+                  <option key={u.id} value={u.id}>{u.name} - {getRoleName(u).replace(/_/g, ' ')}</option>
                 ))}
               </select>
             </div>

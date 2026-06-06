@@ -1,0 +1,153 @@
+{
+  "departments": {
+    "success": true,
+    "message": "Departments fetched successfully",
+    "data": {
+      "departments": [
+        {
+          "id": 1,
+          "tenantId": 1,
+          "name": "Operations",
+          "code": "OPS",
+          "description": "Core business operations and mission control.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 2,
+          "tenantId": 1,
+          "name": "Procurement",
+          "code": "PROC",
+          "description": "Purchasing, vendor management, and sourcing.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 3,
+          "tenantId": 1,
+          "name": "Logistics",
+          "code": "LOG",
+          "description": "Fleet management, deliveries, and supply chain.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 4,
+          "tenantId": 1,
+          "name": "Finance",
+          "code": "FIN",
+          "description": "Accounts payable/receivable, invoicing, and treasury.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 5,
+          "tenantId": 1,
+          "name": "Human Resources",
+          "code": "HR",
+          "description": "Personnel management, payroll, and recruiting.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 6,
+          "tenantId": 1,
+          "name": "Information Technology",
+          "code": "IT",
+          "description": "Systems, infrastructure, and technical support.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 7,
+          "tenantId": 1,
+          "name": "Sales",
+          "code": "SALES",
+          "description": "Client acquisition and CRM management.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        },
+        {
+          "id": 8,
+          "tenantId": 1,
+          "name": "Administration",
+          "code": "ADMIN",
+          "description": "General management and executive functions.",
+          "status": "active",
+          "createdAt": "2026-06-05T12:26:40.207Z",
+          "updatedAt": "2026-06-05T12:26:40.207Z",
+          "_count": {
+            "employees": 0
+          }
+        }
+      ],
+      "total": 8,
+      "page": 1,
+      "totalPages": 1
+    }
+  },
+  "getPurchaseRequests": {
+    "success": true,
+    "message": "Purchase Requests fetched successfully",
+    "data": {
+      "purchaseRequests": [],
+      "total": 0,
+      "page": 1,
+      "totalPages": 0
+    }
+  },
+  "postPurchaseRequestValidation": {
+    "success": false,
+    "message": "Validation Error: [\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"title\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"departmentId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"array\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"items\"\n    ],\n    \"message\": \"Invalid input: expected array, received undefined\"\n  }\n]",
+    "data": null
+  },
+  "postPurchaseRequestSuccess": {
+    "success": false,
+    "message": "Only mapped employees can create Purchase Requests",
+    "data": null
+  },
+  "getRfqs": {
+    "success": true,
+    "message": "RFQs fetched successfully",
+    "data": {
+      "rfqs": [],
+      "total": 0,
+      "page": 1,
+      "totalPages": 0
+    }
+  },
+  "postRfqValidation": {
+    "success": false,
+    "message": "Validation Error: [\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"purchaseRequestId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"vendorId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  }\n]",
+    "data": null
+  },
+  "postRfqSuccess": "Missing vendorId or prId"
+}

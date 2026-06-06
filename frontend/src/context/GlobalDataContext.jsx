@@ -14,18 +14,9 @@ import {
   displayOrderStatus,
 } from "../utils/orderWorkflow";
 import {
-  VENDOR_PERFORMANCE,
-  INVENTORY_ALERTS,
-  RECENT_ORDERS,
-  ACCESS_PLANS,
-  USERS,
-  ORDERS,
-  INVOICES,
-  VENDORS,
-  INVENTORY,
   canonicalMarketplaceCategory,
   PERSONAL_MEMBERSHIP_FEE_USD,
-} from "../utils/data";
+} from "../utils/constants";
 
 const GlobalDataContext = createContext();
 
@@ -668,11 +659,11 @@ export const GlobalDataProvider = ({ children }) => {
   // Initial States from data.js
   const [subscriptionRequests, setSubscriptionRequests] = useState([]);
   const [clients, setClients] = useState([]);
-  const [vendors, setVendors] = useState(VENDORS);
-  const [inventory, setInventory] = useState(INVENTORY);
+  const [vendors, setVendors] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [accessPlans, setAccessPlans] = useState(ACCESS_PLANS);
+  const [accessPlans, setAccessPlans] = useState([]);
   const [pendingVendorOverrideIds, setPendingVendorOverrideIds] = useState(() =>
     readPendingVendorOverrides(),
   );
@@ -761,9 +752,8 @@ export const GlobalDataProvider = ({ children }) => {
     "chauffeur",
   ]);
 
-  // Helper: check if user has a specific action on a menu
   const hasMenuPermission = (menuName, action = "can_view") => {
-    const role = currentUser?.role?.toLowerCase().replace(/\s+/g, "_");
+    const role = normalizeRole(currentUser?.role);
     if (
       role === "super_admin" ||
       role === "superadmin" ||
@@ -800,11 +790,12 @@ export const GlobalDataProvider = ({ children }) => {
   };
 
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [purchaseRequests, setPurchaseRequests] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [quotes, setQuotes] = useState([]);
-  const [orders, setOrders] = useState(ORDERS);
-  const [invoices, setInvoices] = useState(INVOICES);
+  const [orders, setOrders] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [payments, setPayments] = useState([]);
   const [deliveries, setDeliveries] = useState([]);
   const [chauffeurRequests, setChauffeurRequests] = useState([]);
@@ -1261,7 +1252,8 @@ export const GlobalDataProvider = ({ children }) => {
         : Array.isArray(res.data)
           ? res.data
           : [];
-      const mapped = raw.map((v) => ({
+      const safeRaw = Array.isArray(raw) ? raw : (raw?.data && Array.isArray(raw.data) ? raw.data : []);
+      const mapped = safeRaw.map((v) => ({
         ...v,
         name:
           v.name ||
@@ -1379,11 +1371,14 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchAccessPlans = React.useCallback(async () => {
     try {
       const res = await api.get("/saas/plans");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       if (!Array.isArray(rawData) || rawData.length === 0) {
         setAccessPlans(ACCESS_PLANS);
         return;
@@ -1433,11 +1428,14 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       // The backend /api/saas/requests already filters by logged-in user if role is operations
       const res = await api.get("/saas/requests");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       setSubscriptionRequests(rawData);
     } catch (e) {
       console.error("Fetch subscription requests failed", e);
@@ -1462,7 +1460,8 @@ export const GlobalDataProvider = ({ children }) => {
       if (filters?.search) params.search = String(filters.search).trim();
       const res = await api.get("/users", { params });
       if (res.data?.success) {
-        let list = (res.data.data || []).map((u) => normalizeUserForUi(u));
+        let rawUsers = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.users || []);
+        let list = rawUsers.map((u) => normalizeUserForUi(u));
 
         // Fallback filtering in case backend doesn't yet support these query params.
         if (filters?.status) {
@@ -1785,11 +1784,14 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchOrders = React.useCallback(async () => {
     try {
       const res = await api.get("/orders");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       const mappedOrders = rawData.map((o) => {
         let parsedItems = o.items;
         if (typeof parsedItems === "string") {
@@ -1810,17 +1812,17 @@ export const GlobalDataProvider = ({ children }) => {
         return {
           ...o,
           items: itemsArr,
-          clientId: o.customer_id || o.client_id,
-          companyId: o.company_id,
-          vendorId: o.vendor_id,
-          client: o.customer_name || o.client_name || "",
-          vendor: o.vendor_name || "",
+          clientId: o.customer_id || o.client_id || o.clientId,
+          companyId: o.company_id || o.tenantId,
+          vendorId: o.vendor_id || o.vendorId,
+          client: o.customer_name || o.client_name || o.client?.companyName || o.client?.name || "",
+          vendor: o.vendor_name || o.vendor?.name || "",
           total: totalVal,
           total_amount: totalVal,
           amount: totalVal,
           date: displayDate,
           order_date: orderDay || o.order_date,
-          createdAt: o.created_at,
+          createdAt: o.created_at || o.createdAt,
           requestDate: displayDate,
           dueDate: dueDay,
           due_date: dueDay || o.due_date,
@@ -1848,26 +1850,30 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchMissions = React.useCallback(async () => {
     try {
       const res = await api.get("/missions");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       setMissions(
         rawData.map((m) => ({
           ...m,
-          orderId: m.order_id,
-          driverId: m.assigned_driver,
-          driverName: m.driver_name,
+          orderId: m.order_id || m.orderId,
+          driverId: m.assigned_driver || m.assignedEmployeeId,
+          driverName: m.driver_name || (m.assignee ? `${m.assignee.firstName} ${m.assignee.lastName}` : ""),
           vehicleId: m.vehicle_id,
           plateNumber: m.plate_number,
-          missionType: m.mission_type,
+          missionType: m.mission_type || m.missionType,
           destinationType: m.destination_type,
           date: m.event_date
             ? m.event_date.split("T")[0]
-            : m.created_at
-              ? m.created_at.split("T")[0]
+            : m.created_at || m.createdAt
+              ? (m.created_at || m.createdAt).split("T")[0]
               : "",
+          id: m.missionNumber || m.id,
         })),
       );
     } catch (e) {
@@ -1878,11 +1884,14 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchFinance = React.useCallback(async () => {
     try {
       const res = await api.get("/finance/invoices");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       setInvoices(
         rawData.map((i) => ({
           ...i,
@@ -1918,11 +1927,14 @@ export const GlobalDataProvider = ({ children }) => {
 
     try {
       const res = await api.get("/orders/projects/all");
-      const rawData = res.data?.success
+      let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
           ? res.data
           : [];
+      if (rawData && !Array.isArray(rawData) && typeof rawData === 'object') {
+        rawData = rawData.data || rawData.items || rawData.orders || rawData.missions || rawData.invoices || rawData.projects || Object.values(rawData).find(Array.isArray) || [];
+      }
       setProjects(
         rawData.map((p) => ({
           ...p,
@@ -2303,7 +2315,7 @@ export const GlobalDataProvider = ({ children }) => {
       // If the user is staff, fetch their specific data
       if (
         ["staff", "operations", "logistics", "inventory"].includes(
-          currentUser?.role?.toLowerCase(),
+          normalizeRole(currentUser?.role)
         )
       ) {
         fetches.push(fetchSupportingDocs());
@@ -2311,6 +2323,11 @@ export const GlobalDataProvider = ({ children }) => {
         fetches.push(fetchPayHistory());
       }
 
+      fetches.push(api.get('/roles').then(res => {
+        const rawData = res.data?.data;
+        const rolesArray = Array.isArray(rawData) ? rawData : (rawData?.roles || []);
+        setRoles(rolesArray);
+      }).catch(() => {}));
       await Promise.all(fetches);
     } catch (err) {
       console.error("Error fetching initial context data:", err);
@@ -2654,16 +2671,17 @@ export const GlobalDataProvider = ({ children }) => {
       const res = await api.post("/clients", {
         name: formData.clientName,
         email: formData.email,
-        phone: formData.phone || "",
+        phone: formData.phone || "0000000000",
         password: formData.password || "Password123!", // Default password for initial setup
         location: formData.country || "Bahamas",
         client_type: "SaaS",
         plan: formData.plan.replace(" Protocol", ""),
         billing_cycle: "Monthly",
         payment_method: "Credit Card",
-        contact_person: formData.contact,
-        business_name: formData.clientName,
-        source: "Landing Page",
+        clientCode: `CLT-${Date.now().toString().slice(-6)}`,
+        companyName: formData.clientName || "Unknown Company",
+        contactPerson: formData.contact || "Admin",
+        country: formData.country || "Bahamas",
         status: "active",
       });
 
@@ -3386,7 +3404,7 @@ export const GlobalDataProvider = ({ children }) => {
   };
 
   const hasPermission = (permission) => {
-    const normalizedRole = currentUser?.role?.toLowerCase().replace(/\s/g, "");
+    const normalizedRole = normalizeRole(currentUser?.role);
     if (normalizedRole === "superadmin") return true;
     // Financial restrictions
     if (
@@ -4363,13 +4381,17 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       const res = await api.post("/clients", {
         ...client,
-        phone: client.phone,
+        clientCode: `CLT-${Date.now().toString().slice(-6)}`,
+        companyName: client.companyName || client.name || "Unknown Company",
+        contactPerson: client.contact || client.contactPerson || "Admin",
+        email: client.email,
+        phone: client.phone || "0000000000",
+        address: client.location || "N/A",
+        country: client.country || "Bahamas",
+        client_type: client.clientType || 'Business',
         password: client.password || null,
-        client_type: client.clientType,
         billing_cycle: client.billingCycle,
         payment_method: client.paymentMethod,
-        contact_person: client.contact,
-        business_name: client.companyName,
         logo_url: client.logo,
       });
 
@@ -6250,12 +6272,17 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       const res = await api.post("/clients", {
         ...data,
+        clientCode: `CLT-${Date.now().toString().slice(-6)}`,
+        companyName: data.companyName || data.name || "Unknown Company",
+        contactPerson: data.contact || data.contactPerson || "Admin",
+        email: data.email,
+        phone: data.phone || "0000000000",
+        address: data.location || "N/A",
+        country: data.country || "Bahamas",
         password: data.password || null,
         client_type: data.clientType,
         billing_cycle: data.billingCycle,
         payment_method: data.paymentMethod,
-        contact_person: data.contact,
-        business_name: data.companyName,
         logo_url: data.logo,
         status: "pending",
       });
@@ -6652,16 +6679,7 @@ export const GlobalDataProvider = ({ children }) => {
         menuPermissions,
         setMenuPermissions,
         hasMenuPermission,
-        roles: [
-          "super_admin",
-          "operations",
-          "procurement",
-          "inventory",
-          "logistics",
-          "finance",
-          "sales",
-          "support",
-        ],
+        roles,
 
         // Notifications
         notifications,

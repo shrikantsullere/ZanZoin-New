@@ -4,9 +4,34 @@ import { sendResponse } from '../utils/response.js';
 export const createClient = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    let tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
 
-    const client = await clientService.createClient(req.body, req.user.id, tenantIdToUse);
+    if (!tenantIdToUse) {
+      tenantIdToUse = 1; // Fallback to a default tenant ID if none provided
+    }
+
+    const payload = req.body;
+    
+    // Safely extract and map ONLY the fields known to Prisma schema
+    const clientData = {
+      clientCode: payload.clientCode || `CLT-${Date.now().toString().slice(-6)}`,
+      companyName: payload.companyName || payload.name || "Unknown Company",
+      contactPerson: payload.contactPerson || payload.contact || payload.name || "Admin",
+      email: payload.email,
+      phone: payload.phone,
+      address: payload.address || payload.location || null,
+      city: payload.city || null,
+      country: payload.country || payload.location || null,
+      status: payload.status || "active",
+      clientType: payload.clientType || payload.client_type || null,
+      billingCycle: payload.billingCycle || payload.billing_cycle || null,
+      paymentMethod: payload.paymentMethod || payload.payment_method || null,
+      plan: payload.plan || null,
+      logoUrl: payload.logoUrl || payload.logo || null,
+      source: payload.source || null
+    };
+
+    const client = await clientService.createClient(clientData, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Client created successfully', client);
   } catch (error) {
     next(error);
@@ -42,7 +67,27 @@ export const updateClient = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const updatedClient = await clientService.updateClient(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    const payload = req.body;
+    
+    // Safely extract and map ONLY the fields known to Prisma schema
+    const clientData = {};
+    if (payload.clientCode !== undefined) clientData.clientCode = payload.clientCode;
+    if (payload.companyName !== undefined || payload.name !== undefined) clientData.companyName = payload.companyName || payload.name;
+    if (payload.contactPerson !== undefined || payload.contact !== undefined) clientData.contactPerson = payload.contactPerson || payload.contact;
+    if (payload.email !== undefined) clientData.email = payload.email;
+    if (payload.phone !== undefined) clientData.phone = payload.phone;
+    if (payload.address !== undefined || payload.location !== undefined) clientData.address = payload.address || payload.location;
+    if (payload.city !== undefined) clientData.city = payload.city;
+    if (payload.country !== undefined || payload.location !== undefined) clientData.country = payload.country || payload.location;
+    if (payload.status !== undefined) clientData.status = payload.status;
+    if (payload.clientType !== undefined || payload.client_type !== undefined) clientData.clientType = payload.clientType || payload.client_type;
+    if (payload.billingCycle !== undefined || payload.billing_cycle !== undefined) clientData.billingCycle = payload.billingCycle || payload.billing_cycle;
+    if (payload.paymentMethod !== undefined || payload.payment_method !== undefined) clientData.paymentMethod = payload.paymentMethod || payload.payment_method;
+    if (payload.plan !== undefined) clientData.plan = payload.plan;
+    if (payload.logoUrl !== undefined || payload.logo !== undefined) clientData.logoUrl = payload.logoUrl || payload.logo;
+    if (payload.source !== undefined) clientData.source = payload.source;
+
+    const updatedClient = await clientService.updateClient(Number(req.params.id), clientData, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Client updated successfully', updatedClient);
   } catch (error) {
     next(error);

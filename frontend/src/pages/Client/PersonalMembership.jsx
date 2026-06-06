@@ -5,12 +5,13 @@ import { motion } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
 import { PERSONAL_MEMBERSHIP_FEE_USD } from '../../utils/data';
 import MembershipConciergeAfterJoin from '../../components/MembershipConciergeAfterJoin';
+import { normalizeRole } from '../../utils/authUtils';
 
 const PersonalMembership = () => {
     const { currentUser, activatePersonalMembership, cancelPersonalMembership } = useData();
     const isActive = !!(currentUser?.concierge_member || currentUser?.conciergeMembership);
 
-    const isAdmin = ['admin', 'super_admin'].includes(currentUser?.role?.toLowerCase());
+    const isAdmin = ['admin', 'superadmin'].includes(normalizeRole(currentUser?.role));
 
     const handleUpgrade = async () => {
         if (!currentUser) {
@@ -124,3 +125,4 @@ const PersonalMembership = () => {
 };
 
 export default PersonalMembership;
+

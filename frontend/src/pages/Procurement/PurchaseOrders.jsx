@@ -47,7 +47,7 @@ const PurchaseOrders = () => {
   const purchaseOrders = poData?.data || [];
   const meta = poData?.meta || { totalPages: 1, totalItems: 0 };
 
-  const userRole = (currentUser?.role || "").toLowerCase().replace(/\s+/g, "_");
+  const userRole = String(currentUser?.role?.name || currentUser?.role || "").toLowerCase().replace(/\s+/g, "_");
   const isCustomer = ["customer", "saas_client", "client"].includes(userRole);
 
   const createPOMutation = useCreatePurchaseOrder();

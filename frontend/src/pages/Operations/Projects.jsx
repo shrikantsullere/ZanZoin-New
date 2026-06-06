@@ -17,7 +17,7 @@ const Projects = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isCustomer = ['customer', 'saas_client', 'client'].includes(userRole);
 
   const [formData, setFormData] = useState({ name: '', client: '', clientId: '', start: '', location: '', status: 'Pending', deliveryType: 'Road' });

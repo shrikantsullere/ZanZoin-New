@@ -13,12 +13,20 @@ export const validate = (schema) => (req, res, next) => {
     }
     next();
   } catch (err) {
-    if (err && err.errors) {
-      const errorMessages = err.errors.map((e) => {
+    if (err && (err.issues || err.errors)) {
+      const issues = err.issues || err.errors;
+      const errorMessages = issues.map((e) => {
         const field = e.path[e.path.length - 1];
         return `${field}: ${e.message}`;
       }).join(', ');
-      return sendResponse(res, 400, `Validation Failed: ${errorMessages}`);
+      
+      // If the user requested { success: false, message: ..., field: ... }
+      // we can return it cleanly for the first error:
+      return res.status(400).json({
+        success: false,
+        message: errorMessages,
+        field: issues[0]?.path[issues[0]?.path.length - 1] || null
+      });
     }
     return sendResponse(res, 400, `Validation Error: ${err.message || err}`);
   }

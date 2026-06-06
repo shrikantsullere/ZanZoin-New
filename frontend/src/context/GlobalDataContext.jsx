@@ -3451,10 +3451,8 @@ export const GlobalDataProvider = ({ children }) => {
     );
 
     try {
-      const userRole = (currentUser?.role || "")
-        .toLowerCase()
-        .replace(/\s+/g, "_");
       const roleKey = normalizeRole(currentUser?.role);
+      const userRole = roleKey;
       const tenantTypeKey = String(
         currentUser?.tenant_type || currentUser?.tenantType || "",
       )
@@ -3520,18 +3518,16 @@ export const GlobalDataProvider = ({ children }) => {
         order.pickupLocation ?? order.pickup_location ?? null;
 
       const res = await api.post("/orders", {
-        customer_id: isCustomer ? currentUser?.id : targetClientId,
-        company_id: isCustomer
+        clientId: isCustomer ? currentUser?.id : targetClientId,
+        companyId: isCustomer
           ? customerOrderCompanyId
           : userRole !== "super_admin"
             ? scopedCompanyId
             : order.company_id || order.companyId || targetClientId,
-        vendor_id:
-          order.vendorId != null
-            ? order.vendorId
-            : order.vendor_id != null
-              ? order.vendor_id
-              : null,
+        vendorId: (() => {
+          const vId = order.vendorId != null ? order.vendorId : order.vendor_id;
+          return vId && vId !== "" ? Number(vId) : null;
+        })(),
         type: order.type || order.orderType || "Marketplace Order",
         items: order.items,
         notes: order.notes || null,

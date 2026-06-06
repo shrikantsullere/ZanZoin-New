@@ -3,10 +3,13 @@ import { sendResponse } from '../utils/response.js';
 
 export const createOrder = async (req, res, next) => {
   try {
-    const { clientId } = req.body;
-    
+    // Normalize payload to handle both snake_case and camelCase
+    let incomingClientId = req.body.clientId ?? req.body.customer_id;
+    let incomingVendorId = req.body.vendorId ?? req.body.vendor_id;
+    let incomingCompanyId = req.body.companyId ?? req.body.company_id;
+
     // Explicitly validate clientId to prevent Prisma crashes
-    const parsedClientId = clientId ? Number(clientId) : null;
+    const parsedClientId = incomingClientId && incomingClientId !== "" ? Number(incomingClientId) : null;
     
     if (!parsedClientId || isNaN(parsedClientId) || parsedClientId <= 0) {
       return res.status(400).json({
@@ -17,6 +20,15 @@ export const createOrder = async (req, res, next) => {
     }
 
     req.body.clientId = parsedClientId;
+    
+    // Safely parse vendorId and companyId
+    req.body.vendorId = incomingVendorId && incomingVendorId !== "" ? Number(incomingVendorId) : null;
+    req.body.companyId = incomingCompanyId && incomingCompanyId !== "" ? Number(incomingCompanyId) : null;
+    
+    // Remove old snake_case keys so Prisma doesn't crash on unknown args
+    delete req.body.customer_id;
+    delete req.body.vendor_id;
+    delete req.body.company_id;
 
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;

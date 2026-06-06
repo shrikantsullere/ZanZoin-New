@@ -39,7 +39,7 @@ const PurchaseRequests = () => {
   const [modalType, setModalType] = useState('view');
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isCustomer = ['customer', 'saas_client', 'client'].includes(userRole);
 
   React.useEffect(() => {

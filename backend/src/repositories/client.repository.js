@@ -56,7 +56,108 @@ export const updateClient = async (id, data) => {
 };
 
 export const deleteClient = async (id) => {
-  return await prisma.client.delete({ where: { id } });
+  return await prisma.$transaction(async (tx) => {
+    // 1. Get all invoices for the client to delete payments and receipts
+    const invoices = await tx.invoice.findMany({
+      where: { clientId: id },
+      select: { id: true }
+    });
+    const invoiceIds = invoices.map(i => i.id);
+
+    if (invoiceIds.length > 0) {
+      // Get all payments linked to these invoices
+      const payments = await tx.payment.findMany({
+        where: { invoiceId: { in: invoiceIds } },
+        select: { id: true }
+      });
+      const paymentIds = payments.map(p => p.id);
+
+      if (paymentIds.length > 0) {
+        // Delete receipts
+        await tx.receipt.deleteMany({
+          where: { paymentId: { in: paymentIds } }
+        });
+      }
+
+      // Delete payments
+      await tx.payment.deleteMany({
+        where: { invoiceId: { in: invoiceIds } }
+      });
+
+      // Delete invoice items
+      await tx.invoiceItem.deleteMany({
+        where: { invoiceId: { in: invoiceIds } }
+      });
+
+      // Delete invoices
+      await tx.invoice.deleteMany({
+        where: { id: { in: invoiceIds } }
+      });
+    }
+
+    // 2. Get all deliveries for the client
+    const deliveries = await tx.delivery.findMany({
+      where: { clientId: id },
+      select: { id: true }
+    });
+    const deliveryIds = deliveries.map(d => d.id);
+
+    if (deliveryIds.length > 0) {
+      // Delete proofs of delivery
+      await tx.proofOfDelivery.deleteMany({
+        where: { deliveryId: { in: deliveryIds } }
+      });
+
+      // Delete missions linked to deliveries
+      await tx.mission.deleteMany({
+        where: { deliveryId: { in: deliveryIds } }
+      });
+
+      // Delete delivery items
+      await tx.deliveryItem.deleteMany({
+        where: { deliveryId: { in: deliveryIds } }
+      });
+
+      // Delete deliveries
+      await tx.delivery.deleteMany({
+        where: { id: { in: deliveryIds } }
+      });
+    }
+
+    // 3. Get all orders for the client
+    const orders = await tx.order.findMany({
+      where: { clientId: id },
+      select: { id: true }
+    });
+    const orderIds = orders.map(o => o.id);
+
+    if (orderIds.length > 0) {
+      // Delete missions linked to orders (which are not linked to deliveries)
+      await tx.mission.deleteMany({
+        where: { orderId: { in: orderIds } }
+      });
+
+      // Delete order items
+      await tx.orderItem.deleteMany({
+        where: { orderId: { in: orderIds } }
+      });
+
+      // Delete orders
+      await tx.order.deleteMany({
+        where: { id: { in: orderIds } }
+      });
+    }
+
+    // 4. Delete client contacts
+    await tx.clientContact.deleteMany({
+      where: { clientId: id }
+    });
+
+    // 5. Finally, delete the client
+    return await tx.client.delete({
+      where: { id }
+    });
+  });
 };
 
 // --- Client Contact Methods ---

@@ -34,7 +34,7 @@ export const getDashboardStats = async (req, res, next) => {
       prisma.delivery.count({ where: { ...filter, status: 'Pending' } }),
       prisma.user.count({ where: { ...filter, status: 'active' } }),
       prisma.employee.count({ where: { ...filter, vehicleType: { not: null }, status: 'active' } }),
-      prisma.order.count({ where: { ...filter, orderType: 'Project', status: 'active' } }),
+      prisma.order.count({ where: { ...filter, orderType: 'Project', status: { in: ['active', 'planned', 'in_progress', 'Pending', 'In Progress'] } } }),
       prisma.invoice.findMany({ where: filter, select: { totalAmount: true, status: true, invoiceDate: true, createdAt: true } }),
       prisma.item.findMany({ where: filter, select: { reorderLevel: true, inventoryStock: { select: { quantity: true } } } })
     ]);

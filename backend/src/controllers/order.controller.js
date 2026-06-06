@@ -1,5 +1,6 @@
 import * as orderService from '../services/order.service.js';
 import { sendResponse } from '../utils/response.js';
+import prisma from '../config/db.js';
 
 export const createOrder = async (req, res, next) => {
   try {
@@ -84,6 +85,179 @@ export const deleteOrder = async (req, res, next) => {
 
     await orderService.deleteOrder(Number(req.params.id), tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Order deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createProject = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+
+    // Resolve client id
+    const incomingClientId = req.body.customer_id || req.body.company_id || req.body.client_user_id || req.body.clientId;
+    const clientId = incomingClientId ? Number(incomingClientId) : 1;
+
+    // Fetch employee creator ID
+    const employee = await prisma.employee.findUnique({ where: { userId: req.user.id } });
+    const createdById = employee ? employee.id : 1; // Fallback to 1 if user is not employee
+
+    // Generate unique order number (project code/name)
+    const count = await prisma.order.count({ where: { tenantId: tenantIdToUse } });
+    const orderNumber = `PRJ-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+
+    // Extract metadata
+    const metadata = {
+      name: req.body.name,
+      description: req.body.description,
+      startDate: req.body.startDate || req.body.start,
+      location: req.body.location,
+      delivery_type: req.body.delivery_type || req.body.deliveryType || 'Road',
+      client_name: req.body.client_name || req.body.client
+    };
+
+    const project = await prisma.order.create({
+      data: {
+        tenantId: tenantIdToUse,
+        orderNumber,
+        clientId,
+        createdById,
+        status: req.body.status || 'planned',
+        orderType: 'Project',
+        totalAmount: 0,
+        metadata
+      }
+    });
+
+    // Format for frontend
+    const formattedProject = {
+      id: project.id,
+      name: metadata.name,
+      client: metadata.client_name,
+      clientId: project.clientId,
+      start: metadata.startDate,
+      location: metadata.location,
+      status: project.status,
+      deliveryType: metadata.delivery_type,
+      companyId: req.body.company_id || null,
+      customerId: req.body.customer_id || null,
+      clientUserId: req.body.client_user_id || null
+    };
+
+    sendResponse(res, 201, 'Project created successfully', formattedProject);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProjects = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null : (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
+
+    const where = {
+      orderType: 'Project',
+      ...(tenantIdToFilter !== null && { tenantId: tenantIdToFilter })
+    };
+
+    const projects = await prisma.order.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        client: { select: { companyName: true, clientCode: true } }
+      }
+    });
+
+    const formattedProjects = projects.map(project => {
+      const metadataObj = typeof project.metadata === 'string' ? JSON.parse(project.metadata) : (project.metadata || {});
+      return {
+        id: project.id,
+        name: metadataObj.name || project.orderNumber,
+        client: metadataObj.client_name || project.client?.companyName || 'N/A',
+        clientId: project.clientId,
+        start: metadataObj.startDate || metadataObj.start || '',
+        location: metadataObj.location || '',
+        status: project.status,
+        deliveryType: metadataObj.delivery_type || metadataObj.deliveryType || 'Road',
+        companyId: metadataObj.companyId || null,
+        customerId: metadataObj.customerId || null,
+        clientUserId: metadataObj.clientUserId || null
+      };
+    });
+
+    sendResponse(res, 200, 'Projects fetched successfully', formattedProjects);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProject = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const incomingClientId = req.body.customer_id || req.body.company_id || req.body.client_user_id || req.body.clientId;
+    const clientId = incomingClientId ? Number(incomingClientId) : undefined;
+
+    // Fetch existing project to merge metadata
+    const existing = await prisma.order.findUnique({ where: { id } });
+    if (!existing || existing.orderType !== 'Project') {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    const existingMeta = typeof existing.metadata === 'string' ? JSON.parse(existing.metadata) : (existing.metadata || {});
+
+    const metadata = {
+      ...existingMeta,
+      name: req.body.name || existingMeta.name,
+      description: req.body.description || existingMeta.description,
+      startDate: req.body.startDate || req.body.start || existingMeta.startDate,
+      location: req.body.location || existingMeta.location,
+      delivery_type: req.body.delivery_type || req.body.deliveryType || existingMeta.delivery_type,
+      client_name: req.body.client_name || req.body.client || existingMeta.client_name
+    };
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: {
+        ...(clientId && { clientId }),
+        status: req.body.status || existing.status,
+        metadata
+      }
+    });
+
+    const formatted = {
+      id: updated.id,
+      name: metadata.name,
+      client: metadata.client_name,
+      clientId: updated.clientId,
+      start: metadata.startDate,
+      location: metadata.location,
+      status: updated.status,
+      deliveryType: metadata.delivery_type,
+      companyId: req.body.company_id || null,
+      customerId: req.body.customer_id || null,
+      clientUserId: req.body.client_user_id || null
+    };
+
+    sendResponse(res, 200, 'Project updated successfully', formatted);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteProject = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    // Find project
+    const existing = await prisma.order.findUnique({ where: { id } });
+    if (!existing || existing.orderType !== 'Project') {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    // Delete project order
+    await prisma.order.delete({ where: { id } });
+
+    sendResponse(res, 200, 'Project archived successfully');
   } catch (error) {
     next(error);
   }

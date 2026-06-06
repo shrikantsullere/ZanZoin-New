@@ -1370,7 +1370,9 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchAccessPlans = React.useCallback(async () => {
     try {
-      const res = await api.get("/plans");
+      const token = localStorage.getItem("token");
+      const url = token ? "/plans" : "/plans/public";
+      const res = await api.get(url);
       let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
@@ -6241,29 +6243,17 @@ export const GlobalDataProvider = ({ children }) => {
   };
 
   const [deliveryPricing, setDeliveryPricing] = useState([]);
-  const [shippingModePricing, setShippingModePricing] = useState(() =>
-    readShippingModePricing(),
-  );
-
+  const [shippingModePricing, setShippingModePricing] = useState({ Road: 0, Sea: 150, Air: 300 });
   const [saasRequests, setSaasRequests] = useState([]);
 
   React.useEffect(() => {
     const s = systemSettings || {};
-    const hasApiValues =
-      s.shipping_road_charge != null ||
-      s.shippingRoadCharge != null ||
-      s.shipping_sea_charge != null ||
-      s.shippingSeaCharge != null ||
-      s.shipping_air_charge != null ||
-      s.shippingAirCharge != null;
-    if (!hasApiValues) return;
-    const next = {
-      Road: Number(s.shipping_road_charge ?? s.shippingRoadCharge ?? 0) || 0,
-      Sea: Number(s.shipping_sea_charge ?? s.shippingSeaCharge ?? 150) || 150,
-      Air: Number(s.shipping_air_charge ?? s.shippingAirCharge ?? 300) || 300,
-    };
-    setShippingModePricing(next);
-    writeShippingModePricing(next);
+    if (s.shipping_modes) {
+      setShippingModePricing(s.shipping_modes);
+    }
+    if (s.delivery_tiers) {
+      setDeliveryPricing(s.delivery_tiers);
+    }
   }, [systemSettings]);
 
   const updateShippingModePricing = async (nextPricing) => {
@@ -6273,18 +6263,27 @@ export const GlobalDataProvider = ({ children }) => {
       Air: Number(nextPricing?.Air) >= 0 ? Number(nextPricing.Air) : 300,
     };
     setShippingModePricing(normalized);
-    writeShippingModePricing(normalized);
+    writeShippingModePricing(normalized); // Optional: keep for offline backup
     try {
       await api.put("/settings/system", {
-        shipping_road_charge: normalized.Road,
-        shipping_sea_charge: normalized.Sea,
-        shipping_air_charge: normalized.Air,
+        type: 'shipping_modes',
+        data: normalized
       });
     } catch (e) {
-      console.warn(
-        "Could not persist shipping pricing to backend, using local value:",
-        e?.response?.data || e?.message,
-      );
+      console.warn("Could not persist shipping pricing to backend:", e?.response?.data || e?.message);
+    }
+    return true;
+  };
+
+  const updateDeliveryTiers = async (tiers) => {
+    setDeliveryPricing(tiers);
+    try {
+      await api.put("/settings/system", {
+        type: 'delivery_tiers',
+        data: tiers
+      });
+    } catch (e) {
+      console.warn("Could not persist delivery tiers to backend:", e?.response?.data || e?.message);
     }
     return true;
   };
@@ -6879,6 +6878,7 @@ export const GlobalDataProvider = ({ children }) => {
         updateDeliveryPricing: updateDeliveryPricingTier,
         shippingModePricing,
         updateShippingModePricing,
+        updateDeliveryTiers,
         tracking,
         fetchTracking,
         addTracking,

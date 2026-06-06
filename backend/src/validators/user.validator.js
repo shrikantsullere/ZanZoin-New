@@ -14,8 +14,9 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z.object({
   body: z.object({
     name: z.string().min(2).optional(),
-    phone: z.string().optional(),
+    phone: z.string().nullable().optional(),
     roleId: z.coerce.number().int().positive('Role is required').optional(),
-    status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional(),
+    status: z.string().optional(),
+    avatar: z.string().optional(),
   }),
 });

@@ -277,7 +277,7 @@ const Payroll = () => {
                                         if (currentRole !== 'superadmin' && u.role === 'super_admin') return false;
                                         return true;
                                     }).map(u => (
-                                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                                        <option key={u.id} value={u.id}>{u.name} ({String(u.role?.name || u.role || '')})</option>
                                     ))}
                                 </select>
                             </div>

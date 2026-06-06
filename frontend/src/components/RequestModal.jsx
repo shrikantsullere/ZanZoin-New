@@ -208,7 +208,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
                         <span className="text-white group-hover:text-black transition-colors">{u.name}</span>
                         <span className="text-[9px] opacity-40 group-hover:opacity-60 transition-opacity uppercase">{u.email}</span>
                       </div>
-                      <span className="text-[9px] px-2 py-0.5 bg-white/5 rounded-full opacity-60 group-hover:bg-black/10 transition-all uppercase">{u.role}</span>
+                      <span className="text-[9px] px-2 py-0.5 bg-white/5 rounded-full opacity-60 group-hover:bg-black/10 transition-all uppercase">{String(u.role?.name || u.role || '')}</span>
                     </button>
                   ))
                 ) : (

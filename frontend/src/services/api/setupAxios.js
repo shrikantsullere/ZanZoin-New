@@ -22,9 +22,16 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
+      const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
-      window.location.href = '/login';
+      
+      const publicRoutes = ['/', '/login', '/signup', '/staff-signup'];
+      if (!publicRoutes.includes(window.location.pathname)) {
+        window.location.href = '/login';
+      } else if (hadToken) {
+        window.location.reload();
+      }
     }
     return Promise.reject(error);
   }

@@ -85,7 +85,7 @@ const Inventory = () => {
     inventorySegment: 'Business',
     clientId: ''
   });
-  const userRoleNorm = (currentUser?.role || '').toLowerCase().replace(/[\s_]+/g, '');
+  const userRoleNorm = typeof currentUser?.role === 'object' ? String(currentUser?.role?.name || '').toLowerCase().replace(/[\s_]+/g, '') : String(currentUser?.role || '').toLowerCase().replace(/[\s_]+/g, '');
   const [activeTab, setActiveTab] = useState(['superadmin', 'admin', 'inventory', 'inventorymanager', 'procurement', 'operations'].includes(userRoleNorm) ? 'Marketplace' : 'Business');
 
   /** When stock entry name matches an existing SKU, keep category dropdown aligned with that row */
@@ -891,10 +891,10 @@ const Inventory = () => {
                 />
               </div>
 
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest">Category</label>
                   <select
-                    className="w-full border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 border"
+                    className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold text-white appearance-none cursor-pointer"
                     value={formData.categoryId || ''}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   >
@@ -904,10 +904,10 @@ const Inventory = () => {
                     ))}
                   </select>
                 </div>
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest">Unit</label>
                   <select
-                    className="w-full border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 border"
+                    className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold text-white appearance-none cursor-pointer"
                     value={formData.unitId || ''}
                     onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
                   >

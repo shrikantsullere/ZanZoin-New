@@ -78,6 +78,18 @@ export const updateOrderStatus = async (req, res, next) => {
   }
 };
 
+export const updateOrder = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    const updatedOrder = await orderService.updateOrder(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 200, 'Order updated successfully', updatedOrder);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteOrder = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';

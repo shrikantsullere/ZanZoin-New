@@ -961,11 +961,11 @@ const Deliveries = () => {
                             >
                               <option value="">Select Warehouse / Hub...</option>
                               {formData.pickupLocation &&
-                                !warehouses.some(wh => wh.name === formData.pickupLocation) &&
+                                !(warehouses || []).some(wh => wh.name === formData.pickupLocation) &&
                                 !['Third Party Vendor', 'Client Site'].includes(formData.pickupLocation) && (
                                   <option value={formData.pickupLocation}>{formData.pickupLocation}</option>
                                 )}
-                              {warehouses.map(wh => (
+                              {(warehouses || []).map(wh => (
                                 <option key={wh.id} value={wh.name}>{wh.name}</option>
                               ))}
                               <option value="Third Party Vendor">Third Party Vendor</option>

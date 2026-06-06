@@ -1956,30 +1956,30 @@ export const GlobalDataProvider = ({ children }) => {
       setProjects(
         rawData.map((p) => ({
           ...p,
-          orderId: p.order_id,
-          managerId: p.manager_id,
-          companyId: p.company_id,
-          customerId: p.customer_id,
-          clientId: p.customer_id || p.company_id,
-          client: p.client_name, // Mapping join result
+          orderId: p.order_id || p.orderId,
+          managerId: p.manager_id || p.managerId,
+          companyId: p.company_id || p.companyId,
+          customerId: p.customer_id || p.customerId,
+          clientId: p.clientId || p.customer_id || p.company_id,
+          client: p.client || p.client_name,
           status: mapStatusToFrontend(p.status),
-          start: p.start_date ? (() => {
+          start: p.start || (p.start_date ? (() => {
             const d = new Date(p.start_date);
             if (isNaN(d.getTime())) return p.start_date.split("T")[0];
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
-          })() : "",
-          end: p.end_date ? (() => {
+          })() : ""),
+          end: p.end || (p.end_date ? (() => {
             const d = new Date(p.end_date);
             if (isNaN(d.getTime())) return p.end_date.split("T")[0];
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
-          })() : "",
-          deliveryType: p.delivery_type || "Road",
+          })() : ""),
+          deliveryType: p.deliveryType || p.delivery_type || "Road",
         })),
       );
     } catch (e) {
@@ -2017,7 +2017,10 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchWarehouses = React.useCallback(async () => {
     try {
       const res = await api.get("/warehouses");
-      if (res.data?.success) setWarehouses(res.data.data);
+      if (res.data?.success) {
+        const data = res.data.data;
+        setWarehouses(data?.warehouses ? data.warehouses : (Array.isArray(data) ? data : []));
+      }
     } catch (e) {
       console.error("Fetch warehouses failed", e);
     }
@@ -4717,7 +4720,7 @@ export const GlobalDataProvider = ({ children }) => {
         description: updated.description,
         status: mapStatusToBackend(updated.status),
         location: updated.location,
-        start_date: updated.start || updated.startDate,
+        startDate: updated.start || updated.startDate,
         manager_id: updated.manager_id || updated.managerId,
         delivery_type: updated.deliveryType || updated.delivery_type || "Road",
         company_id: resolvedCompanyId || currentUser?.company_id || currentUser?.companyId || null,

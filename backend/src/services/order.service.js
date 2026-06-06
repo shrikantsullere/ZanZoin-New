@@ -193,6 +193,38 @@ export const updateOrderStatus = async (id, status, tenantId, performerId) => {
   };
 };
 
+export const updateOrder = async (id, data, tenantId, performerId) => {
+  const order = await getOrderById(id, tenantId);
+  const { items, ...orderData } = data;
+  const customItems = [];
+  if (items && Array.isArray(items)) {
+    for (const item of items) {
+      if (!item.itemId || !item.warehouseId) {
+        customItems.push(item);
+      }
+    }
+  }
+  let metadataObj = typeof order.metadata === 'string' ? JSON.parse(order.metadata) : (order.metadata || {});
+  if (customItems.length > 0) {
+    metadataObj = { ...metadataObj, customItems };
+    orderData.metadata = metadataObj;
+  }
+  
+  if (orderData.clientId) {
+    orderData.clientId = Number(orderData.clientId);
+  }
+  
+  const updatedOrder = await prisma.order.update({
+    where: { id },
+    data: {
+      ...orderData,
+      status: data.status || order.status
+    }
+  });
+  
+  return updatedOrder;
+};
+
 export const deleteOrder = async (id, tenantId, performerId) => {
   const order = await getOrderById(id, tenantId);
 

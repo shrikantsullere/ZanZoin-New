@@ -15,6 +15,7 @@ router.put('/projects/:id', checkPermission('ORDERS', 'UPDATE'), orderController
 router.delete('/projects/:id', checkPermission('ORDERS', 'DELETE'), orderController.deleteProject);
 router.get('/:id', checkPermission('ORDERS', 'READ'), orderController.getOrderById);
 router.post('/', checkPermission('ORDERS', 'CREATE'), validate(createOrderSchema), orderController.createOrder);
+router.put('/:id', checkPermission('ORDERS', 'UPDATE'), orderController.updateOrder);
 router.put('/:id/status', checkPermission('ORDERS', 'APPROVE'), validate(updateOrderStatusSchema), orderController.updateOrderStatus);
 router.delete('/:id', checkPermission('ORDERS', 'DELETE'), orderController.deleteOrder);
 

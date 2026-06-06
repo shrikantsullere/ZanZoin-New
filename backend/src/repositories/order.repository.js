@@ -96,14 +96,15 @@ export const findOrderById = async (id) => {
 };
 
 export const findAllOrders = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status, clientId } = query;
+  const { page = 1, limit = 10, search = '', status, clientId, orderType } = query;
   const skip = (page - 1) * limit;
 
   const where = {
     ...(tenantId !== null && { tenantId }),
     ...(search && { orderNumber: { contains: search } }),
     ...(status && { status }),
-    ...(clientId && { clientId: Number(clientId) })
+    ...(clientId && { clientId: Number(clientId) }),
+    ...(orderType && { orderType })
   };
 
   const [orders, total] = await Promise.all([

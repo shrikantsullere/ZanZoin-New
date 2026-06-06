@@ -75,10 +75,13 @@ export const useUpdateChauffeurMission = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      // For status updates
-      if (data.status) {
-          await api.patch(`/orders/${id}/status`, { status: data.status });
-      }
+      // Send the entire updated mission as a single item in items array, so backend can update metadata.customItems
+      const payload = {
+          clientId: data.clientId,
+          status: data.status,
+          items: [data],
+      };
+      await api.put(`/orders/${id}`, payload);
       return { success: true, data };
     },
     onSuccess: () => {

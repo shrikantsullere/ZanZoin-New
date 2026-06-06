@@ -34,7 +34,7 @@ const SETTINGS_TABS = [
 ];
 
 const Settings = () => {
-  const { currentUser, setCurrentUser, updateUser, deliveryPricing, setDeliveryPricing, shippingModePricing, updateShippingModePricing, clients, updateClientBranding } = useData();
+  const { currentUser, setCurrentUser, updateUser, deliveryPricing, setDeliveryPricing, updateDeliveryTiers, shippingModePricing, updateShippingModePricing, clients, updateClientBranding } = useData();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState(() => ({
@@ -142,9 +142,25 @@ const Settings = () => {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/settings/user/notifications`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setNotifications(json.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch notifications", e);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'pricing') {
       fetchPricing();
+    } else if (activeTab === 'notifications') {
+      fetchNotifications();
     }
   }, [activeTab]);
 
@@ -190,7 +206,7 @@ const Settings = () => {
         ...currentUser,
         ...profile,
         id: currentUser.id,
-        avatar_url: avatarStr || undefined,
+        avatar: avatarStr || undefined,
       };
       const success = await updateUser(payload);
       if (success) {
@@ -321,7 +337,7 @@ const Settings = () => {
                         </button>
                       )}
                       <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">{profile.name}</h2>
-                      <p className="text-accent text-[10px] font-black uppercase tracking-[0.2em] opacity-80">{profile.role}</p>
+                      <p className="text-accent text-[10px] font-black uppercase tracking-[0.2em] opacity-80">{String(profile.role?.name || profile.role || '')}</p>
                     </div>
                   </div>
                   
@@ -521,6 +537,19 @@ const Settings = () => {
                       </div>
                     ))}
                   </div>
+                  
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await updateDeliveryTiers(deliveryPricing);
+                        swalSuccess('Tiered Pricing Updated', 'Delivery distance tiers have been saved.');
+                      }}
+                      className="btn-primary px-6 py-2.5 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent/20"
+                    >
+                      Save Tiered Pricing
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -659,6 +688,28 @@ const Settings = () => {
                   </div>
                 ))}
               </div>
+              <div className="mt-10 pt-8 border-t border-white/5 flex justify-end">
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch(`${API_BASE_URL}/settings/user/notifications`, {
+                        method: 'PUT',
+                        headers: { 
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(notifications)
+                      });
+                      swalSuccess('Success', 'Notification preferences saved.');
+                    } catch (e) {
+                      swalError('Error', 'Failed to save notifications.');
+                    }
+                  }}
+                  className="btn-primary px-8 py-3 text-xs font-black uppercase tracking-widest shadow-xl shadow-accent/20"
+                >
+                  Save Notifications
+                </button>
+              </div>
             </div>
           )}
 
@@ -790,12 +841,26 @@ const Settings = () => {
 
                 <div className="mt-10 pt-8 border-t border-white/5 flex justify-end">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (['client', 'saas_client'].includes(currentUser?.role)) {
-                        updateClientBranding(currentUser.clientId, branding);
+                        updateClientBranding(currentUser.clientId || currentUser.company_id, branding);
                         swalSuccess('Success', 'Branding updated.');
+                      } else if (['superadmin', 'admin'].includes(normalizeRole(currentUser?.role))) {
+                        try {
+                          await fetch(`${API_BASE_URL}/settings/system`, {
+                            method: 'PUT',
+                            headers: { 
+                              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ type: 'branding', data: branding })
+                          });
+                          swalSuccess('Success', 'System branding updated globally.');
+                        } catch (e) {
+                          swalError('Error', 'Failed to update system branding.');
+                        }
                       } else {
-                        swalError('Access Denied', 'White-labeling is only for SaaS accounts.');
+                        swalError('Access Denied', 'You do not have permission to change branding.');
                       }
                     }}
                     className="btn-primary px-10 py-3 text-xs shadow-xl shadow-accent/10"

@@ -7,11 +7,14 @@ import { formatDateTimeEst } from '../utils/dateEst';
 import { useDepartments } from '../hooks/api/useAdminCore';
 
 const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'add' }) => {
-  const { currentUser, users = [], customerUsers = [], clients = [] } = useData();
-  const { data: deptData } = useDepartments(1, 100);
+  const { currentUser, users = [], customerUsers = [], clients = [], hasMenuPermission } = useData();
+  const canAccessDepartments = hasMenuPermission('Personnel', 'can_view');
+  const { data: deptData } = useDepartments(1, 100, '', { enabled: canAccessDepartments });
   const departmentsList = deptData?.data?.departments || [];
   
-  const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const rawRole = currentUser?.role;
+  const roleStr = typeof rawRole === 'object' ? (rawRole?.name || '') : String(rawRole || '');
+  const userRole = roleStr.toLowerCase().replace(/\s+/g, '_');
   const isAdmin = ['admin', 'super_admin', 'procurement', 'operations'].includes(userRole);
 
   const [formData, setFormData] = useState({
@@ -208,7 +211,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
                         <span className="text-white group-hover:text-black transition-colors">{u.name}</span>
                         <span className="text-[9px] opacity-40 group-hover:opacity-60 transition-opacity uppercase">{u.email}</span>
                       </div>
-                      <span className="text-[9px] px-2 py-0.5 bg-white/5 rounded-full opacity-60 group-hover:bg-black/10 transition-all uppercase">{u.role}</span>
+                      <span className="text-[9px] px-2 py-0.5 bg-white/5 rounded-full opacity-60 group-hover:bg-black/10 transition-all uppercase">{String(u.role?.name || u.role || '')}</span>
                     </button>
                   ))
                 ) : (

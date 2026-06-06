@@ -6,6 +6,8 @@ import { authenticate, checkPermission } from '../middlewares/auth.middleware.js
 
 const router = express.Router();
 
+router.get('/public', planController.getPublicPlans);
+
 router.use(authenticate);
 
 // Enforce Super Admin access

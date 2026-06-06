@@ -537,7 +537,7 @@ const Landing = () => {
                                     <p className="text-[10px] font-black text-accent uppercase tracking-widest mb-3">{plan.tier || plan.billing_cycle || 'Standard'}</p>
                                     <h3 className="text-3xl font-black uppercase tracking-tighter mb-6">{plan.name}</h3>
                                     <div className="flex items-baseline gap-2 mb-8">
-                                        <span className="text-5xl font-black tracking-tight">{billingCycle === 'monthly' ? (plan.price?.toLocaleString ? `$${plan.price.toLocaleString()}` : plan.price) : (plan.yearlyPrice || `$${Math.round((parseFloat(plan.price) || 0) * 12 * 0.8).toLocaleString()}`)}</span>
+                                        <span className="text-5xl font-black tracking-tight">{billingCycle === 'monthly' ? plan.price : (plan.yearlyPrice || `$${Math.round((parseFloat(String(plan.price).replace(/[^0-9.-]+/g,"")) || 0) * 12 * 0.8).toLocaleString()}`)}</span>
                                         <span className="text-[10px] text-muted font-black uppercase tracking-widest opacity-60">/ {billingCycle === 'monthly' ? 'protocol' : 'annum'}</span>
                                     </div>
                                     <p className="text-[11px] text-secondary leading-relaxed font-medium mb-8 opacity-70">

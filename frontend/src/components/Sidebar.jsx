@@ -81,7 +81,7 @@ const menuItems = {
   ],
   admin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
+    // { icon: Activity, label: 'Analytics', path: '/dashboard/analytics' },
     { icon: Users, label: 'Customers', path: '/dashboard/clients' },
     { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
     { icon: Briefcase, label: 'Projects', path: '/dashboard/projects' },

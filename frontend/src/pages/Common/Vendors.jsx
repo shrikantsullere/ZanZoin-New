@@ -14,9 +14,23 @@ const Vendors = () => {
   const isVendorAdmin = ['superadmin', 'admin', 'procurement'].includes(normalizeRole(currentUser?.role));
 
   React.useEffect(() => {
-    fetchVendors();
-    realApi.get('/vendors').then(res => setRealVendors(res.data?.data?.vendors || res.data?.data || [])).catch(() => {});
+    const refreshData = async () => {
+      await fetchVendors();
+      try {
+        const res = await realApi.get('/vendors');
+        setRealVendors(res.data?.data?.vendors || res.data?.data || []);
+      } catch (e) {}
+    };
+    refreshData();
   }, [fetchVendors]);
+
+  const refreshVendorsList = async () => {
+    await fetchVendors();
+    try {
+      const res = await realApi.get('/vendors');
+      setRealVendors(res.data?.data?.vendors || res.data?.data || []);
+    } catch (e) {}
+  };
   
   const vendors = realVendors.length > 0 ? realVendors : mockVendors;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,6 +76,9 @@ const Vendors = () => {
       ...vendor,
       name: vendor.companyName ?? vendor.name ?? vendor.vendor_name ?? vendor.business_name ?? vendor.company_name ?? '',
       contact: vendor.contactPerson ?? vendor.contact ?? vendor.contact_name ?? '',
+      rating: vendor.rating ?? 90,
+      delivery: vendor.delivery ?? 90,
+      category: vendor.category ?? 'Premium Supplier'
     } : { name: '', rating: 90, delivery: 90, category: 'General', contact: '', address: '', phone: '', email: '' });
     setIsModalOpen(true);
   };
@@ -94,10 +111,15 @@ const Vendors = () => {
             email: formData.email.trim(),
             phone: formData.phone || '',
             address: formData.address || '',
+            category: formData.category || 'Premium Supplier',
+            rating: formData.rating,
+            delivery: formData.delivery,
             vendorCode: 'VND-' + Date.now().toString().slice(-6)
           };
           await realApi.post('/vendors', apiPayload);
           console.log('[REAL_API_SUCCESS] Vendor created successfully via real API');
+          swalSuccess('Success', 'Vendor added successfully.');
+          await refreshVendorsList();
         } catch(e) {
           console.warn('[REAL_API_FAILED] Vendor creation via real API failed', e);
           console.info('[FALLBACK_ACTIVATED] Falling back to mock addVendor');
@@ -127,10 +149,15 @@ const Vendors = () => {
             contactPerson: formData.contact || '',
             email: formData.email.trim(),
             phone: formData.phone || '',
-            address: formData.address || ''
+            address: formData.address || '',
+            category: formData.category || 'Premium Supplier',
+            rating: formData.rating,
+            delivery: formData.delivery
           };
           await realApi.put(`/vendors/${selectedVendor.id}`, apiPayload);
           console.log('[REAL_API_SUCCESS] Vendor updated successfully via real API');
+          swalSuccess('Success', 'Vendor updated successfully.');
+          await refreshVendorsList();
         } catch(e) {
           console.warn('[REAL_API_FAILED] Vendor update via real API failed', e);
           console.info('[FALLBACK_ACTIVATED] Falling back to mock updateVendor');
@@ -148,6 +175,7 @@ const Vendors = () => {
       try {
         await realApi.delete(`/vendors/${selectedVendor.id}`);
         console.log('[REAL_API_SUCCESS] Vendor deleted successfully via real API');
+        await refreshVendorsList();
       } catch(e) {
         console.warn('[REAL_API_FAILED] Vendor deletion via real API failed', e);
         console.info('[FALLBACK_ACTIVATED] Falling back to mock deleteVendor');

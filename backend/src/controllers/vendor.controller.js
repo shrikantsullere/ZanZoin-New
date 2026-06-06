@@ -19,7 +19,10 @@ export const createVendor = async (req, res, next) => {
       email: payload.email,
       phone: payload.phone || null,
       address: payload.address || null,
-      status: payload.status || "active"
+      status: payload.status || "active",
+      category: payload.category || null,
+      rating: payload.rating !== undefined ? Number(payload.rating) : 90,
+      delivery: payload.delivery !== undefined ? Number(payload.delivery) : 90
     };
 
     const vendor = await vendorService.createVendor(vendorData, req.user.id, tenantIdToUse);
@@ -70,6 +73,9 @@ export const updateVendor = async (req, res, next) => {
     if (payload.phone !== undefined) vendorData.phone = payload.phone;
     if (payload.address !== undefined) vendorData.address = payload.address;
     if (payload.status !== undefined) vendorData.status = payload.status;
+    if (payload.category !== undefined) vendorData.category = payload.category;
+    if (payload.rating !== undefined) vendorData.rating = Number(payload.rating);
+    if (payload.delivery !== undefined) vendorData.delivery = Number(payload.delivery);
 
     const updatedVendor = await vendorService.updateVendor(Number(req.params.id), vendorData, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Vendor updated successfully', updatedVendor);

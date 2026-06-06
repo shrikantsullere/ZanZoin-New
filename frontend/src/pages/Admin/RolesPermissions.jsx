@@ -37,11 +37,14 @@ const RolesPermissions = () => {
                 api.get('/roles/menus')
             ]);
 
-            if (rolesRes.data?.success) setRoles(rolesRes.data.data);
+            const rolesData = rolesRes.data?.data;
+            const rolesArray = Array.isArray(rolesData) ? rolesData : (rolesData?.roles || []);
+
+            if (rolesRes.data?.success) setRoles(rolesArray);
             if (menusRes.data?.success) setMenus(menusRes.data.data);
 
-            if (rolesRes.data?.data?.length > 0) {
-                handleSelectRole(rolesRes.data.data[0]);
+            if (rolesArray.length > 0) {
+                handleSelectRole(rolesArray[0]);
             }
         } catch (error) {
             console.error("Failed to fetch RBAC data", error);

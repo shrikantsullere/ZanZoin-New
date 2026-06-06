@@ -5,7 +5,7 @@ import { useData } from '../../context/GlobalDataContext';
 import { Calendar, Plus, Clock, Star, MapPin, Search, Trash2, Edit, Users } from 'lucide-react';
 
 const ClientEvents = () => {
-    const { events, addEvent, updateEvent, deleteEvent, currentUser, clients } = useData();
+    const { events = [], addEvent, updateEvent, deleteEvent, currentUser, clients } = useData();
 
     const clientName = currentUser?.name || 'Current Client';
     // Find the company record for this user so we can match events by company name

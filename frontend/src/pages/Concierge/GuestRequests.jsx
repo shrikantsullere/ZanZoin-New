@@ -5,7 +5,7 @@ import { Coffee, Plus, Search, Clock, CheckCircle2, AlertCircle } from 'lucide-r
 import { useData } from '../../context/GlobalDataContext';
 
 const GuestRequests = () => {
-    const { guestRequests, addGuestRequest, updateGuestRequest, deleteGuestRequest, hasMenuPermission, currentUser } = useData();
+    const { guestRequests = [], addGuestRequest, updateGuestRequest, deleteGuestRequest, hasMenuPermission, currentUser } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState('view');
     const [selectedRequest, setSelectedRequest] = useState(null);

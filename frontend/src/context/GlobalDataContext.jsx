@@ -2092,7 +2092,8 @@ export const GlobalDataProvider = ({ children }) => {
         if (currentUser) setSupportTickets(filterDataForCurrentUser(mapped));
       }
       if (eventsData.data?.success) {
-        const mappedEvents = eventsData.data.data.map((e) => ({
+        const eventsList = Array.isArray(eventsData.data.data) ? eventsData.data.data : [];
+        const mappedEvents = eventsList.map((e) => ({
           ...e,
           title: e.name,
           client: e.client_name,
@@ -2110,7 +2111,8 @@ export const GlobalDataProvider = ({ children }) => {
       if (guestReqs.data?.success) {
         const capitalizePriority = (p) =>
           p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : "Medium";
-        const mappedGuest = guestReqs.data.data.map((r) => {
+        const reqsList = Array.isArray(guestReqs.data.data) ? guestReqs.data.data : [];
+        const mappedGuest = reqsList.map((r) => {
           let parsedDate = "";
           let parsedTime = "";
           if (r.delivery_time) {
@@ -2157,11 +2159,11 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       const res = await api.get("/concierge/luxury-items");
       const luxuryData = res.data?.success
-        ? res.data.data
+        ? (Array.isArray(res.data.data) ? res.data.data : [])
         : Array.isArray(res.data)
           ? res.data
           : [];
-      const mapped = luxuryData.map((item) => ({
+      const mapped = (luxuryData || []).map((item) => ({
         id: item.id,
         item: item.item_name,
         owner: item.owner_name,

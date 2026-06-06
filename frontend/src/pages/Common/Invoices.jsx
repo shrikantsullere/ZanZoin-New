@@ -154,7 +154,14 @@ const Invoices = () => {
                 );
             }
         },
-        { header: "Date", accessor: "date" },
+        { 
+            header: "Date", 
+            accessor: "date",
+            render: (row) => {
+                const d = row.date || row.invoiceDate || row.createdAt;
+                return d ? new Date(d).toLocaleDateString() : '—';
+            }
+        },
         {
             header: "Status",
             accessor: "status",

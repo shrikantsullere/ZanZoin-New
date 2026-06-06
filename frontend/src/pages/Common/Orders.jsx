@@ -5,6 +5,7 @@ import { isoDateSlice, displayOrderStatus } from '../../utils/orderWorkflow';
 import { Search, Plus, PackageCheck, PackageX, FileText, CheckCircle, ShoppingCart, Truck, Warehouse, ArrowRightCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders, useUpdateOrderStatus } from '../../hooks/api/useOrders';
+import { useQueryClient } from '@tanstack/react-query';
 
 import OrderModal from '../../components/OrderModal';
 import InvoiceGenerationModal from '../../components/InvoiceGenerationModal';
@@ -28,6 +29,7 @@ const Orders = () => {
     hasMenuPermission
   } = useData();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,18 +103,20 @@ const Orders = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
     if (modalType === 'add') {
-      addOrder(formData);
+      await addOrder(formData);
     } else {
-      updateOrder(selectedOrder.id, formData);
+      await updateOrder(selectedOrder.id, formData);
     }
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
     setIsModalOpen(false);
   };
 
 
-  const handleDelete = (id) => {
-    deleteOrder(id);
+  const handleDelete = async (id) => {
+    await deleteOrder(id);
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
     setIsModalOpen(false);
   };
 

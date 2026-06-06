@@ -107,6 +107,7 @@ const Chauffeur = () => {
     }, [fetchStaff, fetchClients, fetchSystemSettings]);
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const [debounceSearch, setDebounceSearch] = useState('');
 
     useEffect(() => {
@@ -142,7 +143,6 @@ const Chauffeur = () => {
     const [hasLuggage, setHasLuggage] = useState(false);
     const [hasStops, setHasStops] = useState(false);
     const [amenities, setAmenities] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
 
     const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     /** Admin, concierge, or logistics may approve / assign drivers (client: tenant staff booking on behalf). */

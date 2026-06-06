@@ -16,7 +16,7 @@ const toAbsoluteImageUrl = (rawPath) => {
 
 const Events = () => {
   const {
-    events,
+    events = [],
     addEvent,
     updateEvent,
     deleteEvent,

@@ -39,8 +39,11 @@ const Deliveries = () => {
   const itemsPerPage = 10;
 
   const { data: deliveriesData, isLoading, error } = useDeliveries(currentPage, itemsPerPage, debounceSearch);
-  const deliveries = deliveriesData?.data || [];
-  const meta = deliveriesData?.meta || { totalPages: 1, totalItems: 0 };
+  const deliveries = Array.isArray(deliveriesData?.data) ? deliveriesData.data : (deliveriesData?.data?.deliveries || []);
+  const meta = {
+    totalPages: deliveriesData?.data?.totalPages || deliveriesData?.totalPages || 1,
+    totalItems: deliveriesData?.data?.total || deliveriesData?.total || deliveries.length
+  };
   
   const createDeliveryMutation = useCreateDelivery();
   const cancelDeliveryMutation = useCancelDelivery();

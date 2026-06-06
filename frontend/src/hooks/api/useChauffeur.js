@@ -17,20 +17,34 @@ export const useChauffeurMissions = (page = 1, limit = 10, search = '') => {
         }
       });
       // Ensure data matches what the UI expects
-      const mappedData = response.data.data.orders.map(order => ({
+      const ordersData = response.data?.data;
+      const ordersArray = Array.isArray(ordersData)
+        ? ordersData
+        : (ordersData?.orders || ordersData?.data || []);
+      const totalItems = Array.isArray(ordersData)
+        ? ordersData.length
+        : (ordersData?.total ?? ordersArray.length);
+      const totalPages = Array.isArray(ordersData)
+        ? 1
+        : (ordersData?.totalPages ?? 1);
+      const currentPage = Array.isArray(ordersData)
+        ? 1
+        : (ordersData?.page ?? 1);
+
+      const mappedData = (ordersArray || []).map(order => ({
           ...order,
-          id: order.id.toString(), // UI sometimes expects string id
-          ...order.metadata?.customItems?.[0], // Any custom payload fields
-          clientName: order.client?.companyName || order.client?.name || 'Guest Client',
-          status: order.status,
+          id: order?.id?.toString() || '', // UI sometimes expects string id
+          ...order?.metadata?.customItems?.[0], // Any custom payload fields
+          clientName: order?.client?.companyName || order?.client?.name || 'Guest Client',
+          status: order?.status,
       }));
       return {
         success: true,
         data: mappedData,
         meta: {
-          totalItems: response.data.data.total,
-          totalPages: response.data.data.totalPages,
-          currentPage: response.data.data.page,
+          totalItems,
+          totalPages,
+          currentPage,
           itemsPerPage: limit
         }
       };

@@ -38,13 +38,13 @@ function isSaaSPortfolioClient(c) {
 const Inventory = () => {
   const location = useLocation();
   const { data: warehousesData } = useWarehouses();
-  const warehouses = warehousesData?.data || [];
+  const warehouses = warehousesData?.warehouses || warehousesData?.data || [];
 
   const { data: categoriesData } = useItemCategories();
-  const apiCategories = categoriesData?.itemCategories || categoriesData || [];
+  const apiCategories = categoriesData?.categories || categoriesData?.itemCategories || (Array.isArray(categoriesData) ? categoriesData : []);
 
   const { data: unitsData } = useItemUnits();
-  const apiUnits = unitsData?.itemUnits || unitsData || [];
+  const apiUnits = unitsData?.units || unitsData?.itemUnits || (Array.isArray(unitsData) ? unitsData : []);
 
   const { inventory: mockInventory, addInventory, updateInventory, deleteInventory, users, currentUser, marketplaceVendors = [], stockMovements, addStockEntry, issueStock, projects, purchaseRequests, addPurchaseRequest, updateProject, recordLoss, clients, fetchClients, fetchVendors, hasMenuPermission, fetchPurchaseRequests } = useData();
 

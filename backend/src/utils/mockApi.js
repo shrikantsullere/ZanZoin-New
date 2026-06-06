@@ -848,14 +848,18 @@ const handleRequest = async (method, url, data) => {
     { pattern: /^\/procurement\/quotes$/, key: 'quotes' },
     { pattern: /^\/procurement\/po\/([^/]+)$/, key: 'purchaseOrders' },
     { pattern: /^\/procurement\/po$/, key: 'purchaseOrders' },
+    { pattern: /^\/orders\/projects\/all\/([^/]+)$/, key: 'missions' },
+    { pattern: /^\/orders\/projects\/all$/, key: 'missions' },
+    { pattern: /^\/orders\/projects\/([^/]+)$/, key: 'missions' },
+    { pattern: /^\/orders\/projects$/, key: 'missions' },
     { pattern: /^\/orders\/([^/]+)$/, key: 'orders' },
     { pattern: /^\/orders$/, key: 'orders' },
     { pattern: /^\/missions\/([^/]+)$/, key: 'missions' },
     { pattern: /^\/missions$/, key: 'missions' },
     { pattern: /^\/finance\/invoices\/([^/]+)$/, key: 'invoices' },
     { pattern: /^\/finance\/invoices$/, key: 'invoices' },
-    { pattern: /^\/orders\/projects\/all\/([^/]+)$/, key: 'missions' },
-    { pattern: /^\/orders\/projects\/all$/, key: 'missions' },
+    { pattern: /^\/invoices\/([^/]+)$/, key: 'invoices' },
+    { pattern: /^\/invoices$/, key: 'invoices' },
     { pattern: /^\/warehouses\/([^/]+)$/, key: 'warehouses' },
     { pattern: /^\/warehouses$/, key: 'warehouses' },
     { pattern: /^\/support\/tickets\/([^/]+)$/, key: 'tickets' },
@@ -907,6 +911,12 @@ const handleRequest = async (method, url, data) => {
       const db = getDB(key);
 
       if (method === 'GET') {
+        if (key === 'invoices') {
+          return { data: { success: true, data: { invoices: db, total: db.length, page: 1, totalPages: 1 } } };
+        }
+        if (key === 'orders') {
+          return { data: { success: true, data: { orders: db, total: db.length, page: 1, totalPages: 1 } } };
+        }
         return { data: { success: true, data: db } };
       }
 

@@ -12,12 +12,48 @@ export const createOrder = async (data, items, tenantId) => {
     const itemsArray = items || [];
     const totalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
-    return await tx.order.create({
+    const validDbKeys = [
+      'id',
+      'tenantId',
+      'orderNumber',
+      'clientId',
+      'createdById',
+      'status',
+      'priority',
+      'orderType',
+      'metadata',
+      'totalAmount',
+      'createdAt',
+      'updatedAt'
+    ];
+
+    const dbData = {};
+    const metadataExt = {};
+
+    Object.keys(data).forEach(key => {
+      if (validDbKeys.includes(key)) {
+        dbData[key] = data[key];
+      } else {
+        metadataExt[key] = data[key];
+      }
+    });
+
+    const existingMetadata = typeof data.metadata === 'string'
+      ? JSON.parse(data.metadata)
+      : (data.metadata || {});
+
+    const finalMetadata = {
+      ...existingMetadata,
+      ...metadataExt
+    };
+
+    const newOrder = await tx.order.create({
       data: {
-        ...data,
+        ...dbData,
         orderNumber,
         tenantId,
         totalAmount,
+        metadata: finalMetadata,
         ...(itemsArray.length > 0 && {
           items: {
             create: itemsArray.map(item => ({
@@ -30,11 +66,18 @@ export const createOrder = async (data, items, tenantId) => {
       },
       include: { items: true, client: true }
     });
+
+    const { metadata, ...rest } = newOrder;
+    return {
+      ...rest,
+      metadata: finalMetadata,
+      ...finalMetadata
+    };
   });
 };
 
 export const findOrderById = async (id) => {
-  return await prisma.order.findUnique({
+  const order = await prisma.order.findUnique({
     where: { id },
     include: {
       items: { include: { item: true } },
@@ -42,6 +85,14 @@ export const findOrderById = async (id) => {
       creator: { select: { firstName: true, lastName: true } }
     }
   });
+  if (!order) return null;
+  const { metadata, ...rest } = order;
+  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+  return {
+    ...rest,
+    metadata: metadataObj,
+    ...metadataObj
+  };
 };
 
 export const findAllOrders = async (tenantId, query) => {
@@ -68,14 +119,32 @@ export const findAllOrders = async (tenantId, query) => {
     prisma.order.count({ where })
   ]);
 
-  return { orders, total, page: Number(page), totalPages: Math.ceil(total / limit) };
+  const mappedOrders = orders.map(o => {
+    const { metadata, ...rest } = o;
+    const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+    return {
+      ...rest,
+      metadata: metadataObj,
+      ...metadataObj
+    };
+  });
+
+  return { orders: mappedOrders, total, page: Number(page), totalPages: Math.ceil(total / limit) };
 };
 
 export const updateOrderStatus = async (id, status) => {
-  return await prisma.order.update({
+  const updatedOrder = await prisma.order.update({
     where: { id },
     data: { status }
   });
+  if (!updatedOrder) return null;
+  const { metadata, ...rest } = updatedOrder;
+  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+  return {
+    ...rest,
+    metadata: metadataObj,
+    ...metadataObj
+  };
 };
 
 export const deleteOrder = async (id) => {

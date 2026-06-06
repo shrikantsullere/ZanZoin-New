@@ -7,11 +7,14 @@ import { formatDateTimeEst } from '../utils/dateEst';
 import { useDepartments } from '../hooks/api/useAdminCore';
 
 const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'add' }) => {
-  const { currentUser, users = [], customerUsers = [], clients = [] } = useData();
-  const { data: deptData } = useDepartments(1, 100);
+  const { currentUser, users = [], customerUsers = [], clients = [], hasMenuPermission } = useData();
+  const canAccessDepartments = hasMenuPermission('Personnel', 'can_view');
+  const { data: deptData } = useDepartments(1, 100, '', { enabled: canAccessDepartments });
   const departmentsList = deptData?.data?.departments || [];
   
-  const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const rawRole = currentUser?.role;
+  const roleStr = typeof rawRole === 'object' ? (rawRole?.name || '') : String(rawRole || '');
+  const userRole = roleStr.toLowerCase().replace(/\s+/g, '_');
   const isAdmin = ['admin', 'super_admin', 'procurement', 'operations'].includes(userRole);
 
   const [formData, setFormData] = useState({

@@ -2318,8 +2318,13 @@ export const GlobalDataProvider = ({ children }) => {
     }
     setLoading(true);
     try {
+      const role = normalizeRole(currentUser?.role);
+      // Roles that have access to Personnel (users) endpoint
+      const canAccessUsers = ["superadmin", "admin", "saas_client", "operations"].includes(role);
+      // Roles that have access to Security (roles) endpoint
+      const canAccessRoles = ["superadmin", "admin", "saas_client"].includes(role);
+
       const fetches = [
-        fetchStaff(),
         fetchDashboardStats(),
         fetchSystemSettings(),
         fetchInventoryAlerts(),
@@ -2330,22 +2335,28 @@ export const GlobalDataProvider = ({ children }) => {
         fetchNotifications(),
       ];
 
+      // Only fetch users if the role has Personnel menu permission
+      if (canAccessUsers) {
+        fetches.push(fetchStaff());
+      }
+
       // If the user is staff, fetch their specific data
       if (
-        ["staff", "operations", "logistics", "inventory"].includes(
-          normalizeRole(currentUser?.role)
-        )
+        ["staff", "operations", "logistics", "inventory"].includes(role)
       ) {
         fetches.push(fetchSupportingDocs());
         fetches.push(fetchDeliveries());
         fetches.push(fetchPayHistory());
       }
 
-      fetches.push(api.get('/roles').then(res => {
-        const rawData = res.data?.data;
-        const rolesArray = Array.isArray(rawData) ? rawData : (rawData?.roles || []);
-        setRoles(rolesArray);
-      }).catch(() => {}));
+      // Only fetch roles if the role has Security menu permission
+      if (canAccessRoles) {
+        fetches.push(api.get('/roles').then(res => {
+          const rawData = res.data?.data;
+          const rolesArray = Array.isArray(rawData) ? rawData : (rawData?.roles || []);
+          setRoles(rolesArray);
+        }).catch(() => {}));
+      }
       await Promise.all(fetches);
     } catch (err) {
       console.error("Error fetching initial context data:", err);
@@ -2369,10 +2380,14 @@ export const GlobalDataProvider = ({ children }) => {
   }, [currentUser, fetchTickets]);
 
   // Keep cross-portal operational state in sync when another role changes an order or delivery.
+  // Only fetch orders for roles that have the "Orders" menu permission.
   useEffect(() => {
     if (!currentUser || !localStorage.getItem("token")) return;
+    const role = normalizeRole(currentUser?.role);
+    // Roles that have access to Orders endpoint
+    const canAccessOrders = ["superadmin", "admin", "saas_client", "operations", "logistics", "concierge"].includes(role);
     const refreshOperationalState = () => {
-      fetchOrders();
+      if (canAccessOrders) fetchOrders();
       fetchDeliveries();
       fetchProjects();
     };

@@ -184,7 +184,13 @@ export const updateOrderStatus = async (id, status, tenantId, performerId) => {
     performedBy: performerId
   });
 
-  return updatedOrder;
+  const { metadata, ...rest } = updatedOrder;
+  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+  return {
+    ...rest,
+    metadata: metadataObj,
+    ...metadataObj
+  };
 };
 
 export const deleteOrder = async (id, tenantId, performerId) => {

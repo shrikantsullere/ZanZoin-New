@@ -80,7 +80,7 @@ const Profile = () => {
                         <Shield size={16} className="text-accent" />
                         <div>
                             <p className="text-[9px] text-accent uppercase font-black tracking-widest leading-none">Access Level</p>
-                            <p className="text-sm text-white font-bold capitalize mt-0.5 leading-none">{currentUser?.role || 'User'}</p>
+                            <p className="text-sm text-white font-bold capitalize mt-0.5 leading-none">{String(currentUser?.role?.name || currentUser?.role || 'User')}</p>
                         </div>
                     </div>
                 </div>
@@ -100,7 +100,7 @@ const Profile = () => {
                             {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??'}
                         </div>
                         <h2 className="text-xl font-black text-white">{currentUser?.name || 'User Name'}</h2>
-                        <p className="text-secondary text-xs uppercase tracking-widest mt-1 font-bold">{currentUser?.role || 'Role'}</p>
+                        <p className="text-secondary text-xs uppercase tracking-widest mt-1 font-bold">{String(currentUser?.role?.name || currentUser?.role || 'Role')}</p>
                         <div className="mt-6 w-full pt-6 border-t border-white/5 space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs text-secondary font-bold">Status</span>

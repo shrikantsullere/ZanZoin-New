@@ -44,10 +44,15 @@ const PurchaseRequests = () => {
 
   React.useEffect(() => {
     fetchProcurement();
-    fetchCustomerUsers({ include_all: 1 });
-    fetchStaff();
-    fetchClients();
-  }, [fetchProcurement, fetchCustomerUsers, fetchStaff, fetchClients]);
+    // Only fetch users/clients if the role has the required menu permissions
+    if (hasMenuPermission('Personnel', 'can_view')) {
+      fetchStaff();
+      fetchCustomerUsers({ include_all: 1 });
+    }
+    if (hasMenuPermission('Clients', 'can_view')) {
+      fetchClients();
+    }
+  }, [fetchProcurement, fetchCustomerUsers, fetchStaff, fetchClients, hasMenuPermission]);
 
 
 

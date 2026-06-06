@@ -11,12 +11,13 @@ export const useEmployees = (page = 1, limit = 10, search = '') => {
   });
 };
 
-export const useDepartments = (page = 1, limit = 10, search = '') => {
+export const useDepartments = (page = 1, limit = 10, search = '', options = {}) => {
   return useQuery({
     queryKey: ['departments', page, limit, search],
     queryFn: async () => {
       const res = await api.get('/departments', { params: { page, limit, search } });
       return res.data?.data || [];
-    }
+    },
+    enabled: options.enabled !== undefined ? options.enabled : true,
   });
 };

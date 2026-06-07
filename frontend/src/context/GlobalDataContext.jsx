@@ -2391,10 +2391,13 @@ export const GlobalDataProvider = ({ children }) => {
     const role = normalizeRole(currentUser?.role);
     // Roles that have access to Orders endpoint
     const canAccessOrders = ["superadmin", "admin", "saas_client", "operations", "logistics", "concierge"].includes(role);
+    const canAccessProjects = ["superadmin", "admin", "saas_client", "operations"].includes(role);
+    const canAccessDeliveries = ["superadmin", "admin", "saas_client", "operations", "logistics", "driver"].includes(role);
+    
     const refreshOperationalState = () => {
       if (canAccessOrders) fetchOrders();
-      fetchDeliveries();
-      fetchProjects();
+      if (canAccessDeliveries) fetchDeliveries();
+      if (canAccessProjects) fetchProjects();
     };
     refreshOperationalState();
     const interval = setInterval(refreshOperationalState, 10000); // Poll every 10 seconds for cross-portal sync

@@ -5,8 +5,8 @@ export const enforceSubscriptionLimits = async (req, res, next) => {
   try {
     const { tenantId, role } = req.user;
 
-    // Super Admins bypass subscription checks
-    if (role && role.name === 'SUPER_ADMIN') {
+    // Super Admins, Internal Admins, and HQ (tenantId 1) bypass subscription checks
+    if ((role && (role.name === 'SUPER_ADMIN' || role.name === 'ADMIN')) || tenantId === 1) {
       return next();
     }
 

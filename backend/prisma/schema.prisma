@@ -862,6 +862,17 @@ model Delivery {
   dispatchDate   DateTime?
   deliveryDate   DateTime?
   remarks        String?  @db.Text
+  missionType    String   @default("Delivery")
+  transportMode  String   @default("Road")
+  vehicleRef     String?
+  etaSchedule    DateTime?
+  requestDate    DateTime?
+  dueDate        DateTime?
+  pickupLocation String?
+  dropLocation   String?
+  routeDistance  Float?
+  staffPayRate   Float?
+  deliveryFee    Float?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

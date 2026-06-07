@@ -319,7 +319,18 @@ const Deliveries = () => {
         items: finalData.items.map(item => ({
           itemId: item.id || 1, // Will need a real mapping if dynamic
           quantity: item.qty
-        }))
+        })),
+        missionType: finalData.missionType,
+        transportMode: finalData.mode,
+        vehicleRef: finalData.vehicle || finalData.vesselOrFlight,
+        etaSchedule: finalData.eta,
+        requestDate: finalData.requestDate,
+        dueDate: finalData.dueDate,
+        pickupLocation: finalData.pickupLocation,
+        dropLocation: finalData.dropLocation,
+        routeDistance: finalData.route_distance ? Number(finalData.route_distance) : undefined,
+        staffPayRate: finalData.staff_pay_rate ? Number(finalData.staff_pay_rate) : undefined,
+        deliveryFee: finalData.delivery_fee ? Number(finalData.delivery_fee) : undefined,
       }).catch(() => swalError("Error", "Could not create delivery"));
     } else if (modalType === 'edit') {
       // Assume edit is for assigning driver (creating mission)

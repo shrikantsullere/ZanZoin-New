@@ -141,7 +141,7 @@ const Users = () => {
       const adminRole = (roles || []).find(r => r.name === 'ADMIN');
       setFormData({
         name: '', email: '', phone: '', password: '',
-        roleId: adminRole ? adminRole.id : '',
+        roleId: (isSuperAdmin && adminRole) ? adminRole.id : '',
         status: 'Active',
         birthday: '', nibNumber: '', vacationBalance: 0,
         employmentStatus: 'Full Time',
@@ -164,13 +164,8 @@ const Users = () => {
       }
       let roleIdToSubmit = formData.roleId;
       if (!roleIdToSubmit) {
-        const adminRole = (roles || []).find(r => r.name === 'ADMIN');
-        if (adminRole) {
-          roleIdToSubmit = adminRole.id;
-        } else {
-          alert('Admin role could not be loaded. Please refresh the page.');
-          return;
-        }
+        alert('Please select a role.');
+        return;
       }
 
       try {
@@ -967,16 +962,17 @@ const Users = () => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Role</label>
                   <select
-                    value={formData.roleId || (roles || []).find(r => r.name === 'ADMIN')?.id || ''}
+                    value={formData.roleId || ''}
                     onChange={(e) => setFormData({ ...formData, roleId: Number(e.target.value) })}
-                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none cursor-not-allowed opacity-70"
-                    disabled={true}
+                    className={`w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none ${isSuperAdmin ? 'cursor-not-allowed opacity-70' : ''}`}
+                    disabled={modalType === 'view' || isSuperAdmin}
                   >
+                    <option value="" disabled>Select Role...</option>
                     {(roles || [])
-                      .filter(r => r.name === 'ADMIN' || formData.roleId === r.id)
+                      .filter(r => isSuperAdmin ? r.name === 'ADMIN' : ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase()))
                       .map(r => (
                       <option key={r.id} value={r.id}>
-                        {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ').toUpperCase()}
+                        {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ')}
                       </option>
                     ))}
                   </select>

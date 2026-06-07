@@ -9,10 +9,10 @@ const router = express.Router();
 router.use(authenticate);
 
 router.get('/', checkPermission('ORDERS', 'READ'), orderController.getOrders);
-router.get('/projects/all', checkPermission('ORDERS', 'READ'), orderController.getProjects);
-router.post('/projects', checkPermission('ORDERS', 'CREATE'), orderController.createProject);
-router.put('/projects/:id', checkPermission('ORDERS', 'UPDATE'), orderController.updateProject);
-router.delete('/projects/:id', checkPermission('ORDERS', 'DELETE'), orderController.deleteProject);
+router.get('/projects/all', checkPermission('PROJECTS', 'READ'), orderController.getProjects);
+router.post('/projects', checkPermission('PROJECTS', 'CREATE'), orderController.createProject);
+router.put('/projects/:id', checkPermission('PROJECTS', 'UPDATE'), orderController.updateProject);
+router.delete('/projects/:id', checkPermission('PROJECTS', 'DELETE'), orderController.deleteProject);
 router.get('/:id', checkPermission('ORDERS', 'READ'), orderController.getOrderById);
 router.post('/', checkPermission('ORDERS', 'CREATE'), validate(createOrderSchema), orderController.createOrder);
 router.put('/:id', checkPermission('ORDERS', 'UPDATE'), orderController.updateOrder);

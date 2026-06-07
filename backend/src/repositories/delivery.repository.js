@@ -9,17 +9,26 @@ export const createDelivery = async (data, items, tenantId) => {
   return await prisma.$transaction(async (tx) => {
     const deliveryNumber = await generateDeliveryNumber(tenantId);
     
+    // Parse Date fields if they exist
+    const parsedData = { ...data };
+    if (parsedData.etaSchedule) parsedData.etaSchedule = new Date(parsedData.etaSchedule);
+    if (parsedData.requestDate) parsedData.requestDate = new Date(parsedData.requestDate);
+    if (parsedData.dueDate) parsedData.dueDate = new Date(parsedData.dueDate);
+
+    // Filter out undefined items
+    const validItems = Array.isArray(items) ? items : [];
+
     return await tx.delivery.create({
       data: {
-        ...data,
+        ...parsedData,
         deliveryNumber,
         tenantId,
-        items: {
-          create: items.map(item => ({
+        items: validItems.length > 0 ? {
+          create: validItems.map(item => ({
             ...item,
             tenantId
           }))
-        }
+        } : undefined
       },
       include: { items: true, client: true, order: true }
     });

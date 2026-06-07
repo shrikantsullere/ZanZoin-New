@@ -52,7 +52,8 @@ const PurchaseRequests = () => {
     if (hasMenuPermission('Clients', 'can_view')) {
       fetchClients();
     }
-  }, [fetchProcurement, fetchCustomerUsers, fetchStaff, fetchClients, hasMenuPermission]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
 

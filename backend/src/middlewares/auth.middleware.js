@@ -5,6 +5,7 @@ import prisma from '../config/db.js';
 
 const MENU_NAME_MAPPING = {
   'ORDERS': 'Orders',
+  'PROJECTS': 'Projects',
   'MISSIONS': 'Missions',
   'DELIVERIES': 'Deliveries',
   'USERS': 'Personnel',

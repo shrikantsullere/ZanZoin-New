@@ -26,7 +26,24 @@ export const createItem = async (data, performerId, tenantId) => {
     throw new AppError('Item with this SKU already exists', 400);
   }
 
-  const newItem = await itemRepo.createItem({ ...data, sku: finalSku, tenantId });
+  const createPayload = { ...data, sku: finalSku, tenantId };
+
+  if (data.qty && data.warehouseId) {
+    createPayload.inventoryStock = {
+      create: {
+        warehouseId: Number(data.warehouseId),
+        quantity: Number(data.qty),
+        tenantId
+      }
+    };
+  }
+
+  // Remove qty, warehouseId, and price from root level so Prisma doesn't complain
+  delete createPayload.qty;
+  delete createPayload.warehouseId;
+  delete createPayload.price;
+
+  const newItem = await itemRepo.createItem(createPayload);
 
   await logAudit({
     module: 'ITEMS',

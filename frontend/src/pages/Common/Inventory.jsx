@@ -38,7 +38,7 @@ function isSaaSPortfolioClient(c) {
 const Inventory = () => {
   const location = useLocation();
   const { data: warehousesData } = useWarehouses();
-  const warehouses = warehousesData?.warehouses || warehousesData?.data || [];
+  const warehouses = warehousesData?.data?.warehouses || warehousesData?.warehouses || [];
 
   const { data: categoriesData } = useItemCategories();
   const apiCategories = categoriesData?.categories || categoriesData?.itemCategories || (Array.isArray(categoriesData) ? categoriesData : []);
@@ -52,7 +52,21 @@ const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: itemsData, isLoading, error } = useItems(page, 10, searchTerm);
-  const realInventory = itemsData?.items || itemsData?.data || [];
+  const realInventory = (itemsData?.items || itemsData?.data || []).map(i => {
+    let totalQty = 0;
+    let mainLoc = '';
+    if (i.inventoryStock && Array.isArray(i.inventoryStock)) {
+      totalQty = i.inventoryStock.reduce((sum, stock) => sum + (stock.quantity || 0), 0);
+      if (i.inventoryStock.length > 0) mainLoc = i.inventoryStock[0].warehouseId;
+    }
+    return {
+      ...i,
+      qty: totalQty,
+      price: i.price || 0,
+      location: mainLoc || 'General Storage',
+      inventoryType: i.inventoryType === 'INTERNAL' ? 'Marketplace' : (i.inventoryType || 'Marketplace')
+    };
+  });
   
   // Offline Resilience Fallback
   const inventory = realInventory.length > 0 ? realInventory : mockInventory;
@@ -306,11 +320,16 @@ const Inventory = () => {
 
           let res;
           try {
+            const wid = formData.warehouseId ?? formData.warehouse_id;
             const apiPayload = {
               name: formData.item.trim(),
               categoryId: catId,
               unitId: uId,
-              description: formData.description || ''
+              description: formData.description || '',
+              inventoryType: formData.inventoryType === 'Marketplace' ? 'MARKETPLACE' : 'INTERNAL',
+              qty: Number(formData.qty) || 0,
+              price: Number(formData.price) || 0,
+              warehouseId: wid,
             };
             const apiRes = await realApi.post('/items', apiPayload);
             console.log('[REAL_API_SUCCESS] Item created successfully via real API');

@@ -13,7 +13,7 @@ export const createDelivery = async (data, performerId, tenantId) => {
     throw new AppError('Order not found', 404);
   }
 
-  if (!['approved', 'ready_for_delivery'].includes(order.status)) {
+  if (!['approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress'].includes(order.status)) {
     throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
   }
 

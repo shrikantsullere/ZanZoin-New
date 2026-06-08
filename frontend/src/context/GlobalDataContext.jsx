@@ -6963,14 +6963,7 @@ export const GlobalDataProvider = ({ children }) => {
 
         // Utility
         refreshData: fetchInitialData,
-        fetchInitialData,
-
-        // Notifications (real backend)
-        notifications,
-        unreadCount,
-        fetchNotifications,
-        markNotificationRead,
-        markAllNotificationsRead,
+        fetchInitialData
       }}
     >
       {children}

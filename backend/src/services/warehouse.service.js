@@ -2,6 +2,7 @@ import * as warehouseRepo from '../repositories/warehouse.repository.js';
 import * as employeeRepo from '../repositories/employee.repository.js';
 import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
+import { notifyTenantAdmins } from '../utils/sendNotification.js';
 
 export const createWarehouse = async (data, performerId, tenantId) => {
   // Soft-validate managerId — if employee not found, proceed with null manager
@@ -21,6 +22,15 @@ export const createWarehouse = async (data, performerId, tenantId) => {
     description: `Created Warehouse ${newWarehouse.name}`,
     newValue: newWarehouse,
     performedBy: performerId
+  });
+
+  // Real notification to all tenant admins
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '🏭 New Warehouse Added',
+    message: `Warehouse "${newWarehouse.name}" (${newWarehouse.location || 'No location'}) has been created.`,
+    type: 'info'
   });
 
   return newWarehouse;
@@ -61,6 +71,15 @@ export const updateWarehouse = async (id, data, tenantId, performerId) => {
     performedBy: performerId
   });
 
+  // Real notification
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '✏️ Warehouse Updated',
+    message: `Warehouse "${warehouse.name}" has been updated.`,
+    type: 'info'
+  });
+
   return updatedWarehouse;
 };
 
@@ -74,6 +93,15 @@ export const deleteWarehouse = async (id, tenantId, performerId) => {
     description: `Deleted Warehouse ${warehouse.name}`,
     oldValue: warehouse,
     performedBy: performerId
+  });
+
+  // Real notification
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '🗑️ Warehouse Removed',
+    message: `Warehouse "${warehouse.name}" has been deleted.`,
+    type: 'alert'
   });
 
   return true;

@@ -831,6 +831,7 @@ export const GlobalDataProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+
   const filterDataForCurrentUser = React.useCallback(
     (dataArray) => {
       if (!Array.isArray(dataArray)) return [];
@@ -6988,6 +6989,13 @@ export const GlobalDataProvider = ({ children }) => {
         // Utility
         refreshData: fetchInitialData,
         fetchInitialData,
+
+        // Notifications (real backend)
+        notifications,
+        unreadCount,
+        fetchNotifications,
+        markNotificationRead,
+        markAllNotificationsRead,
       }}
     >
       {children}

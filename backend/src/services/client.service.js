@@ -1,6 +1,7 @@
 import * as clientRepo from '../repositories/client.repository.js';
 import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
+import { notifyTenantAdmins } from '../utils/sendNotification.js';
 
 export const createClient = async (data, performerId, tenantId) => {
   const existingClient = await clientRepo.findClientByCode(data.clientCode, tenantId);
@@ -16,6 +17,14 @@ export const createClient = async (data, performerId, tenantId) => {
     description: `Created Client ${newClient.companyName} (${newClient.clientCode})`,
     newValue: newClient,
     performedBy: performerId
+  });
+
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '👤 New Client Added',
+    message: `Client "${newClient.companyName}" (${newClient.clientCode}) has been registered.`,
+    type: 'info'
   });
 
   return newClient;
@@ -47,6 +56,14 @@ export const updateClient = async (id, data, tenantId, performerId) => {
     performedBy: performerId
   });
 
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '✏️ Client Updated',
+    message: `Client "${client.companyName}" details have been updated.`,
+    type: 'info'
+  });
+
   return updatedClient;
 };
 
@@ -60,6 +77,14 @@ export const deleteClient = async (id, tenantId, performerId) => {
     description: `Deleted Client ${client.companyName}`,
     oldValue: client,
     performedBy: performerId
+  });
+
+  await notifyTenantAdmins({
+    tenantId,
+    performerId,
+    title: '🗑️ Client Removed',
+    message: `Client "${client.companyName}" has been deleted.`,
+    type: 'alert'
   });
 
   return true;

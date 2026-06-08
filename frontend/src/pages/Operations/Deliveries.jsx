@@ -16,7 +16,8 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 
 /** Roles that can be chosen as delivery / field drivers (not only `staff`). */
 function isAssignableDeliveryRole(roleRaw) {
-  const r = String(roleRaw || '').toLowerCase().replace(/\s+/g, '_');
+  const roleName = typeof roleRaw === 'object' && roleRaw !== null ? roleRaw.name : roleRaw;
+  const r = String(roleName || '').toLowerCase().replace(/\s+/g, '_');
   return ['staff', 'logistics', 'operations', 'operation', 'driver', 'field_staff', 'concierge'].includes(r);
 }
 

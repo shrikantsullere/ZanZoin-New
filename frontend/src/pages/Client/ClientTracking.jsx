@@ -21,7 +21,7 @@ const ClientTracking = () => {
     }, [fetchDeliveries, fetchOrders, fetchClients]);
 
     // Identify client record for correct order attribution
-    const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     const isCustomerRole = userRole === 'customer';
     const tenantId = currentUser?.clientId || currentUser?.companyId || currentUser?.company_id;
     const myClient = (clients || []).find(c => c.id === tenantId) ||

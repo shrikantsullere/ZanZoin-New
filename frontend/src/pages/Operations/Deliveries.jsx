@@ -107,7 +107,7 @@ const Deliveries = () => {
     return out.sort((a, b) => a.label.localeCompare(b.label));
   }, [clients, customerUsers, currentUser?.company_id, currentUser?.companyId]);
 
-  const portalRole = String(currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const portalRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const canAssignDriverUi =
     hasMenuPermission('Deliveries', 'can_edit') ||
     ['logistics', 'super_admin', 'superadmin', 'admin', 'operations', 'operation', 'concierge'].includes(portalRole);

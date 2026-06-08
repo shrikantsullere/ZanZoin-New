@@ -526,8 +526,7 @@ const PurchaseOrders = () => {
                             >
                               <Printer size={16} />
                             </button>
-                            {(currentUser?.role === "superadmin" ||
-                              currentUser?.role === "super_admin") &&
+                            {["superadmin", "super_admin"].includes(userRole) &&
                               po.status === "Pending" && (
                                 <button
                                   onClick={() =>
@@ -542,9 +541,7 @@ const PurchaseOrders = () => {
                                   <ShieldCheck size={16} />
                                 </button>
                               )}
-                            {(currentUser?.role === "superadmin" ||
-                              currentUser?.role === "super_admin" ||
-                              currentUser?.role === "admin") &&
+                            {["superadmin", "super_admin", "admin"].includes(userRole) &&
                               po.status === "Pending Receipt Approval" && (
                                 <button
                                   onClick={() => approvePOReceipt(po.id)}
@@ -554,9 +551,7 @@ const PurchaseOrders = () => {
                                   <CheckCircle size={16} />
                                 </button>
                               )}
-                            {(currentUser?.role === "superadmin" ||
-                              currentUser?.role === "super_admin" ||
-                              currentUser?.role === "procurement") &&
+                            {["superadmin", "super_admin", "procurement"].includes(userRole) &&
                               po.status === "Authorized" && (
                                 <button
                                   onClick={() =>

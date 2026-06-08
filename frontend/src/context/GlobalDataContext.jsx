@@ -837,7 +837,7 @@ export const GlobalDataProvider = ({ children }) => {
       if (!Array.isArray(dataArray)) return [];
       if (!currentUser) return [];
 
-      const role = String(currentUser.role || "").toLowerCase();
+      const role = normalizeRole(currentUser.role);
       // Super Admin sees everything
       if (["super_admin", "superadmin"].includes(role)) {
         return dataArray;
@@ -1109,7 +1109,7 @@ export const GlobalDataProvider = ({ children }) => {
         const list = res.data?.success ? res.data.data || [] : [];
         return list
           .filter((u) => {
-            const role = String(u?.role || "").toLowerCase();
+            const role = normalizeRole(u?.role);
             const acct = normalizeClientTypeValue(
               u?.account_type ??
               u?.accountType ??
@@ -1134,9 +1134,9 @@ export const GlobalDataProvider = ({ children }) => {
             );
             const mappedType =
               acct ||
-              (String(u?.role || "").toLowerCase() === "client"
+              (normalizeRole(u?.role) === "client"
                 ? "Business"
-                : String(u?.role || "").toLowerCase() === "saas_client"
+                : normalizeRole(u?.role) === "saas_client"
                   ? "SaaS"
                   : "Personal");
             const base = mapClientFromApi({

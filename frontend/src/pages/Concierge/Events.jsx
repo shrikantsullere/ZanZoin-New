@@ -27,7 +27,7 @@ const Events = () => {
     hasMenuPermission,
     currentUser
   } = useData();
-  const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
   const canAddEvent = hasMenuPermission('Events', 'can_add') || ['concierge', 'admin', 'super_admin', 'superadmin'].includes(userRole);
 
   // Fetch supporting data once on mount — events are auto-polled by GlobalDataContext

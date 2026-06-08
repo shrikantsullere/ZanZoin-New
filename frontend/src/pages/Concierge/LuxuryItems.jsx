@@ -6,7 +6,7 @@ import { useData } from '../../context/GlobalDataContext';
 
 const LuxuryItems = () => {
     const { luxuryItems = [], addLuxuryItem, updateLuxuryItem, deleteLuxuryItem, fetchLuxuryItems, hasMenuPermission, currentUser } = useData();
-    const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     const canAddLuxury = hasMenuPermission('Luxury Items', 'can_add') || ['concierge', 'admin', 'super_admin', 'superadmin'].includes(userRole);
     
     React.useEffect(() => {

@@ -144,7 +144,7 @@ const Chauffeur = () => {
     const [hasStops, setHasStops] = useState(false);
     const [amenities, setAmenities] = useState([]);
 
-    const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     /** Admin, concierge, or logistics may approve / assign drivers (client: tenant staff booking on behalf). */
     const isAdmin = ['superadmin', 'super_admin', 'concierge', 'operations', 'operation', 'logistics', 'admin', 'client'].includes(userRole);
     const isCustomer = ['customer', 'saas_client'].includes(userRole);

@@ -5,7 +5,7 @@ import Modal from '../../components/Modal';
 
 const ConciergeAccessPlans = () => {
     const { accessPlans, addPlan, updatePlan, deletePlan, fetchTickets, currentUser } = useData();
-    const role = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const role = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     const canManagePlans = ['super_admin', 'superadmin', 'admin'].includes(role);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);

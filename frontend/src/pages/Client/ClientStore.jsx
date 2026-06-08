@@ -131,7 +131,7 @@ const ClientStore = () => {
         fetchSystemSettings();
     }, [fetchInventory, fetchVendors, fetchSystemSettings]);
 
-    const userPortalRole = String(currentUser?.role || '').toLowerCase().replace(/\s+/g, '');
+    const userPortalRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '');
     const isRetailPersonal = userPortalRole === 'customer';
     const roleKey = normalizeRole(currentUser?.role);
     const canDirectManageMarketplaceInventory = ['client', 'saas_client', 'admin', 'superadmin', 'inventory', 'procurement'].includes(roleKey);

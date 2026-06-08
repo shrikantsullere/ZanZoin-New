@@ -613,7 +613,7 @@ const Inventory = () => {
             </div>
 
           </div>
-          {currentUser?.role === 'Super Admin' && (
+          {userRoleNorm === 'superadmin' && (
             <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 border-t border-white/5 pt-6">
               <div className="flex-1 w-full">
                 <label className="text-[10px] font-black text-muted uppercase block mb-2 tracking-widest">Assign Inventory Auditor</label>

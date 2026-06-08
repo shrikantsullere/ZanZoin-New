@@ -44,7 +44,7 @@ const Settings = () => {
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
 
   // Get current client data if it's a client
-  const clientData = ['client', 'saas_client'].includes(currentUser?.role) ? clients.find(c => c.id === (currentUser?.clientId || currentUser?.company_id)) : null;
+  const clientData = ['client', 'saas_client'].includes(normalizeRole(currentUser?.role)) ? clients.find(c => c.id === (currentUser?.clientId || currentUser?.company_id)) : null;
 
   const [branding, setBranding] = useState({
     businessName: '',
@@ -842,7 +842,7 @@ const Settings = () => {
                 <div className="mt-10 pt-8 border-t border-white/5 flex justify-end">
                   <button
                     onClick={async () => {
-                      if (['client', 'saas_client'].includes(currentUser?.role)) {
+                      if (['client', 'saas_client'].includes(normalizeRole(currentUser?.role))) {
                         updateClientBranding(currentUser.clientId || currentUser.company_id, branding);
                         swalSuccess('Success', 'Branding updated.');
                       } else if (['superadmin', 'admin'].includes(normalizeRole(currentUser?.role))) {

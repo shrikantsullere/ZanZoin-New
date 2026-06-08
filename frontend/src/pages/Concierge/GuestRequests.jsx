@@ -12,7 +12,7 @@ const GuestRequests = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ guest: '', request: '', time: '', date: new Date().toISOString().split('T')[0], priority: 'Medium', status: 'Pending' });
 
-    const userRole = (currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const userRole = String(currentUser?.role?.name || currentUser?.role || '').toLowerCase().replace(/\s+/g, '_');
     const isCustomer = ['customer', 'saas_client', 'client'].includes(userRole);
     const isConciergeOrAdmin = ['concierge', 'admin', 'super_admin', 'superadmin'].includes(userRole);
 

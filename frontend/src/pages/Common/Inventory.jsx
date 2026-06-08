@@ -418,7 +418,7 @@ const Inventory = () => {
       )
     },
     { header: "Product Name", accessor: "name" },
-    { header: "Category", accessor: "category" },
+    { header: "Category", accessor: "category", render: (item) => typeof item.category === 'object' && item.category !== null ? item.category.name : (item.category || '—') },
     { header: "Qty", accessor: "qty" },
     {
       header: "Unit Price",

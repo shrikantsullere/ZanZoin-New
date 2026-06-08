@@ -63,6 +63,7 @@ const Clients = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', password: '', location: '', source: 'Manual', clientType: 'SaaS',
     companyName: '', logo: '', plan: 'Starter', billingCycle: 'Monthly', paymentMethod: 'Wire Transfer',
@@ -228,6 +229,7 @@ const Clients = () => {
       address: client.address || '',
       status: client.status || 'active'
     });
+    setErrors({});
     setShowEditModal(true);
   };
 
@@ -238,10 +240,20 @@ const Clients = () => {
       companyName: '', logo: '', plan: 'Starter', billingCycle: 'Monthly', paymentMethod: 'Wire Transfer',
       contact: '', address: '', status: 'active'
     });
+    setErrors({});
     setShowAddModal(true);
   };
 
   const handleSaveEdit = async () => {
+    setErrors({});
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setErrors(prev => ({ ...prev, email: 'Invalid email' }));
+        return;
+      }
+    }
+
     try {
       if (selectedClient.isRequest) {
         const numericId = selectedClient.id.toString().replace('REQ-', '');
@@ -285,11 +297,26 @@ const Clients = () => {
       }
       setShowEditModal(false);
     } catch (e) {
-      swalError('Error', e.message);
+      const errorMsg = e.response?.data?.message || e.message;
+      const errorField = e.response?.data?.field;
+      if (errorField === 'email' || errorMsg?.toLowerCase().includes('email:')) {
+        setErrors(prev => ({ ...prev, email: 'Invalid email' }));
+      } else {
+        swalError('Error', errorMsg);
+      }
     }
   };
 
   const handleSaveAdd = async () => {
+    setErrors({});
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setErrors(prev => ({ ...prev, email: 'Invalid email' }));
+        return;
+      }
+    }
+
     try {
       const result = await createMutation.mutateAsync({
         ...formData,
@@ -302,7 +329,13 @@ const Clients = () => {
       }
       setShowAddModal(false);
     } catch (e) {
-      swalError('Error', e.message);
+      const errorMsg = e.response?.data?.message || e.message;
+      const errorField = e.response?.data?.field;
+      if (errorField === 'email' || errorMsg?.toLowerCase().includes('email:')) {
+        setErrors(prev => ({ ...prev, email: 'Invalid email' }));
+      } else {
+        swalError('Error', errorMsg);
+      }
     }
   };
 
@@ -986,8 +1019,21 @@ const Clients = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Email Address</label>
-                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="email@example.com" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        if (errors.email) {
+                          setErrors(prev => ({ ...prev, email: null }));
+                        }
+                      }}
+                      className={`w-full bg-background border ${errors.email ? 'border-danger focus:border-danger' : 'border-border focus:border-accent'} rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-bold`}
+                      placeholder="email@example.com"
+                    />
+                    {errors.email && (
+                      <p className="text-danger text-[10px] font-bold pl-1">{errors.email}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Phone Number</label>

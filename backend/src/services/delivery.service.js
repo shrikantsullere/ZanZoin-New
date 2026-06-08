@@ -17,7 +17,34 @@ export const createDelivery = async (data, performerId, tenantId) => {
     throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
   }
 
-  const warehouse = await warehouseRepo.findWarehouseById(data.warehouseId);
+  // Resolve warehouseId if it's missing or null
+  let warehouseId = data.warehouseId;
+  if (!warehouseId && order.items && order.items.length > 0) {
+    // Default to the warehouse of the first item in the order
+    warehouseId = order.items[0].warehouseId;
+  }
+
+  if (!warehouseId) {
+    // Find the first available warehouse for this tenant
+    const firstWarehouse = await prisma.warehouse.findFirst({
+      where: {
+        ...(tenantId !== null && { tenantId })
+      }
+    });
+    if (firstWarehouse) {
+      warehouseId = firstWarehouse.id;
+    }
+  }
+
+  if (!warehouseId) {
+    throw new AppError('Warehouse ID is required and no default warehouse could be found', 400);
+  }
+
+  // Update variables so downstream logic uses the resolved warehouseId
+  data.warehouseId = warehouseId;
+  deliveryData.warehouseId = warehouseId;
+
+  const warehouse = await warehouseRepo.findWarehouseById(warehouseId);
   if (!warehouse || (tenantId !== null && warehouse.tenantId !== tenantId)) {
     throw new AppError('Warehouse not found', 404);
   }
@@ -26,9 +53,21 @@ export const createDelivery = async (data, performerId, tenantId) => {
 
   // Validate quantities: Delivery quantity cannot exceed (Order Quantity - Already Delivered Quantity)
   for (const item of items) {
-    const orderItem = order.items.find(oi => oi.id === item.orderItemId);
+    const orderItemId = item.orderItemId;
+    let orderItem;
+    if (orderItemId) {
+      orderItem = order.items.find(oi => oi.id === orderItemId);
+    } else {
+      orderItem = order.items.find(oi => oi.itemId === item.itemId);
+    }
+
     if (!orderItem) {
-      throw new AppError(`Order item ${item.orderItemId} does not belong to this order`, 400);
+      throw new AppError(`Item ${item.itemId} does not belong to this order`, 400);
+    }
+
+    // Set the resolved orderItemId on the item
+    if (!item.orderItemId) {
+      item.orderItemId = orderItem.id;
     }
     
     if (orderItem.warehouseId !== data.warehouseId) {

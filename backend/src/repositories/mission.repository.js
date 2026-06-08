@@ -36,7 +36,7 @@ export const findMissionById = async (id) => {
     where: { id },
     include: {
       delivery: { include: { items: true, client: true } },
-      assignee: { select: { firstName: true, lastName: true } }
+        assignee: { select: { firstName: true, lastName: true, vehiclePlate: true, vehicleModel: true, vehicleType: true } }
     }
   });
 };
@@ -60,7 +60,7 @@ export const findAllMissions = async (tenantId, query) => {
       orderBy: { createdAt: 'desc' },
       include: {
         delivery: { select: { deliveryNumber: true, client: { select: { companyName: true } } } },
-        assignee: { select: { firstName: true, lastName: true } }
+          assignee: { select: { firstName: true, lastName: true, vehiclePlate: true, vehicleModel: true, vehicleType: true } }
       }
     }),
     prisma.mission.count({ where })

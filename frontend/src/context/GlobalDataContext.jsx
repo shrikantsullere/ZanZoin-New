@@ -1880,7 +1880,7 @@ export const GlobalDataProvider = ({ children }) => {
           driverId: m.assigned_driver || m.assignedEmployeeId,
           driverName: m.driver_name || (m.assignee ? `${m.assignee.firstName} ${m.assignee.lastName}` : ""),
           vehicleId: m.vehicle_id,
-          plateNumber: m.plate_number,
+          plateNumber: m.plate_number || (m.assignee && m.assignee.vehiclePlate) || "",
           missionType: m.mission_type || m.missionType,
           destinationType: m.destination_type,
           date: m.event_date

@@ -6,7 +6,18 @@ export const createWarehouse = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
 
-    const warehouse = await warehouseService.createWarehouse(req.body, req.user.id, tenantIdToUse);
+    const payload = req.body;
+
+    // Map only valid Prisma schema fields (capacity does not exist in schema)
+    const warehouseData = {
+      name: payload.name,
+      location: payload.location || null,
+      status: payload.status || 'active',
+      // Support both manager_id (frontend snake_case) and managerId (camelCase)
+      managerId: payload.managerId || payload.manager_id || null,
+    };
+
+    const warehouse = await warehouseService.createWarehouse(warehouseData, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Warehouse created successfully', warehouse);
   } catch (error) {
     next(error);
@@ -42,7 +53,18 @@ export const updateWarehouse = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const updatedWarehouse = await warehouseService.updateWarehouse(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    const payload = req.body;
+
+    // Map only valid Prisma schema fields
+    const warehouseData = {};
+    if (payload.name !== undefined) warehouseData.name = payload.name;
+    if (payload.location !== undefined) warehouseData.location = payload.location;
+    if (payload.status !== undefined) warehouseData.status = payload.status;
+    // Support both manager_id (frontend snake_case) and managerId (camelCase)
+    const managerId = payload.managerId ?? payload.manager_id ?? undefined;
+    if (managerId !== undefined) warehouseData.managerId = managerId ? Number(managerId) : null;
+
+    const updatedWarehouse = await warehouseService.updateWarehouse(Number(req.params.id), warehouseData, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Warehouse updated successfully', updatedWarehouse);
   } catch (error) {
     next(error);

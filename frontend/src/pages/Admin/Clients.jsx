@@ -742,14 +742,14 @@ const Clients = () => {
                     {/* Details Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {(isAdminRole ? [
-                        { icon: User, label: 'Contact Person', value: selectedClient.contact || selectedClient.contact_person || 'N/A' },
+                        { icon: User, label: 'Contact Person', value: selectedClient.contactPerson || selectedClient.contact || selectedClient.contact_person || 'N/A' },
                         { icon: Mail, label: 'Email', value: selectedClient.email || 'N/A' },
                         { icon: Phone, label: 'Phone', value: selectedClient.phone || 'N/A' },
                         { icon: MapPin, label: 'Address', value: selectedClient.address || selectedClient.location || 'N/A' },
                         { icon: Package, label: 'Client Type', value: selectedClient.client_type || selectedClient.clientType || 'Direct' },
-                        { icon: Calendar, label: 'Created', value: selectedClient.created_at ? new Date(selectedClient.created_at).toLocaleDateString() : 'N/A' },
+                        { icon: Calendar, label: 'Created', value: (selectedClient.created_at || selectedClient.createdAt) ? new Date(selectedClient.created_at || selectedClient.createdAt).toLocaleDateString() : 'N/A' },
                       ] : [
-                        { icon: User, label: 'Contact Person', value: selectedClient.contact || selectedClient.contact_person || 'N/A' },
+                        { icon: User, label: 'Contact Person', value: selectedClient.contactPerson || selectedClient.contact || selectedClient.contact_person || 'N/A' },
                         { icon: Mail, label: 'Email', value: selectedClient.email || 'N/A' },
                         { icon: Phone, label: 'Phone', value: selectedClient.phone || 'N/A' },
                         { icon: MapPin, label: 'Location', value: selectedClient.location || 'N/A' },
@@ -999,11 +999,18 @@ const Clients = () => {
                     <input type="text" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Primary Contact" />
                   </div>
-                  {formData.clientType !== 'Personal' && formData.clientType !== 'Direct' && (
+                  {!isAdminRole && formData.clientType !== 'Personal' && formData.clientType !== 'Direct' && (
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Location</label>
                       <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="City, Country" />
+                    </div>
+                  )}
+                  {isAdminRole && (
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address / Location</label>
+                      <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street, City, Country" />
                     </div>
                   )}
                   {!isAdminRole && (
@@ -1064,11 +1071,13 @@ const Clients = () => {
                     </select>
                   </div>
                 </div>
-                <div className="md:col-span-2 space-y-2">
+                {!isAdminRole && (
+                <div className="space-y-2">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address</label>
                   <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street, City, Country" />
                 </div>
+                )}
               </div>
 
               <div className="p-6 border-t border-border flex justify-end gap-3">

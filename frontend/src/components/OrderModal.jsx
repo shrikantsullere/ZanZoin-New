@@ -61,7 +61,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
             .map((c) => ({
                 id: `client_${c.id}`,
                 rawId: c.id,
-                name: c.name || c.business_name || c.company_name || '',
+                name: c.name || c.companyName || c.contactPerson || c.business_name || c.company_name || '',
                 email: c.email,
                 type: 'Personal Account',
                 source: 'client',

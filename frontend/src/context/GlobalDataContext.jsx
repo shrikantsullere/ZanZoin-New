@@ -831,6 +831,7 @@ export const GlobalDataProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+
   const filterDataForCurrentUser = React.useCallback(
     (dataArray) => {
       if (!Array.isArray(dataArray)) return [];
@@ -1532,27 +1533,23 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchFleet = React.useCallback(async () => {
     try {
-      const res = await api.get("/logistics/vehicles");
+      const res = await api.get("/vehicles");
       if (res.data && res.data.success) {
         setFleet(
           res.data.data.map((v) => ({
-            id: v.plate_number,
+            id: v.vehicleId,
             db_id: v.id,
             type: v.type,
             model: v.model,
-            fuel: `${v.fuel_level}%`,
-            status: v.status === "available" ? "Active" : v.status,
-            vehicle_type: v.vehicle_type,
+            fuel: v.fuel || '100%',
+            status: v.status || 'Active',
             capacity: v.capacity,
-            insurancePolicy: v.insurance_policy,
-            registrationExpiry: v.registration_expiry
-              ? v.registration_expiry.split("T")[0]
-              : "",
-            inspectionDate: v.inspection_date
-              ? v.inspection_date.split("T")[0]
-              : "",
-            diagnosticStatus: v.diagnostic_status,
-          })),
+            location: v.location,
+            insurancePolicy: v.insurancePolicy,
+            registrationExpiry: v.registrationExpiry || '',
+            inspectionDate: v.inspectionDate || '',
+            diagnosticStatus: v.diagnosticStatus,
+          }))
         );
       }
     } catch (e) {
@@ -5764,81 +5761,64 @@ export const GlobalDataProvider = ({ children }) => {
   // --- FLEET ACTIONS ---
   const addFleet = async (vehicle) => {
     try {
-      const statusMap = {
-        Active: "available",
-        Inactive: "offline",
-        Maintenance: "maintenance",
-      };
       const reqData = {
-        plate_number: vehicle.id,
+        vehicleId: vehicle.id,
+        type: vehicle.type || 'Luxury Truck',
         model: vehicle.model,
-        type: vehicle.type,
-        fuel_level: parseInt(vehicle.fuel) || 100,
-        vehicle_type:
-          vehicle.vehicle_type ||
-          (vehicle.type?.includes("Van")
-            ? "Van"
-            : vehicle.type?.includes("Boat")
-              ? "Boat"
-              : vehicle.type?.includes("Plane")
-                ? "Plane"
-                : "Truck"),
-        status: statusMap[vehicle.status] || "available",
-        capacity: vehicle.capacity,
-        insurance_policy: vehicle.insurancePolicy,
-        registration_expiry: vehicle.registrationExpiry || null,
-        inspection_date: vehicle.inspectionDate || null,
-        diagnostic_status: vehicle.diagnosticStatus,
+        fuel: vehicle.fuel || '100%',
+        status: vehicle.status || 'Active',
+        capacity: vehicle.capacity || '',
+        location: vehicle.location || '',
+        insurancePolicy: vehicle.insurancePolicy || '',
+        registrationExpiry: vehicle.registrationExpiry || null,
+        inspectionDate: vehicle.inspectionDate || null,
+        diagnosticStatus: vehicle.diagnosticStatus || 'Healthy',
       };
-      const res = await api.post("/logistics/vehicles", reqData);
+      const res = await api.post("/vehicles", reqData);
       if (res.data?.success) {
-        setFleet((prev) => [{ ...vehicle, db_id: res.data.data.id }, ...prev]);
-        addLog({
-          action: "Asset Induction",
-          detail: `Commissioned ${vehicle.id} into active fleet.`,
-          type: "system",
-        });
+        const saved = res.data.data;
+        setFleet((prev) => [{
+          id: saved.vehicleId,
+          db_id: saved.id,
+          type: saved.type,
+          model: saved.model,
+          fuel: saved.fuel,
+          status: saved.status,
+          capacity: saved.capacity,
+          location: saved.location,
+          insurancePolicy: saved.insurancePolicy,
+          registrationExpiry: saved.registrationExpiry || '',
+          inspectionDate: saved.inspectionDate || '',
+          diagnosticStatus: saved.diagnosticStatus,
+        }, ...prev]);
+        addLog({ action: "Asset Induction", detail: `Commissioned ${vehicle.id} into active fleet.`, type: "system" });
       }
     } catch (error) {
       console.error("Failed to add fleet asset:", error);
+      alert(error.response?.data?.message || "Failed to add vehicle.");
     }
   };
 
   const updateFleet = async (updated) => {
     try {
-      const statusMap = {
-        Active: "available",
-        Inactive: "offline",
-        Maintenance: "maintenance",
-      };
       const reqData = {
-        plate_number: updated.id,
-        model: updated.model,
+        vehicleId: updated.id,
         type: updated.type,
-        fuel_level: parseInt(updated.fuel) || 100,
-        vehicle_type:
-          updated.vehicle_type ||
-          (updated.type?.includes("Van")
-            ? "Van"
-            : updated.type?.includes("Boat")
-              ? "Boat"
-              : updated.type?.includes("Plane")
-                ? "Plane"
-                : "Truck"),
-        status: statusMap[updated.status] || updated.status.toLowerCase(),
+        model: updated.model,
+        fuel: updated.fuel,
+        status: updated.status,
         capacity: updated.capacity,
-        insurance_policy: updated.insurancePolicy,
-        registration_expiry: updated.registrationExpiry || null,
-        inspection_date: updated.inspectionDate || null,
-        diagnostic_status: updated.diagnosticStatus,
+        location: updated.location,
+        insurancePolicy: updated.insurancePolicy,
+        registrationExpiry: updated.registrationExpiry || null,
+        inspectionDate: updated.inspectionDate || null,
+        diagnosticStatus: updated.diagnosticStatus,
       };
-      await api.put(`/logistics/vehicles/${updated.db_id}`, reqData);
-      setFleet((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
-      addLog({
-        action: "Asset Recalibration",
-        detail: `Updated telemetry for ${updated.id}.`,
-        type: "system",
-      });
+      const res = await api.put(`/vehicles/${updated.db_id}`, reqData);
+      if (res.data?.success) {
+        setFleet((prev) => prev.map((v) => v.db_id === updated.db_id ? { ...v, ...updated } : v));
+        addLog({ action: "Asset Recalibration", detail: `Updated telemetry for ${updated.id}.`, type: "system" });
+      }
     } catch (error) {
       console.error("Failed to update fleet asset:", error);
     }
@@ -5848,13 +5828,9 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       const vehicle = fleet.find((v) => v.id === id);
       if (vehicle && vehicle.db_id) {
-        await api.delete(`/logistics/vehicles/${vehicle.db_id}`);
+        await api.delete(`/vehicles/${vehicle.db_id}`);
         setFleet((prev) => prev.filter((v) => v.id !== id));
-        addLog({
-          action: "Asset Decommissioned",
-          detail: `Removed ${id} from active fleet operations.`,
-          type: "alert",
-        });
+        addLog({ action: "Asset Decommissioned", detail: `Removed ${id} from active fleet operations.`, type: "alert" });
       }
     } catch (error) {
       console.error("Failed to delete fleet asset:", error);
@@ -6988,6 +6964,13 @@ export const GlobalDataProvider = ({ children }) => {
         // Utility
         refreshData: fetchInitialData,
         fetchInitialData,
+
+        // Notifications (real backend)
+        notifications,
+        unreadCount,
+        fetchNotifications,
+        markNotificationRead,
+        markAllNotificationsRead,
       }}
     >
       {children}

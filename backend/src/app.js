@@ -69,6 +69,7 @@ import paymentRoutes from './routes/payment.routes.js';
 
 import dashboardRoutes from './routes/dashboard.routes.js';
 import supportRoutes from './routes/support.routes.js';
+import vehicleRoutes from './routes/vehicle.routes.js';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
@@ -113,6 +114,9 @@ app.use('/api/v1/missions', missionRoutes);
 // Register Phase 9 routes
 app.use('/api/v1/invoices', invoiceRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+
+// Fleet / Vehicles
+app.use('/api/v1/vehicles', vehicleRoutes);
 
 // Fallback to Mock API for unimplemented routes
 app.use(async (req, res, next) => {

@@ -266,6 +266,7 @@ model Tenant {
   invoiceItems   InvoiceItem[]
   payments       Payment[]
   receipts       Receipt[]
+  vehicles       Vehicle[]
 
   @@index([organizationId])
   @@index([subscriptionId])
@@ -1069,4 +1070,33 @@ model Receipt {
   @@index([receiptNumber])
   @@index([paymentId])
   @@map("receipts")
+}
+
+// ------------------------------------------------------
+// FLEET / VEHICLES
+// ------------------------------------------------------
+
+model Vehicle {
+  id                 Int      @id @default(autoincrement())
+  vehicleId          String   // e.g. FLT-001  (tenant-scoped unique)
+  type               String   @default("Luxury Truck")
+  model              String
+  capacity           String?
+  fuel               String?
+  status             String   @default("Active")
+  location           String?
+  insurancePolicy    String?
+  registrationExpiry String?
+  inspectionDate     String?
+  diagnosticStatus   String?
+  tenantId           Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@unique([vehicleId, tenantId])
+  @@index([tenantId])
+  @@map("vehicles")
 }

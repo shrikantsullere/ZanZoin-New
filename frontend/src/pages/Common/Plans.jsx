@@ -14,8 +14,8 @@ const Plans = () => {
     const { data: plansResponse, isLoading } = usePlans(1, 50);
 
     const accessPlans = React.useMemo(() => {
-        const rawData = plansResponse?.data || [];
-        if (rawData.length === 0) return [];
+        const rawData = plansResponse?.data?.plans || (Array.isArray(plansResponse?.data) ? plansResponse.data : []);
+        if (!Array.isArray(rawData) || rawData.length === 0) return [];
         return rawData.map((row) => {
             let features = [];
             if (row.features != null) {

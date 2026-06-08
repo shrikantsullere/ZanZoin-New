@@ -51,7 +51,7 @@ export const findDeliveryById = async (id) => {
 };
 
 export const findAllDeliveries = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status, warehouseId, assignedTo } = query;
+  const { page = 1, limit = 10, search = '', status, warehouseId, assignedTo, clientId } = query;
   const skip = (page - 1) * limit;
 
   const where = {
@@ -59,7 +59,8 @@ export const findAllDeliveries = async (tenantId, query) => {
     ...(search && { deliveryNumber: { contains: search } }),
     ...(status && { status }),
     ...(warehouseId && { warehouseId: Number(warehouseId) }),
-    ...(assignedTo && { assignedTo: Number(assignedTo) })
+    ...(assignedTo && { assignedTo: Number(assignedTo) }),
+    ...(clientId && { clientId: Number(clientId) })
   };
 
   const [deliveries, total] = await Promise.all([

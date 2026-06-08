@@ -10,11 +10,11 @@ router.get('/public', planController.getPublicPlans);
 
 router.use(authenticate);
 
-// Enforce Super Admin access
+// Enforce Super Admin access for write, but allow read permission for views
 const requireSuperAdmin = checkPermission('PLANS', 'MANAGE');
 
-router.get('/', requireSuperAdmin, planController.getPlans);
-router.get('/:id', requireSuperAdmin, planController.getPlanById);
+router.get('/', checkPermission('PLANS', 'READ'), planController.getPlans);
+router.get('/:id', checkPermission('PLANS', 'READ'), planController.getPlanById);
 router.post('/', requireSuperAdmin, validate(createPlanSchema), planController.createPlan);
 router.put('/:id', requireSuperAdmin, validate(updatePlanSchema), planController.updatePlan);
 router.put('/:id/activate', requireSuperAdmin, planController.activatePlan);

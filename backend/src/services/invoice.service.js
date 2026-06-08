@@ -56,9 +56,9 @@ export const getInvoices = async (tenantId, query) => {
   return await invoiceRepo.findAllInvoices(tenantId, query);
 };
 
-export const getInvoiceById = async (id, tenantId) => {
+export const getInvoiceById = async (id, tenantId, clientId = null) => {
   const invoice = await invoiceRepo.findInvoiceById(id);
-  if (!invoice || (tenantId !== null && invoice.tenantId !== tenantId)) {
+  if (!invoice || (tenantId !== null && invoice.tenantId !== tenantId) || (clientId !== null && invoice.clientId !== clientId)) {
     throw new AppError('Invoice not found', 404);
   }
   return invoice;

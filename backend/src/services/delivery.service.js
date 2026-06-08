@@ -104,16 +104,16 @@ export const getDeliveries = async (tenantId, query) => {
   return await deliveryRepo.findAllDeliveries(tenantId, query);
 };
 
-export const getDeliveryById = async (id, tenantId) => {
+export const getDeliveryById = async (id, tenantId, clientId = null) => {
   const delivery = await deliveryRepo.findDeliveryById(id);
-  if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
+  if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId) || (clientId !== null && delivery.clientId !== clientId)) {
     throw new AppError('Delivery not found', 404);
   }
   return delivery;
 };
 
-export const cancelDelivery = async (id, tenantId, performerId) => {
-  const delivery = await getDeliveryById(id, tenantId);
+export const cancelDelivery = async (id, tenantId, performerId, clientId = null) => {
+  const delivery = await getDeliveryById(id, tenantId, clientId);
 
   if (['dispatched', 'in_transit', 'delivered'].includes(delivery.status)) {
     throw new AppError(`Cannot cancel delivery in ${delivery.status} status`, 400);

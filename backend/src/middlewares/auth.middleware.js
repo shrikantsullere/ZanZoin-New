@@ -91,7 +91,7 @@ export const checkPermission = (routeIdentifier, action) => {
       }
 
       const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(roleName);
-      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS'].includes(routeIdentifier)) {
+      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS'].includes(routeIdentifier)) {
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Customer Bypass)`);
         return next();
       }
@@ -126,7 +126,7 @@ export const checkPermission = (routeIdentifier, action) => {
         const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
         const isStaff = staffRoles.includes(roleName.toLowerCase());
         
-        if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'WAREHOUSES', 'ITEMS', 'ROLES'].includes(routeIdentifier) && isStaff) {
+        if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'WAREHOUSES', 'ITEMS', 'ROLES', 'PROJECTS'].includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Lookup Bypass)`);
           return next();
         }

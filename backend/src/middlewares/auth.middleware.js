@@ -126,7 +126,7 @@ export const checkPermission = (routeIdentifier, action) => {
         const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
         const isStaff = staffRoles.includes(roleName.toLowerCase());
         
-        if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS'].includes(routeIdentifier) && isStaff) {
+        if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'WAREHOUSES', 'ITEMS', 'ROLES'].includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Lookup Bypass)`);
           return next();
         }

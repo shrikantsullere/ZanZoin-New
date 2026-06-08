@@ -90,6 +90,12 @@ export const checkPermission = (routeIdentifier, action) => {
         return next();
       }
 
+      const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(roleName);
+      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS'].includes(routeIdentifier)) {
+        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Customer Bypass)`);
+        return next();
+      }
+
       const mappedMenuName = MENU_NAME_MAPPING[routeIdentifier];
       let hasAccess = false;
 

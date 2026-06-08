@@ -46,6 +46,10 @@ export const getOrders = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null : (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
 
+    if (['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(req.user.role?.name)) {
+      req.query.clientId = req.user.clientId;
+    }
+
     const result = await orderService.getOrders(tenantIdToFilter, req.query);
     sendResponse(res, 200, 'Orders fetched successfully', result);
   } catch (error) {

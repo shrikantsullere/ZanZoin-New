@@ -123,6 +123,7 @@ const Users = () => {
       // Map backend snake_case fields → frontend form fields
       setFormData({
         ...user,
+        roleId: user.roleId || user.role?.id || '',
         // birthday comes as "2026-04-29T00:00:00.000Z" from DB, trim to date only
         birthday: user.birthday ? String(user.birthday).split('T')[0] : '',
         nibNumber: user.nib_number || user.nibNumber || '',
@@ -964,12 +965,12 @@ const Users = () => {
                   <select
                     value={formData.roleId || ''}
                     onChange={(e) => setFormData({ ...formData, roleId: Number(e.target.value) })}
-                    className={`w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none ${isSuperAdmin ? 'cursor-not-allowed opacity-70' : ''}`}
-                    disabled={modalType === 'view' || isSuperAdmin}
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
+                    disabled={modalType === 'view'}
                   >
                     <option value="" disabled>Select Role...</option>
                     {(roles || [])
-                      .filter(r => isSuperAdmin ? r.name === 'ADMIN' : ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase()))
+                      .filter(r => isSuperAdmin ? true : ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase()))
                       .map(r => (
                       <option key={r.id} value={r.id}>
                         {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ')}
@@ -1165,7 +1166,7 @@ const Users = () => {
                   <div className="flex items-center gap-3 text-sm pt-1 border-t border-white/5">
                     <Shield size={14} className="text-accent shrink-0" />
                     <span className="text-secondary w-32">Role:</span>
-                    <span className="font-bold text-white capitalize">{(roles || []).find(r => r.id === formData.roleId)?.name || 'Unknown'}</span>
+                    <span className="font-bold text-white capitalize">{formData.role?.name || (roles || []).find(r => r.id === formData.roleId)?.name || 'Unknown'}</span>
                   </div>
                 </div>
               )}

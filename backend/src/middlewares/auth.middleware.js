@@ -116,6 +116,15 @@ export const checkPermission = (routeIdentifier, action) => {
       const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'superadmin';
       
       if (!hasAccess && !isSuperAdmin) {
+        // Implicit read-only bypass for internal staff roles to load dropdowns/lookups
+        const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
+        const isStaff = staffRoles.includes(roleName.toLowerCase());
+        
+        if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS'].includes(routeIdentifier) && isStaff) {
+          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Lookup Bypass)`);
+          return next();
+        }
+
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Mapped Menu: ${mappedMenuName || 'UNMAPPED'} | Action: ${action} | Result: DENIED`);
         return sendResponse(res, 403, 'Forbidden: Insufficient permissions for this action');
       }

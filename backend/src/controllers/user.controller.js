@@ -62,6 +62,11 @@ export const getCustomers = async (req, res, next) => {
     // We can just reuse userService.getUsers with a hardcoded role check if needed, 
     // or just let it pass through req.query to the repo.
     const query = { ...req.query, roleName: 'BUSINESS_CLIENT' };
+    
+    if (['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(req.user.role?.name)) {
+      query.clientId = req.user.clientId;
+    }
+
     const result = await userService.getUsers(tenantIdToFilter, query);
     
     sendResponse(res, 200, 'Customers fetched successfully', result);

@@ -623,6 +623,7 @@ model Warehouse {
   tenantId    Int
   name        String
   location    String?  @db.Text
+  capacity    Int?     @default(0)
   managerId   Int?
   status      String   @default("active")
   createdAt   DateTime @default(now())

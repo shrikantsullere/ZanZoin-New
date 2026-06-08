@@ -4,10 +4,12 @@ import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
 
 export const createWarehouse = async (data, performerId, tenantId) => {
+  // Soft-validate managerId — if employee not found, proceed with null manager
   if (data.managerId) {
     const manager = await employeeRepo.findEmployeeById(data.managerId);
     if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
-      throw new AppError('Manager Employee not found', 404);
+      // Don't block creation — just unset the invalid managerId
+      data.managerId = null;
     }
   }
 
@@ -39,10 +41,12 @@ export const getWarehouseById = async (id, tenantId) => {
 export const updateWarehouse = async (id, data, tenantId, performerId) => {
   const warehouse = await getWarehouseById(id, tenantId);
 
+  // Soft-validate managerId — if employee not found, proceed with null manager
   if (data.managerId) {
     const manager = await employeeRepo.findEmployeeById(data.managerId);
     if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
-      throw new AppError('Manager Employee not found', 404);
+      // Don't block update — just unset the invalid managerId
+      data.managerId = null;
     }
   }
 

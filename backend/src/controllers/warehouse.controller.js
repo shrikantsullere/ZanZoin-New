@@ -8,10 +8,11 @@ export const createWarehouse = async (req, res, next) => {
 
     const payload = req.body;
 
-    // Map only valid Prisma schema fields (capacity does not exist in schema)
+    // Map only valid Prisma schema fields
     const warehouseData = {
       name: payload.name,
       location: payload.location || null,
+      capacity: payload.capacity !== undefined ? Number(payload.capacity) : 0,
       status: payload.status || 'active',
       // Support both manager_id (frontend snake_case) and managerId (camelCase)
       managerId: payload.managerId || payload.manager_id || null,
@@ -59,6 +60,7 @@ export const updateWarehouse = async (req, res, next) => {
     const warehouseData = {};
     if (payload.name !== undefined) warehouseData.name = payload.name;
     if (payload.location !== undefined) warehouseData.location = payload.location;
+    if (payload.capacity !== undefined) warehouseData.capacity = Number(payload.capacity);
     if (payload.status !== undefined) warehouseData.status = payload.status;
     // Support both manager_id (frontend snake_case) and managerId (camelCase)
     const managerId = payload.managerId ?? payload.manager_id ?? undefined;

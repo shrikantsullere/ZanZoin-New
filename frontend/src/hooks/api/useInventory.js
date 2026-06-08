@@ -36,8 +36,42 @@ export const useWarehouses = () => {
     queryKey: ['warehouses'],
     queryFn: async () => {
       const res = await api.get('/warehouses');
-      return res.data?.data || [];
+      // Return full response so component can extract warehouses array
+      return res.data;
     }
+  });
+};
+
+export const useCreateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await api.post('/warehouses', data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['warehouses'] })
+  });
+};
+
+export const useUpdateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await api.put(`/warehouses/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['warehouses'] })
+  });
+};
+
+export const useDeleteWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const res = await api.delete(`/warehouses/${id}`);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['warehouses'] })
   });
 };
 

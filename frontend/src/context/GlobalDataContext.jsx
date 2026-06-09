@@ -1990,7 +1990,7 @@ export const GlobalDataProvider = ({ children }) => {
     try {
       const [assignments, leave] = await Promise.all([
         api
-          .get("/staff/assignments")
+          .get("/missions")
           .catch((e) => ({ data: { success: false, data: [] } })),
         api
           .get("/staff/leave")
@@ -1998,7 +1998,18 @@ export const GlobalDataProvider = ({ children }) => {
       ]);
 
       if (assignments.data?.success) {
-        setStaffAssignments(assignments.data.data);
+        // Map backend missions to frontend staffAssignments structure
+        const mapped = (assignments.data.data.missions || assignments.data.data || []).map(m => ({
+          ...m,
+          id: m.missionNumber || m.id,
+          task: m.metadata?.task || m.missionType,
+          location: m.metadata?.location || 'N/A',
+          assignee: m.assignee ? `${m.assignee.firstName} ${m.assignee.lastName}` : 'System',
+          assigneeId: m.assignedEmployeeId,
+          priority: m.metadata?.priority || 'Normal',
+          status: m.status
+        }));
+        setStaffAssignments(mapped);
       } else if (Array.isArray(assignments.data)) {
         setStaffAssignments(assignments.data);
       }
@@ -4868,11 +4879,11 @@ export const GlobalDataProvider = ({ children }) => {
         pickupLocation: asg.pickupLocation,
         deliveryLocation: asg.deliveryLocation,
       };
-      const res = await api.post("/staff/assignments", reqData);
+      const res = await api.post("/missions", reqData);
       if (res.data?.success) {
         const newAsg = {
           ...asg,
-          id: res.data.data.id,
+          id: res.data.data.missionNumber || res.data.data.id,
           db_id: res.data.data.id,
         };
         setStaffAssignments((prev) => [newAsg, ...prev]);

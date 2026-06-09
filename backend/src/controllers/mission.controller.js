@@ -6,7 +6,22 @@ export const createMission = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
-    const mission = await missionService.createMission(req.body, req.user.id, tenantIdToUse);
+    // Parse assigneeId or use default staff (fallback to req.user.id or 1)
+    let empId = req.body.assignedEmployeeId || req.body.assigneeId;
+    empId = empId ? parseInt(empId, 10) : (req.user.id || 1);
+
+    // Extract core fields vs metadata
+    const { deliveryId, assignedEmployeeId, assigneeId, remarks, tenantId, ...metadata } = req.body;
+    
+    const missionPayload = {
+      deliveryId: deliveryId ? parseInt(deliveryId, 10) : undefined,
+      assignedEmployeeId: empId,
+      remarks: remarks || '',
+      metadata: metadata, // store task, location, priority etc.
+      missionType: metadata.missionType || 'LOGISTICS'
+    };
+
+    const mission = await missionService.createMission(missionPayload, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Mission created successfully', mission);
   } catch (error) {
     next(error);

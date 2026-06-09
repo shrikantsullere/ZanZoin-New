@@ -6051,20 +6051,21 @@ export const GlobalDataProvider = ({ children }) => {
         ? String(rawClientId).replace("CLT-", "")
         : "";
 
-      const formData = new FormData();
-      formData.append("name", event.title || "");
-      formData.append("event_date", event.date || "");
-      formData.append("location", event.location || "");
-      formData.append("client_id", clientId);
-      formData.append("manager_id", currentUser?.id || "");
-      formData.append("status", event.status || "planned");
-      formData.append("special_requests", event.specialRequests || "");
-      formData.append("planner_name", event.plannerName || "");
-      formData.append("guest_count", event.guestCount || event.guests || 0);
-      formData.append("mood_board_url", event.moodBoardUrl || "");
-      if (event.imageFile) formData.append("image", event.imageFile);
+      const payload = {
+        title: event.title || "",
+        name: event.name || event.title || "",
+        event_date: event.date || "",
+        location: event.location || "",
+        client_id: clientId,
+        manager_id: currentUser?.id || "",
+        status: event.status || "planned",
+        special_requests: event.specialRequests || "",
+        planner_name: event.plannerName || "",
+        guest_count: event.guestCount || event.guests || 0,
+        mood_board_url: event.moodBoardUrl || ""
+      };
 
-      const res = await api.post("/support/events", formData);
+      const res = await api.post("/support/events", payload);
       if (res.data?.success) {
         const newEvt = {
           ...res.data.data,
@@ -6104,44 +6105,30 @@ export const GlobalDataProvider = ({ children }) => {
         clientId = found ? String(found).replace("CLT-", "") : undefined;
       }
 
-      const formData = new FormData();
-      if (updated.title !== undefined) formData.append("name", updated.title);
-      if (updated.date !== undefined)
-        formData.append("event_date", updated.date);
-      if (updated.location !== undefined)
-        formData.append("location", updated.location);
-      if (clientId !== undefined) formData.append("client_id", clientId);
-      if (updated.status !== undefined)
-        formData.append("status", updated.status);
-      if (updated.specialRequests !== undefined)
-        formData.append("special_requests", updated.specialRequests);
-      if (updated.plannerName !== undefined)
-        formData.append("planner_name", updated.plannerName);
-      if (updated.guestCount !== undefined)
-        formData.append("guest_count", updated.guestCount);
-      else if (updated.guests !== undefined)
-        formData.append("guest_count", updated.guests);
-      if (updated.moodBoardUrl !== undefined)
-        formData.append("mood_board_url", updated.moodBoardUrl);
-      if (updated.imageFile) formData.append("image", updated.imageFile);
+      const payload = {
+        title: updated.title || "",
+        name: updated.name || updated.title || "",
+        event_date: updated.date || "",
+        location: updated.location || "",
+        client_id: clientId,
+        manager_id: updated.manager_id || updated.managerId || currentUser?.id || "",
+        status: updated.status || "planned",
+        special_requests: updated.specialRequests || "",
+        planner_name: updated.plannerName || "",
+        guest_count: updated.guestCount || updated.guests || 0,
+        mood_board_url: updated.moodBoardUrl || ""
+      };
 
-      const res = await api.put(`/support/events/${updated.id}`, formData);
-
-      // Log FormData entries for debugging
+      const res = await api.put(`/support/events/${updated.id}`, payload);
+      
       try {
-        const entries = {};
-        for (const pair of formData.entries()) {
-          entries[pair[0]] = pair[1];
-        }
         console.debug(
-          `PUT /support/events/${updated.id} formData:`,
-          entries,
+          `PUT /support/events/${updated.id} payload:`,
+          payload,
           "response:",
           res?.data || res,
         );
-      } catch (e) {
-        /* ignore logging failures */
-      }
+      } catch (e) {}
 
       // Optimistically update local state so UI reflects changes immediately.
       const uiUpdate = {};

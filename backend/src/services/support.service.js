@@ -64,9 +64,15 @@ export const createEvent = async (data, performerId, tenantId) => {
   const payload = {
     eventId,
     name: data.name || data.title || 'Support Event',
-    date: data.date || '',
+    date: data.date || data.event_date || '',
     location: data.location || '',
     status: data.status || 'Scheduled',
+    clientId: data.client_id ? Number(data.client_id) : null,
+    managerId: data.manager_id ? Number(data.manager_id) : null,
+    specialRequests: data.special_requests || '',
+    plannerName: data.planner_name || '',
+    guestCount: data.guest_count ? Number(data.guest_count) : null,
+    moodBoardUrl: data.mood_board_url || '',
     tenantId
   };
 
@@ -82,7 +88,21 @@ export const getEvents = async (tenantId) => {
 export const updateEvent = async (id, data, tenantId, performerId) => {
   const existing = await supportRepository.findEventById(id, tenantId);
   if (!existing) throw new AppError('Event not found', 404);
-  const updated = await supportRepository.updateEvent(id, tenantId, data);
+
+  const payload = {
+    name: data.name !== undefined ? data.name : (data.title !== undefined ? data.title : existing.name),
+    date: data.date !== undefined ? data.date : (data.event_date !== undefined ? data.event_date : existing.date),
+    location: data.location !== undefined ? data.location : existing.location,
+    status: data.status !== undefined ? data.status : existing.status,
+    clientId: data.client_id !== undefined ? (data.client_id ? Number(data.client_id) : null) : existing.clientId,
+    managerId: data.manager_id !== undefined ? (data.manager_id ? Number(data.manager_id) : null) : existing.managerId,
+    specialRequests: data.special_requests !== undefined ? data.special_requests : existing.specialRequests,
+    plannerName: data.planner_name !== undefined ? data.planner_name : existing.plannerName,
+    guestCount: data.guest_count !== undefined ? (data.guest_count ? Number(data.guest_count) : null) : existing.guestCount,
+    moodBoardUrl: data.mood_board_url !== undefined ? data.mood_board_url : existing.moodBoardUrl
+  };
+
+  const updated = await supportRepository.updateEvent(id, tenantId, payload);
   return { ...updated, id: updated.eventId };
 };
 

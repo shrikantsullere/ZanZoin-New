@@ -26,7 +26,14 @@ export const deleteTicket = async (ticketId, tenantId) => {
 
 // Events
 export const createEvent = async (data) => await prisma.event.create({ data });
-export const findAllEvents = async (tenantId) => await prisma.event.findMany({ where: { ...(tenantId !== null && { tenantId }) }, orderBy: { createdAt: 'desc' } });
+export const findAllEvents = async (tenantId) => await prisma.event.findMany({
+  where: { ...(tenantId !== null && { tenantId }) },
+  include: {
+    client: { select: { id: true, name: true, contactName: true } },
+    manager: { select: { id: true, name: true } }
+  },
+  orderBy: { createdAt: 'desc' }
+});
 export const findEventById = async (eventId, tenantId) => {
   if (tenantId === null) return await prisma.event.findFirst({ where: { eventId } });
   return await prisma.event.findUnique({ where: { eventId_tenantId: { eventId, tenantId } } });

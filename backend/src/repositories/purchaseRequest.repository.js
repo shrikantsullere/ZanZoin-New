@@ -1,19 +1,21 @@
 import prisma from '../config/db.js';
 
 const generatePRNumber = async (tenantId) => {
-  const count = await prisma.purchaseRequest.count({ where: { tenantId } });
+  const safeTenantId = tenantId || 1;
+  const count = await prisma.purchaseRequest.count({ where: { tenantId: safeTenantId } });
   return `PR-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 };
 
 export const createPurchaseRequest = async (data, items, tenantId) => {
+  const safeTenantId = tenantId || 1;
   return await prisma.$transaction(async (tx) => {
-    const prNumber = await generatePRNumber(tenantId);
+    const prNumber = await generatePRNumber(safeTenantId);
     
     return await tx.purchaseRequest.create({
       data: {
         ...data,
         prNumber,
-        tenantId,
+        tenantId: safeTenantId,
         items: {
           create: items
         }

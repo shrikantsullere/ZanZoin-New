@@ -13,7 +13,7 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Common/Pagination';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQuotes, useRFQs, useCreateRFQ, useUpdateRFQ, useCreateQuotation, useUpdateQuotation, usePurchaseRequests } from '../../hooks/api/useProcurement';
+import { useQuotes, useRFQs, useCreateRFQ, useUpdateRFQ, useCreateQuotation, useUpdateQuotation, usePurchaseRequests, useCreatePurchaseOrder } from '../../hooks/api/useProcurement';
 import { RefreshCcw } from 'lucide-react';
 
 /** API may return items as JSON string, object, or array — form always uses [{ name, qty, price }]. */
@@ -47,7 +47,7 @@ function normalizeQuoteItems(items) {
 }
 
 const Quotes = () => {
-  const { vendors, addQuote, updateQuote, deleteQuote, addOrder, hasMenuPermission, currentUser } = useData();
+  const { vendors, fetchVendors, addQuote, updateQuote, deleteQuote, addOrder, hasMenuPermission, currentUser } = useData();
   const location = useLocation();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -57,18 +57,42 @@ const Quotes = () => {
   const { data: rfqsData, isLoading: isLoadingRfqs } = useRFQs(page, 10);
   const { data: prData } = usePurchaseRequests(1, 100);
 
-  const realQuotes = quotesData?.data || [];
-  const realRfqs = rfqsData?.data || [];
-  const activePurchaseRequests = prData?.data || [];
+  React.useEffect(() => {
+    if (fetchVendors) fetchVendors();
+  }, [fetchVendors]);
+
+  const realQuotes = Array.isArray(quotesData) ? quotesData : (quotesData?.data || []);
+  const realRfqs = Array.isArray(rfqsData) ? rfqsData : (rfqsData?.data || []);
+  const activePurchaseRequests = Array.isArray(prData) ? prData : (prData?.data || []);
 
   const createRfqMutation = useCreateRFQ();
   const updateRfqMutation = useUpdateRFQ();
   const createQuoteMutation = useCreateQuotation();
   const updateQuoteMutation = useUpdateQuotation();
+  const { mutateAsync: createPurchaseOrderMutation } = useCreatePurchaseOrder();
 
   // Offline Fallback Mechanism: If real API is empty or fails, merge with context mocks
   const resolvedRfqs = realRfqs.length > 0 ? realRfqs.map(r => ({ ...r, id: `RFQ-${r.id}`, quote_type: 'vendor_request', vendor_id: r.vendorId, total_amount: 0 })) : [];
-  const resolvedQuotations = realQuotes.length > 0 ? realQuotes.map(q => ({ ...q, id: `QUO-${q.id}`, quote_type: 'client', vendor_id: q.vendorId, total_amount: q.amount })) : [];
+  const resolvedQuotations = realQuotes.length > 0 ? realQuotes.map(q => {
+    let parsedRemarks = {};
+    try {
+      parsedRemarks = JSON.parse(q.remarks || '{}');
+    } catch (e) {
+      parsedRemarks = { leadTime: q.remarks };
+    }
+    return {
+      ...q,
+      id: `QUO-${q.id}`,
+      quote_type: 'client',
+      vendor_id: q.vendorId,
+      purchaseRequestId: q.rfq?.purchaseRequestId || q.purchaseRequestId,
+      total_amount: q.amount,
+      items: parsedRemarks.items || [],
+      leadTime: parsedRemarks.leadTime || '',
+      validity_date: parsedRemarks.validity || '',
+      paymentTerms: parsedRemarks.paymentTerms || 'Net 30'
+    };
+  }) : [];
   
   // Merge real with fallback
   const mockQuotes = useData().quotes || [];
@@ -218,7 +242,12 @@ const Quotes = () => {
             rfqId: parseInt(formData.rfqId, 10),
             vendorId: normalizedVendorId,
             amount: total,
-            remarks: formData.leadTime || 'Standard Terms'
+            remarks: JSON.stringify({
+              leadTime: formData.leadTime,
+              validity: formData.validity,
+              paymentTerms: formData.paymentTerms,
+              items: items
+            })
           });
           console.log('[REAL_API_SUCCESS] Quotation Created');
         }
@@ -271,17 +300,38 @@ const Quotes = () => {
     setIsModalOpen(false);
   };
 
-  const handleAccept = () => {
-    addOrder({
-      clientId: 1, // Default or selected
-      client: 'Platinum Client X',
-      items: normalizeQuoteItems(selectedQuote.items),
-      vendorId: selectedQuote.vendorId,
-      vendor: 'Monaco Global', // Derived from ID usually
-      status: 'Confirmed',
-      location: 'Central Vault'
-    });
-    updateQuote({ ...selectedQuote, status: 'Accepted' });
+  const handleAccept = async () => {
+    try {
+      const prId = selectedQuote.purchaseRequestId;
+      if (!prId) {
+        window.alert('Cannot generate Purchase Order: Missing Purchase Request ID on this quote.');
+        return;
+      }
+      await createPurchaseOrderMutation({
+        poNumber: `PO-${Date.now()}`,
+        vendorId: selectedQuote.vendorId || selectedQuote.vendor_id,
+        purchaseRequestId: prId,
+        quotationId: selectedQuote.id ? parseInt(String(selectedQuote.id).replace('QUO-', ''), 10) : null,
+        totalAmount: selectedQuote.total_amount || selectedQuote.amount || 0
+      });
+      await updateQuoteMutation.mutateAsync({
+        id: parseInt(String(selectedQuote.id).replace('QUO-', ''), 10),
+        data: { status: 'approved' }
+      });
+      console.log('[REAL_API_SUCCESS] Purchase Order Created from Quotation');
+    } catch (err) {
+      console.warn('[REAL_API_FAILED] Fallback mock for Accept Quote', err);
+      addOrder({
+        clientId: 1,
+        client: 'Platinum Client X',
+        items: normalizeQuoteItems(selectedQuote.items),
+        vendorId: selectedQuote.vendorId,
+        vendor: 'Monaco Global',
+        status: 'Confirmed',
+        location: 'Central Vault'
+      });
+      updateQuote({ ...selectedQuote, status: 'Accepted' });
+    }
     setIsModalOpen(false);
   };
 

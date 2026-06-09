@@ -1260,6 +1260,7 @@ export const GlobalDataProvider = ({ children }) => {
           v.name ||
           v.vendor_name ||
           v.business_name ||
+          v.companyName ||
           v.company_name ||
           v.title ||
           "Partner",
@@ -1281,6 +1282,7 @@ export const GlobalDataProvider = ({ children }) => {
           v.name ||
           v.vendor_name ||
           v.business_name ||
+          v.companyName ||
           v.company_name ||
           v.title ||
           "Partner",

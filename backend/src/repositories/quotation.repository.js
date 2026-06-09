@@ -42,7 +42,7 @@ export const findAllQuotations = async (tenantId, query) => {
       orderBy: { createdAt: 'desc' },
       include: {
         vendor: { select: { companyName: true, vendorCode: true } },
-        rfq: { select: { rfqNumber: true, purchaseRequest: { select: { title: true, prNumber: true } } } }
+        rfq: { select: { rfqNumber: true, purchaseRequestId: true, purchaseRequest: { select: { id: true, title: true, prNumber: true } } } }
       }
     }),
     prisma.quotation.count({ where })

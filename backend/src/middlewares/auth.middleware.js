@@ -122,12 +122,17 @@ export const checkPermission = (routeIdentifier, action) => {
       const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'superadmin';
       
       if (!hasAccess && !isSuperAdmin) {
-        // Implicit read-only bypass for internal staff roles to load dropdowns/lookups
+        // Implicit bypass for internal staff roles for core operational workflows
         const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
         const isStaff = staffRoles.includes(roleName.toLowerCase());
         
         if (action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'WAREHOUSES', 'ITEMS', 'ROLES', 'PROJECTS'].includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Lookup Bypass)`);
+          return next();
+        }
+
+        if (['CREATE', 'UPDATE', 'MANAGE'].includes(action) && ['ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES'].includes(routeIdentifier) && isStaff) {
+          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Operational Bypass)`);
           return next();
         }
 

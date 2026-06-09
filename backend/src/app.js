@@ -112,6 +112,8 @@ app.use('/api/v1/orders', orderRoutes);
 // Register Phase 8 routes
 app.use('/api/v1/deliveries', deliveryRoutes);
 app.use('/api/v1/missions', missionRoutes);
+import trackingRoutes from './routes/tracking.routes.js';
+app.use('/api/v1/logistics/tracking', trackingRoutes);
 
 // Register Phase 9 routes
 app.use('/api/v1/invoices', invoiceRoutes);

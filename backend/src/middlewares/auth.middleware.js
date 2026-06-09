@@ -129,7 +129,8 @@ export const checkPermission = (routeIdentifier, action) => {
         const operationalRoutes = [
           'ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES', 
           'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 
-          'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS'
+          'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS',
+          'TRACKING'
         ];
         
         if (action === 'READ' && [...operationalRoutes, 'ROLES'].includes(routeIdentifier) && isStaff) {

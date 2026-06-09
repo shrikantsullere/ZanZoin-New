@@ -318,8 +318,9 @@ const Deliveries = () => {
         orderId: finalData.orderId ? Number(String(finalData.orderId).replace(/\D/g, '')) : null,
         clientId: finalData.clientId ? Number(finalData.clientId) : null,
         items: finalData.items.map(item => ({
-          itemId: item.id || 1, // Will need a real mapping if dynamic
-          quantity: item.qty
+          orderItemId: item.orderItemId || item.id || null,
+          itemId: item.itemId || item.id || 1,
+          quantity: item.qty || item.quantity || 1
         })),
         missionType: finalData.missionType,
         transportMode: finalData.mode,

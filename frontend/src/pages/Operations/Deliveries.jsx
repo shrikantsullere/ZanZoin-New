@@ -235,17 +235,25 @@ const Deliveries = () => {
     };
     const initialFee = del?.delivery_fee || 0;
     const initialRate = del?.staff_pay_rate || DEFAULT_RATE_PER_KM;
+    // Parse remarks JSON to restore all free-text manifest data
+    let parsedRemarks = {};
+    if (del?.remarks) {
+      try { parsedRemarks = JSON.parse(del.remarks); } catch (e) { /* not JSON, plain text */ }
+    }
+    const restoredItems = parsedRemarks.manifestItems && parsedRemarks.manifestItems.length > 0
+      ? parsedRemarks.manifestItems
+      : (del?.items && del.items.length > 0)
+        ? del.items.map(it => ({ name: it.item?.name || 'Asset', qty: it.quantity, weight: '', length: '', width: '', height: '' }))
+        : [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }];
     const nextFormData = del && del.id ? {
       ...del,
       orderId: del.order?.orderNumber || del.deliveryNumber || del.orderId || '',
-      clientId: String(del.clientId) || '',
-      client: typeof del.client === 'object' ? del.client?.companyName : del.clientName || '',
-      items: (del.items && del.items.length > 0) ? del.items.map(it => ({
-        name: it.item?.name || 'Asset',
-        qty: it.quantity,
-        weight: '', length: '', width: '', height: ''
-      })) : [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
-      delivery_instructions: del.remarks || del.delivery_instructions || del.order_instructions || '',
+      clientId: String(del.clientId || ''),
+      client: typeof del.client === 'object' ? del.client?.companyName : (del.clientName || ''),
+      items: restoredItems,
+      packageDetails: parsedRemarks.packageDetails || del.packageDetails || { weight: '', dimensions: '', type: 'General' },
+      passengerInfo: parsedRemarks.passengerInfo || del.passengerInfo || { name: '', count: 1, phone: '' },
+      delivery_instructions: parsedRemarks.delivery_instructions || del.delivery_instructions || del.order_instructions || '',
       route_distance: del.routeDistance || del.route_distance || (initialFee > 0 ? parseFloat((initialFee / initialRate).toFixed(2)) : ''),
       staff_pay_rate: del.staffPayRate || del.staff_pay_rate || DEFAULT_RATE_PER_KM,
       delivery_fee: del.deliveryFee || del.delivery_fee || 0,
@@ -256,11 +264,11 @@ const Deliveries = () => {
       vehicle: del.vehicleRef || del.vehicle || '',
       vesselOrFlight: del.vehicleRef || del.vesselOrFlight || '',
       eta: del.etaSchedule ? new Date(del.etaSchedule).toISOString().split('T')[0] : (del.eta || new Date().toISOString().split('T')[0]),
-      requestDate: del.requestDate ? new Date(del.requestDate).toISOString().split('T')[0] : (del.requestDate || new Date().toISOString().split('T')[0]),
-      dueDate: del.dueDate ? new Date(del.dueDate).toISOString().split('T')[0] : (del.dueDate || new Date().toISOString().split('T')[0]),
+      requestDate: del.requestDate ? new Date(del.requestDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      dueDate: del.dueDate ? new Date(del.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       pickupLocation: del.pickupLocation || '',
       dropLocation: del.dropLocation || '',
-      route: del.remarks || del.route || '',
+      route: del.route || '',
       pod: del.pod || { signature: null, image: null, actualTime: null }
     } : {
       items: [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
@@ -331,6 +339,13 @@ const Deliveries = () => {
         : formData.pod
     };
     if (modalType === 'add') {
+      // Serialize all free-text manifest data into remarks so it persists
+      const manifestMeta = {
+        manifestItems: finalData.items,
+        packageDetails: finalData.packageDetails || {},
+        passengerInfo: finalData.passengerInfo || {},
+        delivery_instructions: finalData.delivery_instructions || '',
+      };
       // Create Delivery via backend
       createDeliveryMutation.mutateAsync({
         orderId: finalData.orderId ? Number(String(finalData.orderId).replace(/\D/g, '')) : null,
@@ -340,6 +355,7 @@ const Deliveries = () => {
           itemId: item.itemId || item.id || 1,
           quantity: item.qty || item.quantity || 1
         })),
+        remarks: JSON.stringify(manifestMeta),
         missionType: finalData.missionType,
         transportMode: finalData.mode,
         vehicleRef: finalData.vehicle || finalData.vesselOrFlight,

@@ -114,6 +114,13 @@ app.use('/api/v1/deliveries', deliveryRoutes);
 app.use('/api/v1/missions', missionRoutes);
 import trackingRoutes from './routes/tracking.routes.js';
 app.use('/api/v1/logistics/tracking', trackingRoutes);
+import routeRoutes from './routes/route.routes.js';
+app.use('/api/v1/logistics/routes', routeRoutes);
+import urgentRoutes from './routes/urgent.routes.js';
+app.use('/api/v1/logistics/urgent', urgentRoutes);
+// supportRoutes removed here since it's already imported above
+import conciergeRoutes from './routes/concierge.routes.js';
+app.use('/api/v1/concierge', conciergeRoutes);
 
 // Register Phase 9 routes
 app.use('/api/v1/invoices', invoiceRoutes);

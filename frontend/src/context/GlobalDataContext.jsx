@@ -5690,87 +5690,33 @@ export const GlobalDataProvider = ({ children }) => {
   const URGENT_ENDPOINTS = ["/logistics/urgent"];
 
   const fetchTracking = React.useCallback(async () => {
-    if (trackingApiUnavailableRef.current) return;
-    for (const ep of TRACKING_ENDPOINTS) {
-      try {
-        const res = await api.get(ep);
-        if (
-          res.data?.success ||
-          Array.isArray(res.data?.data) ||
-          Array.isArray(res.data)
-        ) {
-          const rows = res.data?.success
-            ? res.data.data
-            : Array.isArray(res.data?.data)
-              ? res.data.data
-              : Array.isArray(res.data)
-                ? res.data
-                : [];
-          setTracking(
-            (rows || []).map((t) => ({
-              id:
-                t.tracker_id ||
-                t.code ||
-                `TRK-${String(t.id || Date.now()).padStart(3, "0")}`,
-              db_id: t.id || null,
-              asset:
-                t.asset || t.plate_number || t.vehicle || "Assigned Vehicle",
-              location:
-                t.location || t.route || t.current_location || "In Transit",
-              signal: t.signal || t.signal_strength || "Strong",
-              eta: t.eta || t.estimated_time || "Live",
-              status: t.status || "Active",
-              deliveryId: t.delivery_id || t.deliveryId || null,
-            })),
-          );
-          return;
-        }
-      } catch (_) {
-        /* try next endpoint */
+    try {
+      const res = await api.get('/logistics/tracking');
+      if (res.data?.success) {
+        setTracking(res.data.data.map(t => ({
+          ...t,
+          id: t.trackerId || t.id,
+        })));
       }
+    } catch (error) {
+      console.error("Failed to fetch tracking data:", error);
     }
-    trackingApiUnavailableRef.current = true;
-    // Keep existing state if endpoint unavailable.
   }, []);
 
   const addTracking = async (t) => {
-    const payload = {
-      asset: t.asset,
-      location: t.location,
-      signal: t.signal || "Strong",
-      eta: t.eta || null,
-      status: t.status || "active",
-      delivery_id: t.deliveryId || null,
-      tracker_id: t.id || null,
-    };
-    if (!trackingApiUnavailableRef.current)
-      for (const ep of TRACKING_ENDPOINTS) {
-        try {
-          const res = await api.post(ep, payload);
-          if (res.data?.success || res.data?.data) {
-            await fetchTracking();
-            addLog({
-              action: "Tracker Linked",
-              detail: `Connected asset ${t.asset} to Geo-Spatial Network.`,
-              type: "system",
-            });
-            return;
-          }
-        } catch (_) {
-          /* try next endpoint */
-        }
+    try {
+      const res = await api.post('/logistics/tracking', t);
+      if (res.data?.success) {
+        setTracking((prev) => [{ ...t, id: res.data.data.id }, ...prev]);
+        addLog({
+          action: "Tracker Linked",
+          detail: `Connected asset ${t.asset} to Geo-Spatial Network.`,
+          type: "system",
+        });
       }
-    trackingApiUnavailableRef.current = true;
-    // Fallback to local state if API not available
-    setTracking((prev) => [
-      { ...t, id: t.id || `TRK-${Math.floor(500 + Math.random() * 99)}` },
-      ...prev,
-    ]);
-    addLog({
-      action: "Tracker Linked",
-      detail: `Connected asset ${t.asset} to Geo-Spatial Network.`,
-      type: "system",
-    });
+    } catch (error) {
+      console.error("Failed to link tracker:", error);
+    }
   };
 
   // --- FLEET ACTIONS ---
@@ -5855,14 +5801,8 @@ export const GlobalDataProvider = ({ children }) => {
   // --- ROUTE ACTIONS ---
   const addRoute = async (route) => {
     try {
-      const reqData = {
-        name: route.name,
-        start_location: route.start || "",
-        end_location: route.end || "",
-        distance_km: parseFloat(route.dist) || 0,
-        estimated_time: route.time,
-      };
-      const res = await api.post("/logistics/routes", reqData);
+      // Send the entire route object directly so that dist, time, type, status, and id are preserved
+      const res = await api.post("/logistics/routes", route);
       if (res.data.success) {
         setRoutes((prev) => [{ ...route, id: res.data.data.id }, ...prev]);
         addLog({
@@ -5878,14 +5818,7 @@ export const GlobalDataProvider = ({ children }) => {
 
   const updateRoute = async (updated) => {
     try {
-      const reqData = {
-        name: updated.name,
-        start_location: updated.start || "",
-        end_location: updated.end || "",
-        distance_km: parseFloat(updated.dist) || 0,
-        estimated_time: updated.time,
-      };
-      await api.put(`/logistics/routes/${updated.id}`, reqData);
+      await api.put(`/logistics/routes/${updated.id}`, updated);
       setRoutes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       addLog({
         action: "Route Updated",
@@ -5903,15 +5836,13 @@ export const GlobalDataProvider = ({ children }) => {
       if (res.data?.success) {
         setRoutes(
           res.data.data.map((r) => ({
-            id: r.id,
+            id: r.id, // mapped from routeId
             name: r.name,
-            start: r.start_location,
-            end: r.end_location,
-            dist: r.distance_km ? `${r.distance_km}km` : "0km",
-            time: r.estimated_time,
+            dist: r.dist || r.distance || "",
+            time: r.time || r.avgTime || "",
             type: r.type || "Land",
             status: r.status || "Active",
-          })),
+          }))
         );
       }
     } catch (error) {
@@ -6556,115 +6487,51 @@ export const GlobalDataProvider = ({ children }) => {
   };
 
   const fetchUrgentTasks = React.useCallback(async () => {
-    if (urgentApiUnavailableRef.current) return;
-    for (const ep of URGENT_ENDPOINTS) {
-      try {
-        const res = await api.get(ep);
-        if (
-          res.data?.success ||
-          Array.isArray(res.data?.data) ||
-          Array.isArray(res.data)
-        ) {
-          const rows = res.data?.success
-            ? res.data.data
-            : Array.isArray(res.data?.data)
-              ? res.data.data
-              : Array.isArray(res.data)
-                ? res.data
-                : [];
-          setUrgentTasks(
-            (rows || []).map((t) => ({
-              id: t.id || `URG-${Date.now()}`,
-              task: t.task || t.title || t.name || "Urgent Mission",
-              time: t.time || t.time_label || t.deadline || "Immediate",
-              priority: t.priority || "Critical",
-              location: t.location || t.route || "N/A",
-              assignee: t.assignee || t.owner || "Pending",
-            })),
-          );
-          return;
-        }
-      } catch (_) {
-        /* try next endpoint */
+    try {
+      const res = await api.get('/logistics/urgent');
+      if (res.data?.success) {
+        setUrgentTasks(res.data.data.map(t => ({
+          ...t,
+          id: t.alertId || t.id,
+        })));
       }
+    } catch (error) {
+      console.error("Failed to fetch urgent tasks:", error);
     }
-    urgentApiUnavailableRef.current = true;
   }, []);
 
   const addUrgentTask = async (task) => {
-    const payload = {
-      task: task.task || task.title || "Urgent Mission",
-      time: task.time || "Immediate",
-      priority: task.priority || "Critical",
-      location: task.location || "",
-      assignee: task.assignee || "Pending",
-    };
-    if (!urgentApiUnavailableRef.current)
-      for (const ep of URGENT_ENDPOINTS) {
-        try {
-          const res = await api.post(ep, payload);
-          if (res.data?.success || res.data?.data) {
-            await fetchUrgentTasks();
-            addLog({
-              action: "Urgent Task Logged",
-              detail: payload.task,
-              type: "alert",
-            });
-            return;
-          }
-        } catch (_) {
-          /* try next endpoint */
-        }
+    try {
+      const res = await api.post('/logistics/urgent', task);
+      if (res.data?.success) {
+        setUrgentTasks((prev) => [{ ...task, id: res.data.data.id }, ...prev]);
+        addLog({
+          action: "Urgent Task Logged",
+          detail: task.task,
+          type: "alert",
+        });
       }
-    urgentApiUnavailableRef.current = true;
-    setUrgentTasks((prev) => [
-      { ...payload, id: task.id || `URG-${Date.now()}` },
-      ...prev,
-    ]);
-    addLog({
-      action: "Urgent Task Logged",
-      detail: payload.task,
-      type: "alert",
-    });
+    } catch (error) {
+      console.error("Failed to add urgent task:", error);
+    }
   };
 
   const updateUrgentTask = async (updated) => {
-    const payload = {
-      task: updated.task,
-      time: updated.time,
-      priority: updated.priority,
-      location: updated.location,
-      assignee: updated.assignee,
-    };
-    if (!urgentApiUnavailableRef.current)
-      for (const ep of URGENT_ENDPOINTS) {
-        try {
-          await api.put(`${ep}/${encodeURIComponent(updated.id)}`, payload);
-          await fetchUrgentTasks();
-          return;
-        } catch (_) {
-          /* try next endpoint */
-        }
-      }
-    urgentApiUnavailableRef.current = true;
-    setUrgentTasks((prev) =>
-      prev.map((t) => (t.id === updated.id ? updated : t)),
-    );
+    try {
+      await api.put(`/logistics/urgent/${updated.id}`, updated);
+      setUrgentTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+    } catch (error) {
+      console.error("Failed to update urgent task:", error);
+    }
   };
 
   const deleteUrgentTask = async (id) => {
-    if (!urgentApiUnavailableRef.current)
-      for (const ep of URGENT_ENDPOINTS) {
-        try {
-          await api.delete(`${ep}/${encodeURIComponent(id)}`);
-          await fetchUrgentTasks();
-          return;
-        } catch (_) {
-          /* try next endpoint */
-        }
-      }
-    urgentApiUnavailableRef.current = true;
-    setUrgentTasks((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await api.delete(`/logistics/urgent/${id}`);
+      setUrgentTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error("Failed to delete urgent task:", error);
+    }
   };
 
   const updateLeaveRequest = async (reqData) => {

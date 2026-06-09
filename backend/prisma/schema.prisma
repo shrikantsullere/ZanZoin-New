@@ -269,6 +269,12 @@ model Tenant {
   receipts       Receipt[]
   vehicles       Vehicle[]
   trackings      Tracking[]
+  supplyRoutes   SupplyRoute[]
+  urgentAlerts   UrgentAlert[]
+  supportTickets SupportTicket[]
+  events         Event[]
+  guestRequests  GuestRequest[]
+  luxuryItems    LuxuryItem[]
   leaveRequests  LeaveRequest[]
 
   @@index([organizationId])
@@ -1149,4 +1155,123 @@ model Tracking {
   @@index([tenantId])
   @@index([trackerId])
   @@map("tracking")
+}
+
+model SupplyRoute {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  routeId   String
+  name      String
+  type      String   @default("Land")
+  distance  String?  
+  avgTime   String?
+  status    String   @default("Active")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([routeId, tenantId])
+  @@index([tenantId])
+  @@index([routeId])
+  @@map("supply_routes")
+}
+
+model UrgentAlert {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  alertId   String
+  task      String
+  priority  String   @default("Critical")
+  time      String?
+  location  String?
+  assignee  String?  @default("Pending")
+  status    String   @default("Active")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([alertId, tenantId])
+  @@index([tenantId])
+  @@map("urgent_alerts")
+}
+
+model SupportTicket {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  ticketId    String
+  title       String
+  description String?
+  priority    String   @default("Medium")
+  status      String   @default("Open")
+  category    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([ticketId, tenantId])
+  @@index([tenantId])
+  @@map("support_tickets")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  eventId     String
+  name        String
+  date        String?
+  location    String?
+  status      String   @default("Scheduled")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([eventId, tenantId])
+  @@index([tenantId])
+  @@map("events")
+}
+
+model GuestRequest {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  requestId   String
+  guestName   String
+  room        String?
+  requestType String?
+  status      String   @default("Pending")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([requestId, tenantId])
+  @@index([tenantId])
+  @@map("guest_requests")
+}
+
+model LuxuryItem {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  itemId      String
+  name        String
+  category    String?
+  price       Float?
+  status      String   @default("Available")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([itemId, tenantId])
+  @@index([tenantId])
+  @@map("luxury_items")
 }

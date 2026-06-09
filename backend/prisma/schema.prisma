@@ -494,7 +494,7 @@ model RFQ {
 
   tenant          Tenant          @relation(fields: [tenantId], references: [id])
   purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
-  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   quotations      Quotation[]
 
   @@index([tenantId])
@@ -519,7 +519,7 @@ model Quotation {
 
   tenant   Tenant          @relation(fields: [tenantId], references: [id])
   rfq      RFQ?            @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  vendor   Vendor?         @relation(fields: [vendorId], references: [id])
+  vendor   Vendor?         @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   purchaseOrders PurchaseOrder[]
 
   @@index([tenantId])
@@ -542,7 +542,7 @@ model PurchaseOrder {
   updatedAt         DateTime @updatedAt
 
   tenant          Tenant          @relation(fields: [tenantId], references: [id])
-  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
   quotation       Quotation?      @relation(fields: [quotationId], references: [id])
   grns            GRN[]
@@ -662,7 +662,7 @@ model GRN {
 
   tenant        Tenant          @relation(fields: [tenantId], references: [id])
   purchaseOrder PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
-  vendor        Vendor          @relation(fields: [vendorId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   warehouse     Warehouse       @relation(fields: [warehouseId], references: [id])
   receiver      Employee        @relation("GRNReceiver", fields: [receivedById], references: [id])
   items         GRNItem[]

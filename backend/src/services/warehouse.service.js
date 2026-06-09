@@ -3,14 +3,16 @@ import * as employeeRepo from '../repositories/employee.repository.js';
 import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
 import { notifyTenantAdmins } from '../utils/sendNotification.js';
+import prisma from '../config/db.js';
 
 export const createWarehouse = async (data, performerId, tenantId) => {
-  // Soft-validate managerId — if employee not found, proceed with null manager
+  // Soft-validate managerId (which comes in as User.id from frontend)
   if (data.managerId) {
-    const manager = await employeeRepo.findEmployeeById(data.managerId);
+    const manager = await prisma.employee.findFirst({ where: { userId: Number(data.managerId) } });
     if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
-      // Don't block creation — just unset the invalid managerId
       data.managerId = null;
+    } else {
+      data.managerId = manager.id;
     }
   }
 
@@ -51,12 +53,13 @@ export const getWarehouseById = async (id, tenantId) => {
 export const updateWarehouse = async (id, data, tenantId, performerId) => {
   const warehouse = await getWarehouseById(id, tenantId);
 
-  // Soft-validate managerId — if employee not found, proceed with null manager
+  // Soft-validate managerId (which comes in as User.id from frontend)
   if (data.managerId) {
-    const manager = await employeeRepo.findEmployeeById(data.managerId);
+    const manager = await prisma.employee.findFirst({ where: { userId: Number(data.managerId) } });
     if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
-      // Don't block update — just unset the invalid managerId
       data.managerId = null;
+    } else {
+      data.managerId = manager.id;
     }
   }
 

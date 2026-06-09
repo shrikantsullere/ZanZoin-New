@@ -48,6 +48,7 @@ const Warehouses = () => {
       const payload = {
         name: formData.name,
         location: formData.location || null,
+        capacity: formData.capacity !== undefined ? Number(formData.capacity) : 0,
         status: formData.status || 'active',
         manager_id: formData.manager_id ? Number(formData.manager_id) : null
       };

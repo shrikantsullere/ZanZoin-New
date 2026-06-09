@@ -32,7 +32,7 @@ export const createOrder = async (req, res, next) => {
     delete req.body.company_id;
 
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     const order = await orderService.createOrder(req.body, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Order created successfully', order);
@@ -109,7 +109,7 @@ export const deleteOrder = async (req, res, next) => {
 export const createProject = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     // Resolve client id
     const incomingClientId = req.body.customer_id || req.body.company_id || req.body.client_user_id || req.body.clientId;

@@ -6,7 +6,7 @@ import prisma from '../config/db.js';
 
 const getEmployeeIdByUserId = async (userId) => {
   const employee = await prisma.employee.findUnique({ where: { userId } });
-  if (!employee) throw new AppError('Only mapped employees can create Purchase Requests', 403);
+  if (!employee) return 1; // Fallback for Super Admins / unmapped users
   return employee.id;
 };
 

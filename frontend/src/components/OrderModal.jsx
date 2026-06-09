@@ -234,7 +234,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
             window.alert('Only staff can create orders. Customers can use Marketplace and view their orders.');
             return;
         }
-        if (!formData.clientId) {
+        if (!formData.clientId && portalRole === 'customer') {
             window.alert('Please select a client');
             return;
         }

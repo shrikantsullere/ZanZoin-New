@@ -4,7 +4,7 @@ import { sendResponse } from '../utils/response.js';
 export const createVendor = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    let tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    let tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     if (!tenantIdToUse) {
       tenantIdToUse = 1; // Fallback to a default tenant ID if none provided

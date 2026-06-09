@@ -1253,7 +1253,7 @@ export const GlobalDataProvider = ({ children }) => {
         : Array.isArray(res.data)
           ? res.data
           : [];
-      const safeRaw = Array.isArray(raw) ? raw : (raw?.data && Array.isArray(raw.data) ? raw.data : []);
+      const safeRaw = Array.isArray(raw) ? raw : (raw?.vendors && Array.isArray(raw.vendors) ? raw.vendors : (raw?.data && Array.isArray(raw.data) ? raw.data : []));
       const mapped = safeRaw.map((v) => ({
         ...v,
         name:
@@ -3152,6 +3152,7 @@ export const GlobalDataProvider = ({ children }) => {
         client_id: rest.clientId ?? rest.client_id,
         company_id: rest.companyId ?? rest.company_id,
         vendor_id: rest.vendorId ?? rest.vendor_id,
+        vendor_name: rest.vendorName ?? rest.vendor_name ?? rest.vendor,
         type: rest.type,
         items: rest.items,
         notes: rest.notes,
@@ -3596,6 +3597,7 @@ export const GlobalDataProvider = ({ children }) => {
           const vId = order.vendorId != null ? order.vendorId : order.vendor_id;
           return vId && vId !== "" ? Number(vId) : null;
         })(),
+        vendor_name: order.vendor || order.vendor_name || null,
         type: order.type || order.orderType || "Marketplace Order",
         items: order.items,
         notes: order.notes || null,
@@ -6523,6 +6525,7 @@ export const GlobalDataProvider = ({ children }) => {
         leave_type: requestData.type,
         start_date: requestData.start,
         end_date: requestData.end,
+        hours: requestData.hours,
         reason: requestData.reason || "No reason provided",
       };
       const res = await api.post("/staff/leave", payload);

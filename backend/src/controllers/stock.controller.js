@@ -4,7 +4,7 @@ import { sendResponse } from '../utils/response.js';
 export const adjustStock = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     const result = await stockService.adjustStock(req.body, req.user.id, tenantIdToUse);
     sendResponse(res, 200, 'Stock adjusted successfully', result);
@@ -16,7 +16,7 @@ export const adjustStock = async (req, res, next) => {
 export const transferStock = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     const result = await stockService.transferStock(req.body, req.user.id, tenantIdToUse);
     sendResponse(res, 200, 'Stock transferred successfully', result);

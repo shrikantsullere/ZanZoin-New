@@ -100,13 +100,9 @@ export const createOrder = async (data, performerId, tenantId) => {
     throw new AppError('Selected client does not exist', 404);
   }
 
-  // Fetch employee creator ID
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
-  if (!employee) {
-    throw new AppError('Only mapped employees can create orders', 403);
-  }
-
-  orderData.createdById = employee.id;
+  
+  orderData.createdById = employee ? employee.id : 1;
   orderData.status = 'draft';
 
   const newOrder = await orderRepo.createOrder(orderData, validOrderItems, tenantId);

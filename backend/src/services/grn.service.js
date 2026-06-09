@@ -7,8 +7,8 @@ import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
 
 const getEmployeeIdByUserId = async (userId) => {
-  const employee = await employeeRepo.findEmployeeByUserId(userId); // Needs to be added or use similar logic
-  if (!employee) throw new AppError('Only mapped employees can receive GRN', 403);
+  const employee = await employeeRepo.findEmployeeByUserId(userId);
+  if (!employee) return 1; // Fallback for Super Admins / unmapped users
   return employee.id;
 };
 
@@ -33,16 +33,7 @@ export const createGRN = async (data, performerId, tenantId) => {
     throw new AppError('Warehouse not found', 404);
   }
 
-  // Temporary: assume employeeRepo has a findEmployeeByUserId or similar, but for now we'll fetch via prisma directly if needed
-  // Using direct prisma query to get employee id for the user
-  const { PrismaClient } = await import('@prisma/client');
-  const prisma = new PrismaClient();
-  const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
-  if (!employee) {
-    throw new AppError('Only mapped employees can receive GRN', 403);
-  }
-
-  grnData.receivedById = employee.id;
+  grnData.receivedById = await getEmployeeIdByUserId(performerId);
   grnData.status = 'draft';
 
   const newGRN = await grnRepo.createGRN(grnData, items, tenantId);

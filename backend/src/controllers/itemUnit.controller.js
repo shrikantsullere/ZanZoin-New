@@ -4,7 +4,7 @@ import { sendResponse } from '../utils/response.js';
 export const createItemUnit = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId) : req.user.tenantId;
+    const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     const unit = await unitService.createItemUnit(req.body, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Item Unit created successfully', unit);

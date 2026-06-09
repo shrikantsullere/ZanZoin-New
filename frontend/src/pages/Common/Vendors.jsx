@@ -188,11 +188,13 @@ const Vendors = () => {
     }
   };
 
-  const handleDirectOrder = (vendorName) => {
+  const handleDirectOrder = (vendorName, vendorId) => {
     setInitialOrderData({
       product: `${vendorName} Supply Request`,
       client: 'Select Client...',
       qty: '10 Units',
+      vendor: vendorName,
+      vendorId: vendorId
     });
     setOrderModalType('add');
     setIsOrderModalOpen(true);
@@ -354,7 +356,7 @@ const Vendors = () => {
           </div>
           <button
             className="w-full mt-6 btn-primary"
-            onClick={() => handleDirectOrder(spotlightVendor?.name || 'N/A')}
+            onClick={() => handleDirectOrder(spotlightVendor?.name || 'N/A', spotlightVendor?.id)}
             disabled={!spotlightVendor}
           >
             Place Direct Order

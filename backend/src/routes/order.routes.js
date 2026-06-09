@@ -11,6 +11,7 @@ router.use(authenticate);
 router.get('/', checkPermission('ORDERS', 'READ'), orderController.getOrders);
 router.get('/projects/all', checkPermission('PROJECTS', 'READ'), orderController.getProjects);
 router.post('/projects', checkPermission('PROJECTS', 'CREATE'), orderController.createProject);
+router.post('/convert/:orderId', checkPermission('PROJECTS', 'CREATE'), orderController.convertOrderToProject);
 router.put('/projects/:id', checkPermission('PROJECTS', 'UPDATE'), orderController.updateProject);
 router.delete('/projects/:id', checkPermission('PROJECTS', 'DELETE'), orderController.deleteProject);
 router.get('/:id', checkPermission('ORDERS', 'READ'), orderController.getOrderById);

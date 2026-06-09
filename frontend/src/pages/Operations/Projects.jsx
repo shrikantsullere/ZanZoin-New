@@ -4,7 +4,7 @@ import Table from '../../components/Table';
 import Modal from '../../components/Modal';
 import {
   Plus, Search, Briefcase, Calendar,
-  MapPin, Users, Target, Info, Clock, Rocket
+  MapPin, Users, Target, Info, Clock, Rocket, CheckCircle2
 } from 'lucide-react';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Common/Pagination';
@@ -12,7 +12,7 @@ import Pagination from '../../components/Common/Pagination';
 import { useData } from '../../context/GlobalDataContext';
 
 const Projects = () => {
-  const { projects, addProject, updateProject, deleteProject, fetchProjects, customerUsers, fetchCustomerUsers, convertProjectToMission, hasMenuPermission, currentUser, clients = [], fetchClients } = useData();
+  const { projects, addProject, updateProject, deleteProject, fetchProjects, customerUsers, fetchCustomerUsers, convertProjectToMission, missions = [], fetchMissions, hasMenuPermission, currentUser, clients = [], fetchClients } = useData();
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,8 +29,13 @@ const Projects = () => {
   React.useEffect(() => {
     fetchProjects();
     fetchClients();
+    fetchMissions();
     fetchCustomerUsers({ include_all: true, include_client_role: true });
-  }, [fetchProjects, fetchClients, fetchCustomerUsers]);
+  }, [fetchProjects, fetchClients, fetchMissions, fetchCustomerUsers]);
+
+  // Check if a project has already been converted to a mission
+  const isProjectRouted = (projectId) =>
+    missions.some((m) => String(m.orderId || m.order_id) === String(projectId));
 
   const customerOptions = React.useMemo(() => {
     const out = [];
@@ -155,6 +160,10 @@ const Projects = () => {
   };
 
   const handleLaunchMission = async (prj) => {
+    if (isProjectRouted(prj.id)) {
+      swalInfo('Already Routed', 'This project has already been sent to Logistics.');
+      return;
+    }
     const confirm = await swalConfirm('Launch Mission', `Are you sure you want to initialize a logistics mission for ${prj.name}?`);
     if (confirm) {
       const missionData = {
@@ -163,6 +172,7 @@ const Projects = () => {
         notes: `Logistics deployment for Project ID: ${prj.id}`
       };
       await convertProjectToMission(prj.id, missionData);
+      await fetchMissions();
       swalSuccess('Mission Launched', 'Project has been routed to Logistics/Missions protocol.');
     }
   };
@@ -226,18 +236,25 @@ const Projects = () => {
           onDelete={(item) => handleAction('delete', item)}
           canEdit={!isCustomer && hasMenuPermission('Projects', 'can_edit')}
           canDelete={!isCustomer && hasMenuPermission('Projects', 'can_delete')}
-          customAction={(item) => (
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleLaunchMission(item); }}
-              className="p-2 hover:bg-accent/10 text-accent rounded-lg transition-colors group relative"
-              title="Launch Mission"
-            >
-              <Rocket size={16} />
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-[10px] text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
-                Route to Logistics
-              </span>
-            </button>
-          )}
+          customAction={(item) => {
+            const routed = isProjectRouted(item.id);
+            return (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleLaunchMission(item); }}
+                className={`p-2 rounded-lg transition-colors group relative ${
+                  routed
+                    ? 'text-success cursor-default'
+                    : 'hover:bg-accent/10 text-accent'
+                }`}
+                title={routed ? 'Already routed to Logistics' : 'Route to Logistics'}
+              >
+                {routed ? <CheckCircle2 size={16} /> : <Rocket size={16} />}
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-[10px] text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                  {routed ? '✓ Sent to Logistics' : 'Route to Logistics'}
+                </span>
+              </button>
+            );
+          }}
         />
         {filteredProjects.length > itemsPerPage && (
           <div className="mt-6 border-t border-white/5 pt-6">

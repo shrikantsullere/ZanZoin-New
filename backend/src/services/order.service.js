@@ -240,3 +240,63 @@ export const deleteOrder = async (id, tenantId, performerId) => {
 
   return true;
 };
+
+export const convertOrderToProject = async (orderId, projectData, tenantId, performerId) => {
+  const order = await getOrderById(orderId, tenantId);
+
+  // Generate unique order number
+  const count = await prisma.order.count({ where: { tenantId: order.tenantId } });
+  const orderNumber = `PRJ-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+
+  const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
+  const createdById = employee ? employee.id : 1;
+
+  // Extract client name
+  const client = await clientRepo.findClientById(order.clientId);
+  const clientName = client ? client.companyName : 'N/A';
+
+  const metadata = {
+    name: projectData.name || `Project for Order #${order.orderNumber}`,
+    description: projectData.description || order.notes || '',
+    startDate: projectData.startDate || projectData.start || new Date().toISOString().split('T')[0],
+    location: projectData.location || order.location || '',
+    delivery_type: projectData.delivery_type || projectData.deliveryType || 'Road',
+    client_name: clientName
+  };
+
+  const project = await prisma.order.create({
+    data: {
+      tenantId: order.tenantId,
+      orderNumber,
+      clientId: order.clientId,
+      createdById,
+      status: projectData.status || 'planned',
+      orderType: 'Project',
+      totalAmount: order.totalAmount || 0,
+      metadata
+    }
+  });
+
+  await logAudit({
+    module: 'ORDERS',
+    action: 'CREATE',
+    description: `Converted Order ${order.orderNumber} to Project ${project.orderNumber}`,
+    newValue: project,
+    performedBy: performerId
+  });
+
+  return {
+    id: project.id,
+    name: metadata.name,
+    client: metadata.client_name,
+    clientId: project.clientId,
+    start: metadata.startDate,
+    location: metadata.location,
+    status: project.status,
+    deliveryType: metadata.delivery_type,
+    companyId: order.companyId || null,
+    customerId: order.clientId || null,
+    clientUserId: null
+  };
+};
+

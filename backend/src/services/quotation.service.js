@@ -5,40 +5,45 @@ import AppError from '../utils/AppError.js';
 import { logAudit } from '../utils/audit.js';
 
 export const createQuotation = async (data, performerId, tenantId) => {
-  const rfq = await rfqRepository.findRFQById(data.rfqId);
-  if (!rfq || (tenantId !== null && rfq.tenantId !== tenantId)) {
-    throw new AppError('RFQ not found', 404);
+  let rfq = null;
+  
+  if (data.rfqId) {
+    rfq = await rfqRepository.findRFQById(data.rfqId);
+    if (!rfq || (tenantId !== null && rfq.tenantId !== tenantId)) {
+      throw new AppError('RFQ not found', 404);
+    }
+    if (rfq.status === 'closed') {
+      throw new AppError('Cannot submit quotation for a closed RFQ', 400);
+    }
+    
+    if (data.vendorId && rfq.vendorId !== data.vendorId) {
+      throw new AppError('Vendor does not match the RFQ recipient', 400);
+    }
+
+    const existingQuotation = await quotationRepository.findQuotationByRFQAndVendor(data.rfqId, data.vendorId);
+    if (existingQuotation) {
+      throw new AppError('Quotation already submitted for this RFQ by this vendor', 400);
+    }
   }
 
-  if (rfq.status === 'closed') {
-    throw new AppError('Cannot submit quotation for a closed RFQ', 400);
-  }
-
-  const vendor = await vendorRepository.findVendorById(data.vendorId);
-  if (!vendor || (tenantId !== null && vendor.tenantId !== tenantId)) {
-    throw new AppError('Vendor not found', 404);
-  }
-
-  if (rfq.vendorId !== data.vendorId) {
-    throw new AppError('Vendor does not match the RFQ recipient', 400);
-  }
-
-  const existingQuotation = await quotationRepository.findQuotationByRFQAndVendor(data.rfqId, data.vendorId);
-  if (existingQuotation) {
-    throw new AppError('Quotation already submitted for this RFQ by this vendor', 400);
+  if (data.vendorId) {
+    const vendor = await vendorRepository.findVendorById(data.vendorId);
+    if (!vendor || (tenantId !== null && vendor.tenantId !== tenantId)) {
+      throw new AppError('Vendor not found', 404);
+    }
   }
 
   const newQuotation = await quotationRepository.createQuotation({ ...data, tenantId });
 
   // Update RFQ status to received
-  if (rfq.status === 'sent') {
+  if (rfq && rfq.status === 'sent') {
     await rfqRepository.updateRFQStatus(rfq.id, 'received');
   }
 
   await logAudit({
     module: 'QUOTATIONS',
     action: 'CREATE',
-    description: `Submitted quotation for RFQ ${rfq.rfqNumber}`,
+    description: `Submitted quotation${rfq ? ` for RFQ ${rfq.rfqNumber}` : ''}`,
     newValue: newQuotation,
     performedBy: performerId
   });

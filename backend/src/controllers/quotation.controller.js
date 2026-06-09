@@ -5,8 +5,23 @@ export const createQuotation = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
+    const { rfqId, vendorId, amount, remarks, tenantId, status, ...metadata } = req.body;
+    
+    // Auto-parse integers if passed as strings
+    const rfqIdInt = rfqId ? parseInt(rfqId, 10) : undefined;
+    const vendorIdInt = vendorId ? parseInt(vendorId, 10) : undefined;
+    const amountFloat = amount ? parseFloat(amount) : 0;
 
-    const quotation = await quotationService.createQuotation(req.body, req.user.id, tenantIdToUse);
+    const quotationPayload = {
+      rfqId: rfqIdInt,
+      vendorId: vendorIdInt,
+      amount: amountFloat,
+      remarks: remarks || '',
+      status: status || 'pending',
+      metadata: metadata // Packages quoteType, leadTime, items, etc.
+    };
+
+    const quotation = await quotationService.createQuotation(quotationPayload, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Quotation submitted successfully', quotation);
   } catch (error) {
     next(error);

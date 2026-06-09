@@ -508,17 +508,18 @@ model RFQ {
 model Quotation {
   id          Int      @id @default(autoincrement())
   tenantId    Int
-  rfqId       Int
-  vendorId    Int
+  rfqId       Int?
+  vendorId    Int?
   amount      Float
   remarks     String?  @db.Text
   status      String   @default("pending") // pending, approved, rejected
+  metadata    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   tenant   Tenant          @relation(fields: [tenantId], references: [id])
-  rfq      RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  vendor   Vendor          @relation(fields: [vendorId], references: [id])
+  rfq      RFQ?            @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendor   Vendor?         @relation(fields: [vendorId], references: [id])
   purchaseOrders PurchaseOrder[]
 
   @@index([tenantId])

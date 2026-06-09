@@ -588,12 +588,12 @@ const Quotes = () => {
                     }}
                     disabled={modalType === 'view' || modalType === 'edit'}
                   >
-                    <option value="client">Client Quote (Vendor Response)</option>
+                    <option value="client">Client quote (with unit pricing)</option>
                     <option value="vendor">Vendor Quote Request (RFQ)</option>
                   </select>
                 </div>
 
-                {formData.quoteType === 'vendor' ? (
+                {formData.quoteType === 'vendor' && (
                   <div className="space-y-1 col-span-2 border-l-2 border-accent pl-4 py-2">
                     <label className="text-[10px] font-bold text-accent uppercase">Link Purchase Request (Required for RFQ)</label>
                     <select
@@ -605,28 +605,6 @@ const Quotes = () => {
                       <option value="">Select an approved Purchase Request...</option>
                       {activePurchaseRequests.map(pr => (
                         <option key={pr.id} value={pr.id}>PR-{pr.id} ({pr.item}) - {pr.status}</option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div className="space-y-1 col-span-2 border-l-2 border-accent pl-4 py-2">
-                    <label className="text-[10px] font-bold text-accent uppercase">Link Parent RFQ (Required for Quotation)</label>
-                    <select
-                      value={formData.rfqId || ''}
-                      onChange={(e) => {
-                        const selectedRfq = mergedRfqs.find(r => String(r.id) === String(e.target.value) || String(r.id) === `RFQ-${e.target.value}`);
-                        if (selectedRfq) {
-                          setFormData({ ...formData, rfqId: e.target.value, vendorId: selectedRfq.vendorId || selectedRfq.vendor_id });
-                        } else {
-                          setFormData({ ...formData, rfqId: e.target.value });
-                        }
-                      }}
-                      className="w-full bg-background border border-accent/30 rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold"
-                      disabled={modalType === 'view' || modalType === 'edit'}
-                    >
-                      <option value="">Select a parent RFQ...</option>
-                      {mergedRfqs.map(r => (
-                        <option key={r.id} value={r.id.replace('RFQ-', '')}>{r.id} (Vendor ID: {r.vendorId || r.vendor_id}) - {r.status}</option>
                       ))}
                     </select>
                   </div>

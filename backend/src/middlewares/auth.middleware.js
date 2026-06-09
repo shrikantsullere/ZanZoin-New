@@ -131,7 +131,13 @@ export const checkPermission = (routeIdentifier, action) => {
           return next();
         }
 
-        if (['CREATE', 'UPDATE', 'MANAGE'].includes(action) && ['ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES'].includes(routeIdentifier) && isStaff) {
+        const operationalRoutes = [
+          'ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES', 
+          'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 
+          'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS'
+        ];
+
+        if (['CREATE', 'UPDATE', 'DELETE', 'MANAGE'].includes(action) && operationalRoutes.includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Operational Bypass)`);
           return next();
         }

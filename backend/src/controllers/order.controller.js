@@ -278,3 +278,17 @@ export const deleteProject = async (req, res, next) => {
     next(error);
   }
 };
+
+export const convertOrderToProject = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const orderId = Number(req.params.orderId);
+
+    const project = await orderService.convertOrderToProject(orderId, req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 201, 'Order converted to Project successfully', project);
+  } catch (error) {
+    next(error);
+  }
+};
+

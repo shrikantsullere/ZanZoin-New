@@ -134,3 +134,75 @@ export const getMissionById = async (id, tenantId) => {
   if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);
   return mission;
 };
+
+export const convertProjectToMission = async (projectId, missionData, tenantId, performerId) => {
+  const project = await prisma.order.findUnique({
+    where: { id: Number(projectId) }
+  });
+  if (!project || project.orderType !== 'Project' || (tenantId !== null && project.tenantId !== tenantId)) {
+    throw new AppError('Project not found', 404);
+  }
+
+  const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
+  const assignedEmployeeId = employee ? employee.id : 1;
+
+  const missionPayload = {
+    orderId: project.id,
+    assignedEmployeeId,
+    remarks: missionData.remarks || missionData.notes || '',
+    missionType: 'LOGISTICS',
+    metadata: {
+      destination_type: missionData.destination_type || 'Client Site',
+      notes: missionData.notes || '',
+      project_name: (typeof project.metadata === 'string' ? JSON.parse(project.metadata) : (project.metadata || {})).name || project.orderNumber
+    }
+  };
+
+  const newMission = await missionRepo.createMission(missionPayload, project.tenantId);
+
+  await logAudit({
+    module: 'MISSIONS',
+    action: 'CREATE',
+    description: `Converted Project ${project.orderNumber} to Mission ${newMission.missionNumber}`,
+    newValue: newMission,
+    performedBy: performerId
+  });
+
+  return newMission;
+};
+
+export const convertOrderToMission = async (orderId, missionData, tenantId, performerId) => {
+  const order = await prisma.order.findUnique({
+    where: { id: Number(orderId) }
+  });
+  if (!order || (tenantId !== null && order.tenantId !== tenantId)) {
+    throw new AppError('Order not found', 404);
+  }
+
+  const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
+  const assignedEmployeeId = employee ? employee.id : 1;
+
+  const missionPayload = {
+    orderId: order.id,
+    assignedEmployeeId,
+    remarks: missionData.remarks || missionData.notes || '',
+    missionType: 'DELIVERY',
+    metadata: {
+      destination_type: missionData.destination_type || 'Client Site',
+      notes: missionData.notes || ''
+    }
+  };
+
+  const newMission = await missionRepo.createMission(missionPayload, order.tenantId);
+
+  await logAudit({
+    module: 'MISSIONS',
+    action: 'CREATE',
+    description: `Converted Order ${order.orderNumber} to Mission ${newMission.missionNumber}`,
+    newValue: newMission,
+    performedBy: performerId
+  });
+
+  return newMission;
+};
+

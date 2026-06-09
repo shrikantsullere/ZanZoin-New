@@ -75,3 +75,30 @@ export const submitPOD = async (req, res, next) => {
     next(error);
   }
 };
+
+export const convertProjectToMission = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const projectId = Number(req.params.projectId);
+
+    const mission = await missionService.convertProjectToMission(projectId, req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 201, 'Project converted to Mission successfully', mission);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const convertOrderToMission = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const orderId = Number(req.params.orderId);
+
+    const mission = await missionService.convertOrderToMission(orderId, req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 201, 'Order converted to Mission successfully', mission);
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -21,7 +21,7 @@ const LogisticsDashboard = () => {
   const navigate = useNavigate();
   const { 
     fleet = [], routes = [], urgentTasks = [], logs = [], dispatchVehicle, 
-    deliveries = [], dashboardStats, fetchDashboardStats, fetchFleet, fetchRoutes, fetchDeliveries,
+    deliveries = [], missions = [], dashboardStats, fetchDashboardStats, fetchFleet, fetchRoutes, fetchDeliveries, fetchMissions,
     updateDelivery,
     hasMenuPermission
   } = useData();
@@ -32,7 +32,35 @@ const LogisticsDashboard = () => {
     fetchFleet();
     fetchRoutes();
     fetchDeliveries();
-  }, [fetchDashboardStats, fetchFleet, fetchRoutes, fetchDeliveries]);
+    fetchMissions();
+  }, [fetchDashboardStats, fetchFleet, fetchRoutes, fetchDeliveries, fetchMissions]);
+
+  // Merge deliveries + project-missions into a single unified dispatch list
+  const allDispatchItems = useMemo(() => {
+    const deliveryItems = deliveries.map(d => ({ ...d, _source: 'delivery' }));
+    // Only include missions that have no linked delivery (i.e. project-converted missions)
+    const missionItems = missions
+      .filter(m => !m.deliveryId && !m.delivery_id)
+      .map(m => ({
+        id: m.id,
+        item: m.metadata?.project_name || m.remarks || `Mission ${m.id}`,
+        location: m.metadata?.destination_type || m.destinationType || 'Client Site',
+        mode: m.metadata?.delivery_type || 'Road',
+        status: (() => {
+          switch ((m.status || '').toLowerCase()) {
+            case 'assigned': return 'Pending';
+            case 'in_progress': return 'In Transit';
+            case 'completed': return 'Delivered';
+            default: return m.status || 'Pending';
+          }
+        })(),
+        assignedStaff: m.driverName || '',
+        missionNumber: m.missionNumber || m.id,
+        missionType: m.missionType || 'LOGISTICS',
+        _source: 'mission',
+      }));
+    return [...deliveryItems, ...missionItems];
+  }, [deliveries, missions]);
   const [dispatchForm, setDispatchForm] = useState({
     vehicleId: '',
     routeId: '',
@@ -259,7 +287,14 @@ const LogisticsDashboard = () => {
                   {
                     header: "Dispatch ID",
                     accessor: "id",
-                    render: (row) => <span className="font-mono text-accent text-[10px] font-black tracking-widest uppercase">{row.id}</span>
+                    render: (row) => (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-accent text-[10px] font-black tracking-widest uppercase">{row.missionNumber || row.id}</span>
+                        {row._source === 'mission' && (
+                          <span className="text-[8px] font-black bg-accent/10 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider">PROJ</span>
+                        )}
+                      </div>
+                    )
                   },
                   {
                     header: "Asset Manifest",
@@ -268,7 +303,7 @@ const LogisticsDashboard = () => {
                       <div className="space-y-0.5">
                         <p className="font-black text-white italic text-xs uppercase tracking-tight">{row.item}</p>
                         <p className="text-[8px] text-muted font-bold uppercase tracking-widest">
-                          {row.items?.length || 1} Primary Assets Detected
+                          {row._source === 'mission' ? 'Project Mission' : `${row.items?.length || 1} Primary Assets`}
                         </p>
                       </div>
                     )
@@ -296,10 +331,10 @@ const LogisticsDashboard = () => {
                     render: (row) => <StatusBadge status={row.status} />
                   }
                 ]}
-                data={deliveries.filter(d =>
+                data={allDispatchItems.filter(d =>
                   activeTab === 'pending'
-                    ? (d.status === 'Pending' || d.status === 'Pending Pickup')
-                    : (d.status === 'In Transit' || d.status === 'Dispatched' || d.status === 'Processing')
+                    ? (d.status === 'Pending' || d.status === 'Pending Pickup' || d.status === 'assigned')
+                    : (d.status === 'In Transit' || d.status === 'Dispatched' || d.status === 'Processing' || d.status === 'in_progress')
                 )}
                 actions={true}
                 onView={(item) => {
@@ -325,10 +360,10 @@ const LogisticsDashboard = () => {
               />
 
               {/* Empty State */}
-              {deliveries.filter(d =>
+              {allDispatchItems.filter(d =>
                 activeTab === 'pending'
-                  ? (d.status === 'Pending' || d.status === 'Pending Pickup')
-                  : (d.status === 'In Transit' || d.status === 'Dispatched' || d.status === 'Processing')
+                  ? (d.status === 'Pending' || d.status === 'Pending Pickup' || d.status === 'assigned')
+                  : (d.status === 'In Transit' || d.status === 'Dispatched' || d.status === 'Processing' || d.status === 'in_progress')
               ).length === 0 && (
                   <div className="py-20 text-center border-t border-white/5 md:border-t-0">
                     <Box className="text-muted/20 mx-auto mb-4" size={48} strokeWidth={1} />

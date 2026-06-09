@@ -8,9 +8,68 @@ import prisma from '../config/db.js';
 export const createDelivery = async (data, performerId, tenantId) => {
   const { items, ...deliveryData } = data;
 
-  const order = await orderRepo.findOrderById(data.orderId);
+  let order;
+  if (data.orderId) {
+    order = await orderRepo.findOrderById(data.orderId);
+  }
+
   if (!order || (tenantId !== null && order.tenantId !== tenantId)) {
-    throw new AppError('Order not found', 404);
+    // Auto-create an ad-hoc order to support "Deploy New Mission" standalone flow
+    let clientIdToUse = data.clientId;
+    if (!clientIdToUse) {
+      const defaultClient = await prisma.client.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+      if (!defaultClient) throw new AppError('No clients available to assign to ad-hoc mission', 400);
+      clientIdToUse = defaultClient.id;
+    }
+
+    let adHocWarehouseId = data.warehouseId;
+    if (!adHocWarehouseId) {
+      const firstWarehouse = await prisma.warehouse.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+      if (firstWarehouse) adHocWarehouseId = firstWarehouse.id;
+    }
+    if (!adHocWarehouseId) throw new AppError('No warehouse available for ad-hoc mission', 400);
+
+    let defaultItem = await prisma.item.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+    if (!defaultItem) {
+      defaultItem = await prisma.item.create({
+        data: {
+          tenantId: tenantId || 1,
+          itemCode: 'MISC-001',
+          name: 'Miscellaneous Asset',
+          category: 'General',
+          type: 'product',
+          unit: 'pcs',
+          unitPrice: 0,
+          inventoryStatus: 'in_stock'
+        }
+      });
+    }
+
+    data.warehouseId = adHocWarehouseId;
+    deliveryData.warehouseId = adHocWarehouseId;
+
+    const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
+    const orderCreatedById = employee ? employee.id : 1;
+
+    order = await orderRepo.createOrder({
+      clientId: clientIdToUse,
+      createdById: orderCreatedById,
+      status: 'approved',
+      orderType: data.missionType === 'Chauffeur' ? 'Service' : 'Delivery',
+      priority: 'high'
+    }, items.map(it => {
+      it.itemId = defaultItem.id; // Mutate the original item so the validation loop sees the correct ID
+      return {
+        itemId: defaultItem.id,
+        quantity: it.quantity || 1,
+        unitPrice: 0,
+        warehouseId: adHocWarehouseId
+      };
+    }), tenantId);
+
+    data.orderId = order.id;
+    deliveryData.orderId = order.id;
+    deliveryData.clientId = clientIdToUse;
   }
 
   if (!['approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress'].includes(order.status)) {

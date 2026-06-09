@@ -15,5 +15,7 @@ router.post('/convert-project/:projectId', checkPermission('MISSIONS', 'MANAGE')
 router.post('/convert/:orderId', checkPermission('MISSIONS', 'MANAGE'), missionController.convertOrderToMission);
 router.post('/:id/start', checkPermission('MISSIONS', 'MANAGE'), missionController.startMission);
 router.post('/:id/pod', checkPermission('MISSIONS', 'COMPLETE'), validate(submitPODSchema), missionController.submitPOD);
+router.put('/:id/assign', checkPermission('MISSIONS', 'MANAGE'), missionController.assignMission);
+router.put('/:id/status', checkPermission('MISSIONS', 'MANAGE'), missionController.updateMissionStatus);
 
 export default router;

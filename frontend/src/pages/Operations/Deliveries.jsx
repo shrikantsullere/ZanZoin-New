@@ -237,12 +237,30 @@ const Deliveries = () => {
     const initialRate = del?.staff_pay_rate || DEFAULT_RATE_PER_KM;
     const nextFormData = del && del.id ? {
       ...del,
-      items: parseItems(del.package_details) || [{ name: del.item || '', qty: 1, weight: '', length: '', width: '', height: '' }],
-      delivery_instructions: del.delivery_instructions || del.order_instructions || '',
-      route_distance: del.route_distance || (initialFee > 0 ? parseFloat((initialFee / initialRate).toFixed(2)) : ''),
-      staff_pay_rate: del.staff_pay_rate || DEFAULT_RATE_PER_KM,
-      delivery_fee: del.delivery_fee || 0,
-      assigned_driver: del.assigned_driver ?? del.driverId ?? del.driver_id ?? ((users || []).find(u => u.name === (del.driver || del.driver_name))?.id || null),
+      orderId: del.order?.orderNumber || del.deliveryNumber || del.orderId || '',
+      clientId: String(del.clientId) || '',
+      client: typeof del.client === 'object' ? del.client?.companyName : del.clientName || '',
+      items: (del.items && del.items.length > 0) ? del.items.map(it => ({
+        name: it.item?.name || 'Asset',
+        qty: it.quantity,
+        weight: '', length: '', width: '', height: ''
+      })) : [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
+      delivery_instructions: del.remarks || del.delivery_instructions || del.order_instructions || '',
+      route_distance: del.routeDistance || del.route_distance || (initialFee > 0 ? parseFloat((initialFee / initialRate).toFixed(2)) : ''),
+      staff_pay_rate: del.staffPayRate || del.staff_pay_rate || DEFAULT_RATE_PER_KM,
+      delivery_fee: del.deliveryFee || del.delivery_fee || 0,
+      assigned_driver: del.assignedTo || del.assigned_driver || del.driverId || del.driver_id || ((users || []).find(u => u.name === (del.driver || del.driver_name))?.id || null),
+      driver: del.assignee ? `${del.assignee.firstName} ${del.assignee.lastName}` : (del.driver || ''),
+      mode: del.transportMode || del.mode || 'Road',
+      missionType: del.missionType || 'Delivery',
+      vehicle: del.vehicleRef || del.vehicle || '',
+      vesselOrFlight: del.vehicleRef || del.vesselOrFlight || '',
+      eta: del.etaSchedule ? new Date(del.etaSchedule).toISOString().split('T')[0] : (del.eta || new Date().toISOString().split('T')[0]),
+      requestDate: del.requestDate ? new Date(del.requestDate).toISOString().split('T')[0] : (del.requestDate || new Date().toISOString().split('T')[0]),
+      dueDate: del.dueDate ? new Date(del.dueDate).toISOString().split('T')[0] : (del.dueDate || new Date().toISOString().split('T')[0]),
+      pickupLocation: del.pickupLocation || '',
+      dropLocation: del.dropLocation || '',
+      route: del.remarks || del.route || '',
       pod: del.pod || { signature: null, image: null, actualTime: null }
     } : {
       items: [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
@@ -365,7 +383,7 @@ const Deliveries = () => {
   const columns = [
     { header: "Dispatch ID", accessor: "id" },
     { header: "Order Ref", accessor: "orderId" },
-    { header: "Client", accessor: "client", render: (item) => item.client || item.clientName || '—' },
+    { header: "Client", accessor: "client", render: (item) => (typeof item.client === 'object' ? item.client?.companyName : item.client) || item.clientName || '—' },
     { header: "Personnel", accessor: "driver" },
     {
       header: "Manifest Summary",

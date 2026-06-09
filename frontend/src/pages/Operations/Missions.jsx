@@ -8,6 +8,7 @@ import {
   CheckCircle2, AlertCircle, Clock
 } from 'lucide-react';
 import api from '../../services/api/setupAxios.js';
+import { swalSuccess, swalError } from '../../utils/swal';
 
 const Missions = () => {
   const {
@@ -59,12 +60,21 @@ const Missions = () => {
   };
 
   const handleAssign = async () => {
-    await assignMissionDriver(selectedMission.id, assignData.driverId, assignData.vehicleId);
-    setIsModalOpen(false);
+    if (!assignData.driverId) {
+      swalError('Assignment Failed', 'Please select a tactical pilot (driver) from the dropdown first.');
+      return;
+    }
+    const success = await assignMissionDriver(selectedMission.db_id || selectedMission.id, assignData.driverId, assignData.vehicleId);
+    if (success !== false) {
+      setIsModalOpen(false);
+      swalSuccess('Personnel Assigned', `Driver and vehicle assigned successfully.`);
+    } else {
+      swalError('Assignment Failed', 'Could not assign personnel. Ensure they have an active employee profile.');
+    }
   };
 
   const handleUpdateStatus = async (status) => {
-    await updateMissionStatus(selectedMission.id, status);
+    await updateMissionStatus(selectedMission.db_id || selectedMission.id, status);
     setIsModalOpen(false);
   };
 
@@ -111,6 +121,18 @@ const Missions = () => {
       }
     },
     {
+      header: "Destination",
+      accessor: "destinationType",
+      render: (row) => (
+        <div className="flex items-center gap-1.5 text-xs font-bold text-white max-w-[150px] truncate">
+          <MapPin size={12} className="text-accent shrink-0" />
+          <span className="truncate" title={row.destinationType || row.metadata?.destination_type || 'Client Site'}>
+            {row.destinationType || row.metadata?.destination_type || 'Client Site'}
+          </span>
+        </div>
+      )
+    },
+    {
       header: "Type",
       accessor: "missionType",
       render: (row) => (
@@ -143,46 +165,7 @@ const Missions = () => {
       )
     },
     { header: "Date", accessor: "date" },
-    {
-      header: "Action",
-      accessor: "id",
-      render: (row) => (
-        <div className="flex gap-2">
-          {row.status === 'pending' && (
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleAction('assign', row); }}
-              className="px-2 py-1 bg-accent/20 text-accent hover:bg-accent hover:text-white rounded text-[9px] font-bold uppercase transition-colors"
-            >
-              Assign
-            </button>
-          )}
-          {row.status === 'assigned' && (
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                setSelectedMission(row);
-                await updateMissionStatus(row.id, 'en_route');
-              }}
-              className="px-2 py-1 bg-primary/20 text-primary hover:bg-primary hover:text-white rounded text-[9px] font-bold uppercase transition-colors"
-            >
-              Dispatch
-            </button>
-          )}
-          {row.status === 'en_route' && (
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                setSelectedMission(row);
-                await updateMissionStatus(row.id, 'completed');
-              }}
-              className="px-2 py-1 bg-success/20 text-success hover:bg-success hover:text-white rounded text-[9px] font-bold uppercase transition-colors"
-            >
-              Arrived
-            </button>
-          )}
-        </div>
-      )
-    }
+    { header: "Date", accessor: "date" }
   ];
 
   return (
@@ -214,6 +197,45 @@ const Missions = () => {
           columns={columns} 
           data={filteredMissions}
           actions={true}
+          customAction={(row) => (
+            <div className="flex gap-2 mr-2 border-r border-white/10 pr-2">
+              {row.status === 'pending' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleAction('assign', row); }}
+                  className="px-3 py-1.5 bg-accent/20 text-accent hover:bg-accent hover:text-black rounded-lg text-[10px] font-black uppercase transition-all shadow-sm shadow-accent/5"
+                >
+                  Assign
+                </button>
+              )}
+              {row.status === 'assigned' && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setSelectedMission(row);
+                    await updateMissionStatus(row.id, 'en_route');
+                    const dest = row.destinationType || row.metadata?.destination_type || 'destination';
+                    swalSuccess('Mission Dispatched', `Asset is now en route to ${dest}.`);
+                  }}
+                  className="px-3 py-1.5 bg-info/20 text-info hover:bg-info hover:text-black rounded-lg text-[10px] font-black uppercase transition-all shadow-sm shadow-info/5"
+                >
+                  Dispatch
+                </button>
+              )}
+              {row.status === 'en_route' && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setSelectedMission(row);
+                    await updateMissionStatus(row.id, 'completed');
+                    swalSuccess('Mission Arrived', `Asset successfully delivered to destination.`);
+                  }}
+                  className="px-3 py-1.5 bg-success/20 text-success hover:bg-success hover:text-black rounded-lg text-[10px] font-black uppercase transition-all shadow-sm shadow-success/5"
+                >
+                  Arrived
+                </button>
+              )}
+            </div>
+          )}
           onView={(item) => handleAction('view', item)}
           onEdit={(item) => handleAction('assign', item)}
           onDelete={(item) => handleAction('delete', item)}
@@ -250,7 +272,9 @@ const Missions = () => {
             <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
               <h4 className="text-[10px] font-black text-accent uppercase tracking-widest mb-2">Target Mission</h4>
               <p className="text-sm font-bold text-white">Mission #{selectedMission.id} - Order #{selectedMission.orderId}</p>
-              <p className="text-xs text-muted mt-1 uppercase font-black">{selectedMission.missionType} | {selectedMission.destinationType}</p>
+              <p className="text-xs text-muted mt-1 uppercase font-black">
+                {selectedMission.missionType} {selectedMission.destinationType ? `| ${selectedMission.destinationType}` : ''}
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -263,9 +287,12 @@ const Missions = () => {
                 >
                   <option value="">Choose Personnel...</option>
                   {users.filter(u => {
-                    const r = (u.role || '').toLowerCase();
-                    // Show only staff, drivers, and logistics personnel
-                    return r === 'staff' || r === 'driver' || r === 'logistics' || r === 'field_staff';
+                    // Only show users belonging to this mission's company
+                    if (u.tenantId && selectedMission.tenantId && u.tenantId !== selectedMission.tenantId) return false;
+
+                    const r = (typeof u.role === 'object' ? u.role?.name : u.role) || '';
+                    const rLower = String(r).toLowerCase();
+                    return ['staff', 'driver', 'logistics', 'field_staff'].includes(rLower);
                   }).map(u => (
                     <option key={u.id} value={u.id}>{u.name}</option>
                   ))}

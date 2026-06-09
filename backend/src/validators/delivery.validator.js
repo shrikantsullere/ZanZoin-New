@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 const deliveryItemSchema = z.object({
-  orderItemId: z.number().int().positive('Order Item ID is required').optional(),
-  itemId: z.number().int().positive('Item ID is required').optional(),
+  orderItemId: z.number().int().positive('Order Item ID is required').optional().nullable(),
+  itemId: z.number().int().positive('Item ID is required').optional().nullable(),
   quantity: z.number().positive('Quantity must be positive')
 });
 

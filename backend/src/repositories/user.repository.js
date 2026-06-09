@@ -48,6 +48,7 @@ export const findAllUsersByTenant = async (tenantId, query) => {
       select: {
         id: true,
         uuid: true,
+        tenantId: true,
         name: true,
         email: true,
         phone: true,

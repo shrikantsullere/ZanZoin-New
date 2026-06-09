@@ -206,3 +206,112 @@ export const convertOrderToMission = async (orderId, missionData, tenantId, perf
   return newMission;
 };
 
+export const assignMission = async (id, assignData, tenantId, performerId) => {
+  const mission = await missionRepo.findMissionById(id);
+  if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);
+
+  let employee = null;
+  if (assignData.driverId) {
+    employee = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { id: Number(assignData.driverId) },
+          { userId: Number(assignData.driverId) }
+        ]
+      }
+    });
+    
+    // Auto-create employee profile if missing
+    if (!employee) {
+      const user = await prisma.user.findUnique({ where: { id: Number(assignData.driverId) } });
+      if (user && (tenantId === null || user.tenantId === tenantId || user.tenantId === null)) {
+        const effectiveTenantId = user.tenantId || mission.tenantId;
+
+        // Find or create default department
+        let defaultDept = await prisma.department.findFirst({ where: { tenantId: effectiveTenantId, name: 'Operations' } });
+        if (!defaultDept) {
+          defaultDept = await prisma.department.create({
+            data: { tenantId: effectiveTenantId, name: 'Operations', code: 'OPS-01' }
+          });
+        }
+        
+        // Find or create default designation
+        let defaultDesig = await prisma.designation.findFirst({ where: { tenantId: effectiveTenantId, name: 'Field Staff' } });
+        if (!defaultDesig) {
+          defaultDesig = await prisma.designation.create({
+            data: { tenantId: effectiveTenantId, departmentId: defaultDept.id, name: 'Field Staff' }
+          });
+        }
+
+        employee = await prisma.employee.create({
+          data: {
+            userId: user.id,
+            tenantId: effectiveTenantId,
+            firstName: user.name?.split(' ')[0] || 'Unknown',
+            lastName: user.name?.split(' ').slice(1).join(' ') || 'User',
+            employeeCode: `EMP-${user.id}-${Date.now().toString().slice(-4)}`,
+            departmentId: defaultDept.id,
+            designationId: defaultDesig.id,
+            joiningDate: new Date(),
+            status: 'active'
+          }
+        });
+      } else {
+        throw new AppError('Employee not found or unauthorized', 404);
+      }
+    }
+  }
+
+  // Update mission
+  const updatedMission = await prisma.mission.update({
+    where: { id: Number(id) },
+    data: {
+      status: 'assigned',
+      assignedEmployeeId: employee ? employee.id : mission.assignedEmployeeId,
+      metadata: {
+        ...(typeof mission.metadata === 'object' ? mission.metadata : {}),
+        vehicleId: assignData.vehicleId || null
+      }
+    }
+  });
+
+  await logAudit({
+    module: 'MISSIONS',
+    action: 'UPDATE',
+    description: `Assigned Mission ${mission.missionNumber} to Driver ID ${assignData.driverId}`,
+    performedBy: performerId
+  });
+
+  return updatedMission;
+};
+
+export const updateMissionStatus = async (id, status, tenantId, performerId) => {
+  const mission = await missionRepo.findMissionById(id);
+  if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);
+
+  const newStatus = String(status).toLowerCase();
+
+  if (newStatus === 'en_route' || newStatus === 'in_progress') {
+    // If it's not assigned, forcefully assign it to proceed
+    if (mission.status === 'pending') {
+      await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'assigned' } });
+    }
+    await startMission(id, tenantId, performerId);
+    return await missionRepo.findMissionById(id);
+  } else if (newStatus === 'completed' || newStatus === 'delivered') {
+    // If not in progress, forcefully put it in progress
+    if (mission.status === 'assigned' || mission.status === 'pending') {
+      await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'in_progress' } });
+    }
+    await submitPOD(id, { signature: 'System Verified' }, tenantId, performerId);
+    return await missionRepo.findMissionById(id);
+  } else {
+    // Just a basic status update for failed/cancelled
+    const updated = await prisma.mission.update({
+      where: { id: Number(id) },
+      data: { status: newStatus }
+    });
+    return updated;
+  }
+};
+

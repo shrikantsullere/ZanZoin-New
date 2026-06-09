@@ -1881,7 +1881,7 @@ export const GlobalDataProvider = ({ children }) => {
           orderId: m.order_id || m.orderId,
           driverId: m.assigned_driver || m.assignedEmployeeId,
           driverName: m.driver_name || (m.assignee ? `${m.assignee.firstName} ${m.assignee.lastName}` : ""),
-          vehicleId: m.vehicle_id,
+          vehicleId: m.vehicle_id || (m.metadata?.vehicleId),
           plateNumber: m.plate_number || (m.assignee && m.assignee.vehiclePlate) || "",
           missionType: m.mission_type || m.missionType,
           destinationType: m.destination_type,
@@ -1891,6 +1891,7 @@ export const GlobalDataProvider = ({ children }) => {
               ? (m.created_at || m.createdAt).split("T")[0]
               : "",
           id: m.missionNumber || m.id,
+          db_id: m.id,
         })),
       );
     } catch (e) {
@@ -3459,15 +3460,17 @@ export const GlobalDataProvider = ({ children }) => {
 
   const assignMissionDriver = async (missionId, driverId, vehicleId) => {
     try {
-      await api.post(`/missions/${missionId}/assign`, { driverId, vehicleId });
+      await api.put(`/missions/${missionId}/assign`, { driverId, vehicleId });
       await fetchMissions();
       addLog({
         action: "Driver Assigned",
         detail: `Driver ${driverId} assigned to Mission ${missionId}.`,
         type: "logistics",
       });
+      return true;
     } catch (error) {
       console.error("Failed to assign driver:", error);
+      return false;
     }
   };
 

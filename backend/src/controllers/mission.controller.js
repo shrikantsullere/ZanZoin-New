@@ -102,3 +102,30 @@ export const convertOrderToMission = async (req, res, next) => {
   }
 };
 
+export const assignMission = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const missionId = Number(req.params.id);
+
+    const mission = await missionService.assignMission(missionId, req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 200, 'Mission assigned successfully', mission);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateMissionStatus = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const missionId = Number(req.params.id);
+    const { status } = req.body;
+
+    const mission = await missionService.updateMissionStatus(missionId, status, tenantIdToFilter, req.user.id);
+    sendResponse(res, 200, 'Mission status updated successfully', mission);
+  } catch (error) {
+    next(error);
+  }
+};
+

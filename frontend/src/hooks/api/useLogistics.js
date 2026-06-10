@@ -43,6 +43,19 @@ export const useCancelDelivery = () => {
   });
 };
 
+export const useUpdateDelivery = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/deliveries/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deliveries'] });
+    },
+  });
+};
+
 // -----------------------------
 // Missions Hooks (Logistics/Dispatch)
 // -----------------------------

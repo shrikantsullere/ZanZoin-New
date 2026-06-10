@@ -96,3 +96,23 @@ export const getDeliveredQuantityForOrderItem = async (orderItemId) => {
   });
   return items.reduce((sum, item) => sum + item.quantity, 0);
 };
+
+export const updateDelivery = async (id, data) => {
+  // Parse Date fields if they exist
+  const parsedData = { ...data };
+  if (parsedData.etaSchedule) parsedData.etaSchedule = new Date(parsedData.etaSchedule);
+  if (parsedData.requestDate) parsedData.requestDate = new Date(parsedData.requestDate);
+  if (parsedData.dueDate) parsedData.dueDate = new Date(parsedData.dueDate);
+
+  // Exclude fields that shouldn't be updated directly via this generic method
+  delete parsedData.items;
+  delete parsedData.deliveryNumber;
+  delete parsedData.tenantId;
+  delete parsedData.status; // status is usually updated via updateDeliveryStatus
+  
+  return await prisma.delivery.update({
+    where: { id },
+    data: parsedData,
+    include: { items: true, client: true, order: true }
+  });
+};

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from '../../components/Common/Pagination';
-import { useDeliveries, useCreateDelivery, useCancelDelivery, useCreateMission, useStartMission, useSubmitPOD } from '../../hooks/api/useLogistics';
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useCancelDelivery, useCreateMission, useStartMission, useSubmitPOD } from '../../hooks/api/useLogistics';
 
 import { useData } from '../../context/GlobalDataContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -47,6 +47,7 @@ const Deliveries = () => {
   };
   
   const createDeliveryMutation = useCreateDelivery();
+  const updateDeliveryMutation = useUpdateDelivery();
   const cancelDeliveryMutation = useCancelDelivery();
   const createMissionMutation = useCreateMission();
   const startMissionMutation = useStartMission();
@@ -373,25 +374,53 @@ const Deliveries = () => {
         deliveryFee: finalData.delivery_fee ? Number(finalData.delivery_fee) : undefined,
       }).catch(() => swalError("Error", "Could not create delivery"));
     } else if (modalType === 'edit') {
-      // Assume edit is for assigning driver (creating mission)
-      if (finalData.assigned_driver && finalData.status !== 'Completed' && finalData.status !== 'Delivered') {
-        createMissionMutation.mutateAsync({
-          deliveryId: finalData.id,
-          assignedEmployeeId: finalData.assigned_driver,
-          vehicleId: 1 // Default vehicle ID placeholder
-        }).catch(() => swalError("Error", "Could not assign driver (create mission)"));
-      } else if (formData.status === 'Completed' || formData.status === 'Delivered') {
+      const manifestMeta = {
+        manifestItems: finalData.items,
+        packageDetails: finalData.packageDetails || {},
+        passengerInfo: finalData.passengerInfo || {},
+        delivery_instructions: finalData.delivery_instructions || '',
+        route: finalData.route || '',
+        driver: finalData.driver || '',
+        assigned_driver: finalData.assigned_driver || null,
+        clientId: finalData.clientId || ''
+      };
+
+      const updatePayload = {
+        missionType: finalData.missionType,
+        transportMode: finalData.mode,
+        vehicleRef: finalData.vehicle || finalData.vesselOrFlight,
+        etaSchedule: finalData.eta,
+        requestDate: finalData.requestDate,
+        dueDate: finalData.dueDate,
+        pickupLocation: finalData.pickupLocation,
+        dropLocation: finalData.dropLocation,
+        remarks: JSON.stringify(manifestMeta)
+      };
+
+      if (formData.status === 'Completed' || formData.status === 'Delivered') {
          // It's a POD completion
-         // Try to use submitPOD if it's a mission
-         // If there is no mission, we can't complete it this way. Assuming mission ID is same as delivery ID for now.
          submitPODMutation.mutateAsync({
-           id: finalData.id, // Replace with actual mission ID in a robust system
+           id: finalData.id,
            podData: {
              podSignature: finalData.pod?.signature || '',
              podNotes: 'Delivered',
              actualDeliveryDate: new Date()
            }
          }).catch(() => swalError("Error", "Could not submit POD"));
+      } else {
+         // Standard update of form fields
+         updateDeliveryMutation.mutateAsync({ id: finalData.id, data: updatePayload })
+           .then(() => {
+             // If driver is assigned, create mission
+             if (finalData.assigned_driver) {
+               createMissionMutation.mutateAsync({
+                 deliveryId: finalData.id,
+                 assignedEmployeeId: finalData.assigned_driver,
+                 vehicleId: 1
+               }).catch(() => console.error("Driver assigned but mission already exists or failed"));
+             }
+           })
+           .catch(() => swalError("Error", "Could not update delivery"));
       }
     } else if (modalType === 'delete') {
       cancelDeliveryMutation.mutateAsync(selectedDelivery.db_id || selectedDelivery.id)

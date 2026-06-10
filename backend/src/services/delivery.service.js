@@ -199,3 +199,24 @@ export const cancelDelivery = async (id, tenantId, performerId, clientId = null)
 
   return true;
 };
+
+export const updateDelivery = async (id, data, tenantId, performerId, clientId = null) => {
+  const delivery = await getDeliveryById(id, tenantId, clientId);
+
+  if (['cancelled', 'delivered'].includes(delivery.status)) {
+    throw new AppError(`Cannot update delivery in ${delivery.status} status`, 400);
+  }
+
+  const updatedDelivery = await deliveryRepo.updateDelivery(id, data);
+
+  await logAudit({
+    module: 'DELIVERIES',
+    action: 'UPDATE',
+    description: `Updated Delivery ${delivery.deliveryNumber}`,
+    oldValue: delivery,
+    newValue: updatedDelivery,
+    performedBy: performerId
+  });
+
+  return updatedDelivery;
+};

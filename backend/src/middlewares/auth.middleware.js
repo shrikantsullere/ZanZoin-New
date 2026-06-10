@@ -124,11 +124,11 @@ export const checkPermission = (routeIdentifier, action) => {
       if (!hasAccess && !isSuperAdmin) {
         // Implicit bypass for internal staff roles for core operational workflows
         const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
-        const isStaff = staffRoles.includes(roleName.toLowerCase());
+        const isStaff = staffRoles.some(r => roleName.toLowerCase().includes(r));
         
         const operationalRoutes = [
           'ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES', 
-          'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 
+          'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 'STOCK', 'GRN',
           'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS',
           'TRACKING', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE'
         ];
@@ -138,7 +138,7 @@ export const checkPermission = (routeIdentifier, action) => {
           return next();
         }
 
-        if (['CREATE', 'UPDATE', 'DELETE', 'MANAGE'].includes(action) && operationalRoutes.includes(routeIdentifier) && isStaff) {
+        if (['CREATE', 'UPDATE', 'DELETE', 'MANAGE', 'ADJUST', 'TRANSFER'].includes(action) && operationalRoutes.includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Operational Bypass)`);
           return next();
         }

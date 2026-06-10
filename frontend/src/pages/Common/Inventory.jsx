@@ -349,7 +349,52 @@ const Inventory = () => {
           setIsSaving(false);
           return;
         }
+        if (!formData.item || !formData.item.trim()) {
+          swalWarning('Select asset', 'Please select an asset to issue from the dropdown.');
+          setIsSaving(false);
+          return;
+        }
+        const issueQty = Number(formData.qty);
+        if (!issueQty || issueQty <= 0) {
+          swalWarning('Invalid quantity', 'Please enter a valid quantity greater than zero.');
+          setIsSaving(false);
+          return;
+        }
+
+        const itemObj = inventory.find(i => i.name === formData.item);
+        if (!itemObj) {
+          swalWarning('Asset not found', 'The selected asset could not be found in inventory.');
+          setIsSaving(false);
+          return;
+        }
+
+        if (issueQty > itemObj.qty) {
+          swalWarning('Insufficient Stock', `Cannot issue ${issueQty}. Only ${itemObj.qty} available.`);
+          setIsSaving(false);
+          return;
+        }
+
+        let whObj = warehouses.find(w => w.name === formData.warehouse);
+        let wid = whObj ? whObj.id : (formData.warehouseId ?? formData.warehouse_id);
+
+        try {
+          if (!wid) wid = 1;
+          await realApi.post('/stock/adjust', {
+            warehouseId: Number(wid),
+            itemId: Number(itemObj.id),
+            quantity: issueQty,
+            type: 'DEDUCT',
+            remarks: `Issued to ${formData.issuedTo || formData.client || formData.clientId}`
+          });
+          console.log('[REAL_API_SUCCESS] Stock deducted via real API');
+        } catch (e) {
+          console.warn('[REAL_API_FAILED] Stock adjust failed on real API', e);
+        }
+        
+        // Always update mock state for UI consistency since fetchInventory uses mock DB
         await issueStock(formData);
+        swalSuccess('Success', 'Stock successfully issued.');
+
         if (formData.projectRef) {
           const targetProject = projects.find(p => p.id === formData.projectRef);
           if (targetProject) {

@@ -287,12 +287,14 @@ const handleRequest = async (method, url, data) => {
   const adjustMatch = path.match(/^\/inventory\/([^/]+)\/adjust$/);
   if (adjustMatch) {
     const itemId = Number(adjustMatch[1]);
-    const { qty, type, reason } = data;
+    const { qty, quantity, type, reason } = data;
     const inv = getDB('inventory');
-    const item = inv.find(i => i.id === itemId);
+    const item = inv.find(i => i.id === itemId || String(i.name) === String(itemId) || String(i.id) === String(itemId));
     if (item) {
-      const adjustment = Number(qty) || 0;
-      item.qty = Math.max(0, item.qty + adjustment);
+      const adjustment = Number(qty || quantity) || 0;
+      const isDeduct = type === 'issue' || type === 'DEDUCT';
+      const actualAdjustment = isDeduct ? -adjustment : adjustment;
+      item.qty = Math.max(0, (item.qty || 0) + actualAdjustment);
       item.quantity = item.qty;
       setDB('inventory', inv);
 
@@ -301,7 +303,7 @@ const handleRequest = async (method, url, data) => {
       logs.unshift({
         id: Date.now(),
         action: "Stock Adjustment",
-        detail: `Item: ${item.name}, Adjust: ${adjustment}, Type: ${type}, Reason: ${reason}`,
+        detail: `Item: ${item.name}, Adjust: ${actualAdjustment}, Type: ${type}, Reason: ${reason || 'N/A'}`,
         type: "inventory",
         timestamp: new Date().toISOString()
       });

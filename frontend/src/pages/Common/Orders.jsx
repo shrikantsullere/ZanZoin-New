@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { swalSuccess, swalError, swalWarning, swalInfo, swalConfirm } from '../../utils/swal';
 import Table from '../../components/Table';
 import { useData } from '../../context/GlobalDataContext';
 import { isoDateSlice, displayOrderStatus } from '../../utils/orderWorkflow';
@@ -77,20 +78,21 @@ const Orders = () => {
     };
     const newProject = await convertOrderToProject(order.id, projectData);
     if (newProject) {
-        alert(`System converted Order ${order.id} into a Logistics Project. Redirecting...`);
+        swalSuccess(`System converted Order ${order.id} into a Logistics Project. Redirecting...`);
         navigate('/dashboard/projects');
     } else {
-        alert('Failed to route order. Please see console for details.');
+        swalError('Failed to route order. Please see console for details.');
     }
   };
   
   const handleApprove = async (order, stage) => {
-    if (window.confirm(`Are you sure you want to move Order #${order.id} to ${stage.toUpperCase()} stage?`)) {
+    const result = await swalConfirm('Confirm Approval', `Are you sure you want to move Order #${order.id} to ${stage.toUpperCase()} stage?`);
+    if (result.isConfirmed) {
       try {
         await updateOrderStatusMutation.mutateAsync({ id: order.id, status: stage });
-        alert(`Order #${order.id} has been successfully moved to ${stage}.`);
+        swalSuccess(`Order #${order.id} has been successfully moved to ${stage}.`);
       } catch (err) {
-        alert('Failed to update order status.');
+        swalError('Failed to update order status.');
       }
     }
   };
@@ -138,7 +140,7 @@ const Orders = () => {
     { 
       header: "Client", 
       accessor: "client",
-      render: (row) => row.client?.companyName || row.client?.name || row.client || row.customer_name || row.created_by_name || "—"
+      render: (row) => row.client?.companyName || row.client?.name || (typeof row.client === 'string' ? row.client : null) || row.customer_name || row.created_by_name || "—"
     },
     {
       header: "Order Type",
@@ -153,19 +155,27 @@ const Orders = () => {
       header: "Items",
       accessor: "items",
       render: (row) => {
-        if (!row.items || row.items.length === 0) return row.product || "No Items";
-        const firstItemName = row.items[0]?.item?.name || row.items[0]?.name || "Unknown Item";
-        if (row.items.length === 1) return firstItemName;
-        return `${firstItemName} (+${row.items.length - 1} more)`;
+        let itms = row.items && row.items.length > 0 ? row.items : (row.customItems || []);
+        if (typeof itms === 'string') {
+          try { itms = JSON.parse(itms); } catch { itms = []; }
+        }
+        if (!itms || itms.length === 0) return row.product || "No Items";
+        const firstItemName = itms[0]?.item?.name || itms[0]?.name || "Unknown Item";
+        if (itms.length === 1) return firstItemName;
+        return `${firstItemName} (+${itms.length - 1} more)`;
       }
     },
-    { header: "Vendor", accessor: "vendor", render: (row) => row.vendor?.name || row.vendor || "N/A" },
+    { header: "Vendor", accessor: "vendor", render: (row) => row.vendor_name || row.vendor?.name || row.vendor?.companyName || (typeof row.vendor === 'string' ? row.vendor : null) || "N/A" },
     {
       header: "Total Value",
-      accessor: "total",
+      accessor: "totalAmount",
       render: (row) => {
-        const total = row.totalAmount ?? row.total ?? (row.items ? row.items.reduce((acc, i) => acc + (parseFloat(i.price || i.unitPrice || 0) * parseInt(i.qty || i.quantity || 0)), 0) : 0);
-        return `$${parseFloat(total).toLocaleString()}`;
+        const itms = row.items && row.items.length > 0 ? row.items : (row.customItems || []);
+        let total = row.totalAmount || row.total_amount || row.estimated_total || row.amount || row.total || 0;
+        if (total === 0 && itms && itms.length > 0) {
+            total = itms.reduce((acc, i) => acc + (parseFloat(i.price || i.unitPrice || 0) * parseInt(i.qty || i.quantity || 0)), 0);
+        }
+        return <span className="font-black text-accent">${parseFloat(total).toLocaleString()}</span>;
       }
     },
     {

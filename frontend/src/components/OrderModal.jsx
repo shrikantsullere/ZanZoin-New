@@ -6,6 +6,7 @@ import { useData } from '../context/GlobalDataContext';
 import { calculateOSRMRouteDistance } from '../utils/distanceHelper';
 import { ORDER_STATUS_OPTIONS, coerceOrderStatusToApi, isoDateSlice, displayOrderStatus } from '../utils/orderWorkflow';
 import { normalizeRole, roleCanCreateInstitutionalOrder, roleCanUpdateOrderStatus } from '../utils/authUtils';
+import { swalWarning } from '../utils/swal';
 
 const todayIso = () => new Date().toISOString().split('T')[0];
 const normalizeIsoDate = (v) => {
@@ -129,7 +130,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
                 status: coerceOrderStatusToApi(initialData?.status, 'created'),
                 requestDate,
                 dueDate,
-                client: (portalRole === 'client' || portalRole === 'customer') ? (myCustomerRecord?.name || currentUser?.name) : (initialData?.client && initialData.client !== 'Select Client...' ? initialData.client : ''),
+                client: (portalRole === 'client' || portalRole === 'customer') ? (myCustomerRecord?.name || currentUser?.name) : (initialData?.client && initialData.client !== 'Select Client...' ? (typeof initialData.client === 'object' && initialData.client !== null ? (initialData.client.companyName || initialData.client.name || '') : initialData.client) : ''),
                 clientId: (portalRole === 'client' || portalRole === 'customer') ? (myCustomerRecord?.id || currentUser?.id) : (initialData?.clientId || ''),
                 department: initialData?.department || '',
                 vendor: initialData?.vendor || '',
@@ -159,7 +160,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
                 String(c.rawId) === String(existingClientId)
             );
             setFormData({
-                client: selectedOrder.client || selectedOrder.customer_name || selectedOrder.created_by_name || '',
+                client: (typeof selectedOrder.client === 'object' && selectedOrder.client !== null ? (selectedOrder.client.companyName || selectedOrder.client.name || '') : selectedOrder.client) || selectedOrder.customer_name || selectedOrder.created_by_name || '',
                 clientId: existingClientId,
                 clientDropdownId: matchedDropdown?.id || '',
                 items: (Array.isArray(parsedItems) && parsedItems.length > 0) ? parsedItems : [{ name: selectedOrder.product || '', qty: parseInt(selectedOrder.qty) || 1, price: selectedOrder.price ?? '' }],
@@ -231,11 +232,11 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
     const handleSubmit = (e) => {
         e.preventDefault();
         if (modalType === 'add' && !canCreateManualOrder) {
-            window.alert('Only staff can create orders. Customers can use Marketplace and view their orders.');
+            swalWarning('Only staff can create orders. Customers can use Marketplace and view their orders.');
             return;
         }
         if (!formData.clientId && portalRole === 'customer') {
-            window.alert('Please select a client');
+            swalWarning('Please select a client');
             return;
         }
 
@@ -678,7 +679,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
                     <div className="grid grid-cols-2 gap-8 mb-6 px-1 print-section">
                         <div className="border-l-2 border-black pl-4">
                             <p className="text-[6px] font-black uppercase tracking-widest opacity-40 mb-0.5 underline italic">Client Details:</p>
-                            <p className="text-base font-black italic tracking-tight uppercase leading-tight">{formData.client || selectedOrder.client || 'Institutional Account'}</p>
+                            <p className="text-base font-black italic tracking-tight uppercase leading-tight">{formData.client || (typeof selectedOrder.client === 'object' && selectedOrder.client ? (selectedOrder.client.companyName || selectedOrder.client.name) : selectedOrder.client) || 'Institutional Account'}</p>
                             <p className="text-[8px] text-gray-500 mt-0.5 font-medium leading-tight italic">Destination: {formData.location}</p>
                             <p className="text-[7px] font-black mt-1 text-gray-400">REGISTRY: {formData.clientId || selectedOrder.clientId || 'ZN-ACC-EXT'}</p>
                         </div>

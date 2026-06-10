@@ -1257,6 +1257,7 @@ model GuestRequest {
   room        String?
   requestType String?
   status      String  @default("Pending")
+  metadata    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

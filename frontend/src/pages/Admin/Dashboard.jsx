@@ -98,7 +98,14 @@ const Dashboard = () => {
 
   const columns = [
     { header: "Order ID", accessor: "id" },
-    { header: "Client Entity", accessor: "client" },
+    { 
+      header: "Client Entity", 
+      accessor: "client",
+      render: (item) => {
+        if (typeof item.client === 'string') return item.client;
+        return item.client?.name || item.client?.companyName || item.client?.business_name || "—";
+      }
+    },
     {
       header: "Items",
       accessor: "items",

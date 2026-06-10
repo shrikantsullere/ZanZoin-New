@@ -180,7 +180,14 @@ const Projects = () => {
   const columns = [
     { header: "Project ID", accessor: "id" },
     { header: "Project Name", accessor: "name" },
-    { header: "Client", accessor: "client" },
+    { 
+      header: "Client", 
+      accessor: "client",
+      render: (item) => {
+        if (typeof item.client === 'string') return item.client;
+        return item.client?.name || item.client?.companyName || item.client?.business_name || "—";
+      }
+    },
     { header: "Start Date", accessor: "start" },
     { header: "Location", accessor: "location" },
     { header: "Status", accessor: "status" },

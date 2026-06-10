@@ -4,7 +4,7 @@ import { useData } from '../../context/GlobalDataContext';
 import { isoDateSlice, displayOrderStatus } from '../../utils/orderWorkflow';
 import { Search, Plus, PackageCheck, PackageX, FileText, CheckCircle, ShoppingCart, Truck, Warehouse, ArrowRightCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useOrders, useUpdateOrderStatus } from '../../hooks/api/useOrders';
+import { useOrders, useUpdateOrderStatus, useCreateOrder, useUpdateOrder, useDeleteOrder } from '../../hooks/api/useOrders';
 import { useQueryClient } from '@tanstack/react-query';
 
 import OrderModal from '../../components/OrderModal';
@@ -21,7 +21,6 @@ function isCustomRequestFlowOrder(row) {
 
 const Orders = () => {
   const {
-    addOrder, updateOrder, deleteOrder,
     deliveries, purchaseRequests, stockMovements,
     addProject, invoices, projects, generateInvoiceFromOrder,
     currentUser, launchMissionFromOrder, convertOrderToProject,
@@ -45,6 +44,9 @@ const Orders = () => {
       }
     : null;
   const updateOrderStatusMutation = useUpdateOrderStatus();
+  const createOrderMutation = useCreateOrder();
+  const updateOrderMutation = useUpdateOrder();
+  const deleteOrderMutation = useDeleteOrder();
 
   React.useEffect(() => {
     fetchVendors();
@@ -104,20 +106,28 @@ const Orders = () => {
   };
 
   const handleSave = async (formData) => {
-    if (modalType === 'add') {
-      await addOrder(formData);
-    } else {
-      await updateOrder(selectedOrder.id, formData);
+    try {
+      if (modalType === 'add') {
+        await createOrderMutation.mutateAsync(formData);
+      } else if (modalType === 'edit') {
+        await updateOrderMutation.mutateAsync({ id: selectedOrder.id, orderData: formData });
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert('Failed to save order.');
     }
-    queryClient.invalidateQueries({ queryKey: ['orders'] });
-    setIsModalOpen(false);
   };
 
 
   const handleDelete = async (id) => {
-    await deleteOrder(id);
-    queryClient.invalidateQueries({ queryKey: ['orders'] });
-    setIsModalOpen(false);
+    try {
+      if (window.confirm('Are you sure you want to delete this order?')) {
+        await deleteOrderMutation.mutateAsync(id);
+        setIsModalOpen(false);
+      }
+    } catch (err) {
+      alert('Failed to delete order.');
+    }
   };
 
   const paymentBadgeForOrder = (orderRow) => {
@@ -138,7 +148,10 @@ const Orders = () => {
     { 
       header: "Client", 
       accessor: "client",
-      render: (row) => row.client?.companyName || row.client?.name || row.client || row.customer_name || row.created_by_name || "—"
+      render: (row) => {
+        if (typeof row.client === 'string') return row.client;
+        return row.client?.companyName || row.client?.name || row.client?.business_name || row.customer_name || row.created_by_name || "—";
+      }
     },
     {
       header: "Order Type",
@@ -159,7 +172,14 @@ const Orders = () => {
         return `${firstItemName} (+${row.items.length - 1} more)`;
       }
     },
-    { header: "Vendor", accessor: "vendor", render: (row) => row.vendor?.name || row.vendor || "N/A" },
+    { 
+      header: "Vendor", 
+      accessor: "vendor", 
+      render: (row) => {
+        if (typeof row.vendor === 'string') return row.vendor;
+        return row.vendor?.name || row.vendor?.vendor_name || row.vendor?.business_name || "N/A";
+      }
+    },
     {
       header: "Total Value",
       accessor: "total",

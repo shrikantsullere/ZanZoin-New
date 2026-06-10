@@ -112,8 +112,9 @@ export const createProject = async (req, res, next) => {
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     // Resolve client id
-    const incomingClientId = req.body.customer_id || req.body.company_id || req.body.client_user_id || req.body.clientId;
-    const clientId = incomingClientId ? Number(incomingClientId) : 1;
+    const incomingClientId = req.body.customerId || req.body.customer_id || req.body.companyId || req.body.company_id || req.body.clientUserId || req.body.client_user_id || req.body.clientId;
+    const extractedClientId = typeof incomingClientId === 'string' && incomingClientId.includes('_') ? incomingClientId.split('_')[1] : incomingClientId;
+    const clientId = extractedClientId && !isNaN(Number(extractedClientId)) ? Number(extractedClientId) : 1;
 
     // Fetch employee creator ID
     const employee = await prisma.employee.findUnique({ where: { userId: req.user.id } });
@@ -130,7 +131,10 @@ export const createProject = async (req, res, next) => {
       startDate: req.body.startDate || req.body.start,
       location: req.body.location,
       delivery_type: req.body.delivery_type || req.body.deliveryType || 'Road',
-      client_name: req.body.client_name || req.body.client
+      client_name: req.body.client_name || req.body.client,
+      companyId: req.body.companyId || req.body.company_id,
+      customerId: req.body.customerId || req.body.customer_id,
+      clientUserId: req.body.clientUserId || req.body.client_user_id
     };
 
     const project = await prisma.order.create({
@@ -156,9 +160,9 @@ export const createProject = async (req, res, next) => {
       location: metadata.location,
       status: project.status,
       deliveryType: metadata.delivery_type,
-      companyId: req.body.company_id || null,
-      customerId: req.body.customer_id || null,
-      clientUserId: req.body.client_user_id || null
+      companyId: metadata.companyId || null,
+      customerId: metadata.customerId || null,
+      clientUserId: metadata.clientUserId || null
     };
 
     sendResponse(res, 201, 'Project created successfully', formattedProject);
@@ -211,8 +215,9 @@ export const getProjects = async (req, res, next) => {
 export const updateProject = async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const incomingClientId = req.body.customer_id || req.body.company_id || req.body.client_user_id || req.body.clientId;
-    const clientId = incomingClientId ? Number(incomingClientId) : undefined;
+    const incomingClientId = req.body.customerId || req.body.customer_id || req.body.companyId || req.body.company_id || req.body.clientUserId || req.body.client_user_id || req.body.clientId;
+    const extractedClientId = typeof incomingClientId === 'string' && incomingClientId.includes('_') ? incomingClientId.split('_')[1] : incomingClientId;
+    const clientId = extractedClientId && !isNaN(Number(extractedClientId)) ? Number(extractedClientId) : undefined;
 
     // Fetch existing project to merge metadata
     const existing = await prisma.order.findUnique({ where: { id } });
@@ -229,7 +234,10 @@ export const updateProject = async (req, res, next) => {
       startDate: req.body.startDate || req.body.start || existingMeta.startDate,
       location: req.body.location || existingMeta.location,
       delivery_type: req.body.delivery_type || req.body.deliveryType || existingMeta.delivery_type,
-      client_name: req.body.client_name || req.body.client || existingMeta.client_name
+      client_name: req.body.client_name || req.body.client || existingMeta.client_name,
+      companyId: req.body.companyId || req.body.company_id || existingMeta.companyId,
+      customerId: req.body.customerId || req.body.customer_id || existingMeta.customerId,
+      clientUserId: req.body.clientUserId || req.body.client_user_id || existingMeta.clientUserId
     };
 
     const updated = await prisma.order.update({
@@ -250,9 +258,9 @@ export const updateProject = async (req, res, next) => {
       location: metadata.location,
       status: updated.status,
       deliveryType: metadata.delivery_type,
-      companyId: req.body.company_id || null,
-      customerId: req.body.customer_id || null,
-      clientUserId: req.body.client_user_id || null
+      companyId: metadata.companyId || null,
+      customerId: metadata.customerId || null,
+      clientUserId: metadata.clientUserId || null
     };
 
     sendResponse(res, 200, 'Project updated successfully', formatted);

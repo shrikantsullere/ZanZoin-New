@@ -150,7 +150,14 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
                 amenities: initialData?.amenities || ''
             });
         } else if (selectedOrder) {
-            const parsedItems = typeof selectedOrder.items === 'string' ? JSON.parse(selectedOrder.items) : selectedOrder.items;
+            let parsedItems = selectedOrder.items;
+            if (typeof selectedOrder.items === 'string') {
+                try {
+                    parsedItems = JSON.parse(selectedOrder.items);
+                } catch (e) {
+                    parsedItems = [];
+                }
+            }
             const requestDate = normalizeIsoDate(selectedOrder.requestDate || selectedOrder.order_date || selectedOrder.created_at) || todayIso();
             const dueDate = clampDueDateToRequest(requestDate, selectedOrder.dueDate || selectedOrder.due_date);
             // Try to match existing order's client in dropdown list

@@ -248,7 +248,7 @@ const Deliveries = () => {
     const nextFormData = del && del.id ? {
       ...del,
       orderId: del.order?.orderNumber || del.deliveryNumber || del.orderId || '',
-      clientId: String(del.clientId || ''),
+      clientId: parsedRemarks.clientId || String(del.clientId || ''),
       client: typeof del.client === 'object' ? del.client?.companyName : (del.clientName || ''),
       items: restoredItems,
       packageDetails: parsedRemarks.packageDetails || del.packageDetails || { weight: '', dimensions: '', type: 'General' },
@@ -257,8 +257,8 @@ const Deliveries = () => {
       route_distance: del.routeDistance || del.route_distance || (initialFee > 0 ? parseFloat((initialFee / initialRate).toFixed(2)) : ''),
       staff_pay_rate: del.staffPayRate || del.staff_pay_rate || DEFAULT_RATE_PER_KM,
       delivery_fee: del.deliveryFee || del.delivery_fee || 0,
-      assigned_driver: del.assignedTo || del.assigned_driver || del.driverId || del.driver_id || ((users || []).find(u => u.name === (del.driver || del.driver_name))?.id || null),
-      driver: del.assignee ? `${del.assignee.firstName} ${del.assignee.lastName}` : (del.driver || ''),
+      assigned_driver: parsedRemarks.assigned_driver || del.assignedTo || del.assigned_driver || del.driverId || del.driver_id || ((users || []).find(u => u.name === (del.driver || del.driver_name))?.id || null),
+      driver: parsedRemarks.driver || (del.assignee ? `${del.assignee.firstName} ${del.assignee.lastName}` : (del.driver || '')),
       mode: del.transportMode || del.mode || 'Road',
       missionType: del.missionType || 'Delivery',
       vehicle: del.vehicleRef || del.vehicle || '',
@@ -268,7 +268,7 @@ const Deliveries = () => {
       dueDate: del.dueDate ? new Date(del.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       pickupLocation: del.pickupLocation || '',
       dropLocation: del.dropLocation || '',
-      route: del.route || '',
+      route: parsedRemarks.route || del.route || '',
       pod: del.pod || { signature: null, image: null, actualTime: null }
     } : {
       items: [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
@@ -345,11 +345,15 @@ const Deliveries = () => {
         packageDetails: finalData.packageDetails || {},
         passengerInfo: finalData.passengerInfo || {},
         delivery_instructions: finalData.delivery_instructions || '',
+        route: finalData.route || '',
+        driver: finalData.driver || '',
+        assigned_driver: finalData.assigned_driver || null,
+        clientId: finalData.clientId || ''
       };
       // Create Delivery via backend
       createDeliveryMutation.mutateAsync({
         orderId: finalData.orderId ? Number(String(finalData.orderId).replace(/\D/g, '')) : null,
-        clientId: finalData.clientId ? Number(finalData.clientId) : null,
+        clientId: finalData.clientId ? Number(String(finalData.clientId).replace(/\D/g, '')) : null,
         items: finalData.items.map(item => ({
           orderItemId: item.orderItemId || item.id || null,
           itemId: item.itemId || item.id || 1,

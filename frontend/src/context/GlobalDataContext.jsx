@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../services/api/setupAxios.js";
 import {
   normalizeRole,
@@ -2086,15 +2086,15 @@ export const GlobalDataProvider = ({ children }) => {
             id: `TKT-${String(t.id).padStart(3, "0")}`,
             db_id: t.id,
             // preserve original backend identification fields to satisfy global filters
-            submitted_by: t.submitted_by ?? null,
-            created_by: t.submitted_by ?? t.created_by ?? null,
-            user_id: t.submitted_by ?? t.user_id ?? null,
-            clientName: t.submitted_by_name || "System User",
-            clientId: t.client_id ?? t.company_id ?? null,
-            createdById: t.created_by ?? t.user_id ?? null,
-            createdByEmail: t.created_by_email || t.email || null,
-            createdByName: t.submitted_by_name || t.created_by_name || null,
-            subject: t.subject,
+            submitted_by: t.submitted_by ?? t.createdById ?? null,
+            created_by: t.submitted_by ?? t.created_by ?? t.createdById ?? null,
+            user_id: t.submitted_by ?? t.user_id ?? t.createdById ?? null,
+            clientName: t.submitted_by_name || t.createdByName || "System User",
+            clientId: t.client_id ?? t.company_id ?? t.clientId ?? null,
+            createdById: t.created_by ?? t.user_id ?? t.createdById ?? null,
+            createdByEmail: t.created_by_email || t.email || t.createdByEmail || null,
+            createdByName: t.submitted_by_name || t.created_by_name || t.createdByName || null,
+            subject: t.subject || t.title,
             category: t.category || "General",
             priority: t.priority
               ? t.priority.charAt(0).toUpperCase() + t.priority.slice(1)
@@ -2124,6 +2124,8 @@ export const GlobalDataProvider = ({ children }) => {
             specialRequests: e.special_requests || e.specialRequests,
             guestCount: e.guest_count || e.guestCount,
             moodBoardUrl: e.mood_board_url || e.moodBoardUrl,
+            client_id: e.client_id || e.clientId,
+            manager_id: e.manager_id || e.managerId,
           };
         });
         // Store raw events so the filter-effect can re-apply when user loads
@@ -6120,6 +6122,8 @@ export const GlobalDataProvider = ({ children }) => {
           plannerName: res.data.data.planner_name,
           specialRequests: res.data.data.special_requests,
           guestCount: res.data.data.guest_count,
+          client_id: res.data.data.clientId || res.data.data.client_id,
+          manager_id: res.data.data.managerId || res.data.data.manager_id,
         };
         setEvents((prev) => [newEvt, ...prev]);
         await fetchTickets();
@@ -6346,6 +6350,8 @@ export const GlobalDataProvider = ({ children }) => {
           currentUser?.company_id ||
           null,
         created_by: ticket.createdById || currentUser?.id || null,
+        createdByName: ticket.createdByName || currentUser?.name || null,
+        createdByEmail: ticket.createdByEmail || currentUser?.email || null,
       };
       const res = await api.post("/support/tickets", payload);
       if (res.data?.success) {
@@ -6620,7 +6626,7 @@ export const GlobalDataProvider = ({ children }) => {
     fetchSubscriptionRequests,
     fetchSupportingDocs,
   });
-  const reportSecurityEvent = async (data) => {
+  const reportSecurityEvent = useCallback(async (data) => {
     try {
       await api.post('/security', data);
       addLog({
@@ -6634,9 +6640,9 @@ export const GlobalDataProvider = ({ children }) => {
       console.error("Failed to report security event:", error);
       return false;
     }
-  };
+  }, [addLog]);
 
-  const fetchSecurityEvents = async () => {
+  const fetchSecurityEvents = useCallback(async () => {
     try {
       const res = await api.get('/security');
       if (res.data?.success) {
@@ -6645,9 +6651,9 @@ export const GlobalDataProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch security events:", error);
     }
-  };
+  }, []);
 
-  const resolveSecurityEvent = async (id) => {
+  const resolveSecurityEvent = useCallback(async (id) => {
     try {
       await api.put(`/security/${id}/resolve`);
       setSecurityEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'Resolved' } : e));
@@ -6656,7 +6662,7 @@ export const GlobalDataProvider = ({ children }) => {
       console.error("Failed to resolve security event:", error);
       return false;
     }
-  };
+  }, []);
 
   return (
     <GlobalDataContext.Provider

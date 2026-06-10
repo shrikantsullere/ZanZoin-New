@@ -18,5 +18,9 @@ export const updateUserSchema = z.object({
     roleId: z.coerce.number().int().positive('Role is required').optional(),
     status: z.string().optional(),
     avatar: z.string().optional(),
+    plan: z.string().optional(),
+    is_upgraded: z.boolean().optional(),
+    concierge_member: z.boolean().optional(),
+    concierge_membership_since: z.string().nullable().optional(),
   }),
 });

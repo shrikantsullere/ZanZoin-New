@@ -17,6 +17,12 @@ export const createTicket = async (data, performerId, tenantId) => {
     priority: data.priority || 'Medium',
     status: data.status || 'Open',
     category: data.category || 'General',
+    clientId: data.client_id ? Number(data.client_id) : (data.clientId ? Number(data.clientId) : null),
+    managerId: data.manager_id ? Number(data.manager_id) : (data.managerId ? Number(data.managerId) : null),
+    createdById: data.created_by ? Number(data.created_by) : (data.createdById ? Number(data.createdById) : null),
+    createdByEmail: data.createdByEmail || null,
+    createdByName: data.createdByName || null,
+    messages: data.messages ? JSON.parse(JSON.stringify(data.messages)) : [],
     tenantId
   };
 
@@ -39,7 +45,8 @@ export const updateTicket = async (id, data, tenantId, performerId) => {
     description: data.description !== undefined ? data.description : existing.description,
     priority: data.priority !== undefined ? data.priority : existing.priority,
     status: data.status !== undefined ? data.status : existing.status,
-    category: data.category !== undefined ? data.category : existing.category
+    category: data.category !== undefined ? data.category : existing.category,
+    messages: data.messages !== undefined ? JSON.parse(JSON.stringify(data.messages)) : existing.messages
   };
 
   const updated = await supportRepository.updateTicket(id, tenantId, payload);

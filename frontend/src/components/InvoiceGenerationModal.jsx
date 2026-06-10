@@ -55,7 +55,7 @@ const InvoiceGenerationModal = ({ isOpen, onClose, order, onGenerate }) => {
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
                             <p className="text-[9px] text-muted font-black uppercase tracking-[0.1em]">Target Entity</p>
-                            <p className="text-sm font-black text-white leading-none">{order.client}</p>
+                            <p className="text-sm font-black text-white leading-none">{typeof order.client === 'object' && order.client !== null ? (order.client.companyName || order.client.name) : (order.client || 'Institutional Account')}</p>
                         </div>
                         <div className="px-3 py-1.5 bg-warning/10 border border-warning/20 text-warning rounded-lg text-[9px] font-black uppercase tracking-widest animate-pulse">
                             In Calibration

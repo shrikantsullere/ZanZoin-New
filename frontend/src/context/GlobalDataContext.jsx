@@ -6,7 +6,7 @@ import {
   roleCanUpdateOrderStatus,
   vendorVisibleInSharedLists,
 } from "../utils/authUtils";
-import { swalInfo } from "../utils/swal";
+import { swalInfo, swalSuccess, swalError } from "../utils/swal";
 import {
   isoDateSlice,
   localDateISO,
@@ -3762,7 +3762,7 @@ export const GlobalDataProvider = ({ children }) => {
       }
 
       if (!silentUi) {
-        alert(
+        swalSuccess(
           "Institutional Protocol Initialized: Order has been successfully logged and queued for audit.",
         );
       }
@@ -3776,7 +3776,7 @@ export const GlobalDataProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to submit order:", error);
       const hint = error.response?.data?.message || error.message;
-      if (!silentUi) alert(hint ? `Order failed: ${hint}` : "Order failed.");
+      if (!silentUi) swalError(hint ? `Order failed: ${hint}` : "Order failed.");
       return { ok: false, error: hint };
     }
   };

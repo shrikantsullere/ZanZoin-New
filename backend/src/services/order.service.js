@@ -103,7 +103,7 @@ export const createOrder = async (data, performerId, tenantId) => {
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
   
   orderData.createdById = employee ? employee.id : 1;
-  orderData.status = 'draft';
+  orderData.status = data.status || orderData.status || 'draft';
 
   const newOrder = await orderRepo.createOrder(orderData, validOrderItems, tenantId);
 
@@ -137,19 +137,7 @@ export const updateOrderStatus = async (id, status, tenantId, performerId) => {
     throw new AppError('Cannot update a cancelled order', 400);
   }
 
-  const validTransitions = {
-    'draft': ['submitted', 'cancelled'],
-    'submitted': ['review', 'rejected', 'cancelled'],
-    'review': ['approved', 'rejected', 'cancelled'],
-    'approved': ['ready_for_delivery', 'cancelled'], // If cancelled from approved, must release stock
-    'ready_for_delivery': [],
-    'rejected': [],
-    'cancelled': []
-  };
-
-  if (!validTransitions[order.status].includes(status)) {
-    throw new AppError(`Invalid Order status transition from ${order.status} to ${status}`, 400);
-  }
+  // Removed strict validTransitions check to allow flexible workflow statuses (e.g. admin_review, concierge) from GlobalDataContext
 
   let updatedOrder;
 
@@ -200,25 +188,54 @@ export const updateOrder = async (id, data, tenantId, performerId) => {
       }
     }
   }
+
+  const validDbKeys = [
+    'id', 'tenantId', 'orderNumber', 'clientId', 'createdById',
+    'status', 'priority', 'orderType', 'totalAmount'
+  ];
+
+  const dbData = {};
+  const metadataExt = {};
+
+  Object.keys(orderData).forEach(key => {
+    if (validDbKeys.includes(key)) {
+      dbData[key] = orderData[key];
+    } else {
+      metadataExt[key] = orderData[key];
+    }
+  });
+
+  if (dbData.clientId) dbData.clientId = Number(dbData.clientId);
+  if (data.totalAmount !== undefined || data.total_amount !== undefined) {
+    dbData.totalAmount = Number(data.totalAmount || data.total_amount || 0);
+  }
+
   let metadataObj = typeof order.metadata === 'string' ? JSON.parse(order.metadata) : (order.metadata || {});
+  
   if (customItems.length > 0) {
-    metadataObj = { ...metadataObj, customItems };
-    orderData.metadata = metadataObj;
+    metadataExt.customItems = customItems;
   }
-  
-  if (orderData.clientId) {
-    orderData.clientId = Number(orderData.clientId);
-  }
-  
+
+  const finalMetadata = {
+    ...metadataObj,
+    ...metadataExt
+  };
+
   const updatedOrder = await prisma.order.update({
     where: { id },
     data: {
-      ...orderData,
-      status: data.status || order.status
+      ...dbData,
+      status: data.status || order.status,
+      metadata: finalMetadata
     }
   });
   
-  return updatedOrder;
+  const { metadata, ...rest } = updatedOrder;
+  return {
+    ...rest,
+    metadata: finalMetadata,
+    ...finalMetadata
+  };
 };
 
 export const deleteOrder = async (id, tenantId, performerId) => {

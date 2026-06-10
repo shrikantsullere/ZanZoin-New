@@ -10,7 +10,12 @@ export const createOrder = async (data, items, tenantId) => {
     const orderNumber = await generateOrderNumber(tenantId);
     
     const itemsArray = items || [];
-    const totalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    let computedTotalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    
+    // If no explicit DB items but we have a total amount in data, use it
+    if (computedTotalAmount === 0 && (data.totalAmount !== undefined || data.total_amount !== undefined)) {
+        computedTotalAmount = Number(data.totalAmount || data.total_amount || 0);
+    }
 
     const validDbKeys = [
       'id',
@@ -52,7 +57,7 @@ export const createOrder = async (data, items, tenantId) => {
         ...dbData,
         orderNumber,
         tenantId,
-        totalAmount,
+        totalAmount: computedTotalAmount,
         metadata: finalMetadata,
         ...(itemsArray.length > 0 && {
           items: {

@@ -11,15 +11,75 @@ export const createMission = async (data, performerId, tenantId) => {
     if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
       throw new AppError('Delivery not found', 404);
     }
-    if (delivery.status !== 'pending') {
-      throw new AppError(`Cannot assign a mission for a delivery in ${delivery.status} status`, 400);
+    
+    // Check if an active mission already exists for this delivery
+    const activeMission = await prisma.mission.findFirst({
+        where: { deliveryId: delivery.id, status: { notIn: ['completed', 'cancelled'] } }
+    });
+  }
+
+  let employee = null;
+  if (data.assignedEmployeeId) {
+    employee = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { id: Number(data.assignedEmployeeId) },
+          { userId: Number(data.assignedEmployeeId) }
+        ]
+      }
+    });
+
+    if (!employee) {
+      const user = await prisma.user.findUnique({ where: { id: Number(data.assignedEmployeeId) } });
+      if (user && (tenantId === null || user.tenantId === tenantId || user.tenantId === null)) {
+        const effectiveTenantId = user.tenantId || tenantId || 1;
+        let defaultDept = await prisma.department.findFirst({ where: { tenantId: effectiveTenantId, name: 'Operations' } });
+        if (!defaultDept) defaultDept = await prisma.department.create({ data: { tenantId: effectiveTenantId, name: 'Operations', code: 'OPS-01' } });
+        
+        let defaultDesig = await prisma.designation.findFirst({ where: { tenantId: effectiveTenantId, name: 'Field Staff' } });
+        if (!defaultDesig) defaultDesig = await prisma.designation.create({ data: { tenantId: effectiveTenantId, departmentId: defaultDept.id, name: 'Field Staff' } });
+
+        employee = await prisma.employee.create({
+          data: {
+            userId: user.id,
+            tenantId: effectiveTenantId,
+            firstName: user.name?.split(' ')[0] || 'Unknown',
+            lastName: user.name?.split(' ').slice(1).join(' ') || 'User',
+            employeeCode: `EMP-${user.id}-${Date.now().toString().slice(-4)}`,
+            departmentId: defaultDept.id,
+            designationId: defaultDesig.id,
+            joiningDate: new Date(),
+            status: 'active'
+          }
+        });
+      }
     }
   }
 
-  const employee = await employeeRepo.findEmployeeById(data.assignedEmployeeId);
-  if (!employee || (tenantId !== null && employee.tenantId !== tenantId)) {
+  if (!employee) {
     throw new AppError('Employee not found or unauthorized', 404);
   }
+
+  data.assignedEmployeeId = employee.id;
+
+  // If a mission already exists, just update its assigned employee and we're done
+  if (data.deliveryId) {
+    const activeMission = await prisma.mission.findFirst({
+        where: { deliveryId: data.deliveryId, status: { notIn: ['completed', 'cancelled'] } }
+    });
+    if (activeMission) {
+       await prisma.mission.update({
+           where: { id: activeMission.id },
+           data: { assignedEmployeeId: employee.id }
+       });
+       await prisma.delivery.update({
+           where: { id: data.deliveryId },
+           data: { assignedTo: employee.id }
+       });
+       return await missionRepo.findMissionById(activeMission.id);
+    }
+  }
+
 
   const newMission = await missionRepo.createMission(data, tenantId);
 
@@ -95,10 +155,38 @@ export const startMission = async (id, tenantId, performerId) => {
 };
 
 export const submitPOD = async (id, podData, tenantId, performerId) => {
-  const mission = await missionRepo.findMissionById(id);
+  let mission = await missionRepo.findMissionById(id);
+
+  if (!mission) {
+     // The ID might be a Delivery ID instead of Mission ID. Let's look it up.
+     mission = await prisma.mission.findFirst({
+         where: { deliveryId: Number(id), status: { notIn: ['completed', 'cancelled'] } }
+     });
+     
+     // If STILL no mission, it means this delivery was never "dispatched" officially through a mission.
+     // We can just complete the delivery directly!
+     if (!mission) {
+         const delivery = await deliveryRepo.findDeliveryById(Number(id));
+         if (!delivery) throw new AppError('Delivery/Mission not found', 404);
+         
+         await prisma.$transaction(async (tx) => {
+             await deliveryRepo.updateDeliveryStatus(tx, Number(id), 'delivered', { deliveryDate: new Date() });
+             await missionRepo.createPOD(tx, Number(id), tenantId || delivery.tenantId, podData);
+         });
+         
+         await logAudit({
+            module: 'DELIVERIES',
+            action: 'COMPLETE',
+            description: `Delivery ${delivery.deliveryNumber} completed via direct POD.`,
+            performedBy: performerId
+         });
+         return true;
+     }
+  }
+
   if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);
 
-  if (mission.status !== 'in_progress') throw new AppError(`Cannot complete a mission in ${mission.status} status`, 400);
+  if (mission.status !== 'in_progress' && mission.status !== 'assigned') throw new AppError(`Cannot complete a mission in ${mission.status} status`, 400);
 
   await prisma.$transaction(async (tx) => {
     // 1. Create POD if delivery exists

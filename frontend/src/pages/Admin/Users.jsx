@@ -970,7 +970,12 @@ const Users = () => {
                   >
                     <option value="" disabled>Select Role...</option>
                     {(roles || [])
-                      .filter(r => isSuperAdmin ? true : ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase()))
+                      .filter(r => {
+                        if (isSuperAdmin) {
+                          return r.name.toUpperCase() === 'ADMIN';
+                        }
+                        return ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase());
+                      })
                       .map(r => (
                       <option key={r.id} value={r.id}>
                         {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ')}

@@ -20,7 +20,7 @@ export const loginUser = async (email, password, tenantId, ipAddress, userAgent)
   }
 
   // Attach client info if business or saas client
-  if (user.role?.name === 'BUSINESS_CLIENT' || user.role?.name === 'SAAS_CLIENT') {
+  if ((user.role?.name === 'BUSINESS_CLIENT' || user.role?.name === 'SAAS_CLIENT') && user.tenantId) {
     const client = await prisma.client.findFirst({ where: { tenantId: user.tenantId } });
     if (client) {
       user.clientId = client.id;
@@ -140,7 +140,7 @@ export const getProfile = async (userId) => {
   if (!user) throw new AppError('User not found', 404);
   user.password = undefined;
 
-  if (user.role?.name === 'BUSINESS_CLIENT' || user.role?.name === 'SAAS_CLIENT') {
+  if ((user.role?.name === 'BUSINESS_CLIENT' || user.role?.name === 'SAAS_CLIENT') && user.tenantId) {
     const client = await prisma.client.findFirst({ where: { tenantId: user.tenantId } });
     if (client) {
       user.clientId = client.id;

@@ -34,6 +34,10 @@ model User {
   lastLogin        DateTime?
   resetToken       String?
   resetTokenExpiry DateTime?
+  plan                       String?   @default("Free")
+  is_upgraded                Boolean   @default(false)
+  concierge_member           Boolean   @default(false)
+  concierge_membership_since String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   deletedAt        DateTime?

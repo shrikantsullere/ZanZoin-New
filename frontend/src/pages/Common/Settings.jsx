@@ -231,13 +231,25 @@ const Settings = () => {
     }
 
     try {
-      const success = await updateUser(currentUser.id, { password: passwords.new });
-      if (success) {
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new })
+      });
+      const data = await response.json();
+
+      if (data.success) {
         setPasswords({ current: '', new: '', confirm: '' });
-        swalSuccess('Password changed', 'Your password was updated.');
+        swalSuccess('Password changed', 'Your password was successfully updated.');
+      } else {
+        swalError('Update Failed', data.message || 'Could not update password.');
       }
     } catch (error) {
       console.error("Password change failed:", error);
+      swalError('Error', 'An unexpected error occurred while saving.');
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../services/api/setupAxios.js";
 import {
   normalizeRole,
@@ -6626,7 +6626,7 @@ export const GlobalDataProvider = ({ children }) => {
     fetchSubscriptionRequests,
     fetchSupportingDocs,
   });
-  const reportSecurityEvent = async (data) => {
+  const reportSecurityEvent = useCallback(async (data) => {
     try {
       await api.post('/security', data);
       addLog({
@@ -6640,9 +6640,9 @@ export const GlobalDataProvider = ({ children }) => {
       console.error("Failed to report security event:", error);
       return false;
     }
-  };
+  }, [addLog]);
 
-  const fetchSecurityEvents = async () => {
+  const fetchSecurityEvents = useCallback(async () => {
     try {
       const res = await api.get('/security');
       if (res.data?.success) {
@@ -6651,9 +6651,9 @@ export const GlobalDataProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch security events:", error);
     }
-  };
+  }, []);
 
-  const resolveSecurityEvent = async (id) => {
+  const resolveSecurityEvent = useCallback(async (id) => {
     try {
       await api.put(`/security/${id}/resolve`);
       setSecurityEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'Resolved' } : e));
@@ -6662,7 +6662,7 @@ export const GlobalDataProvider = ({ children }) => {
       console.error("Failed to resolve security event:", error);
       return false;
     }
-  };
+  }, []);
 
   return (
     <GlobalDataContext.Provider

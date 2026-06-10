@@ -120,8 +120,9 @@ export const createGuestRequest = async (data, performerId, tenantId) => {
   if (existing) throw new AppError('Guest Request ID already exists', 400);
 
   const payload = {
+    ...data,
     requestId,
-    guestName: data.guestName || data.name || 'Guest',
+    guestName: data.guestName || data.guest || data.name || 'Guest',
     room: data.room || '',
     requestType: data.requestType || data.type || 'General',
     status: data.status || 'Pending',
@@ -140,6 +141,9 @@ export const getGuestRequests = async (tenantId) => {
 export const updateGuestRequest = async (id, data, tenantId, performerId) => {
   const existing = await supportRepository.findGuestRequestById(id, tenantId);
   if (!existing) throw new AppError('Guest Request not found', 404);
+  
+  if (data.guest && !data.guestName) data.guestName = data.guest;
+
   const updated = await supportRepository.updateGuestRequest(id, tenantId, data);
   return { ...updated, id: updated.requestId };
 };

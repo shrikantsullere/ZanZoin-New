@@ -56,20 +56,68 @@ export const deleteEvent = async (eventId, tenantId) => {
 };
 
 // Guest Requests
-export const createGuestRequest = async (data) => await prisma.guestRequest.create({ data });
-export const findAllGuestRequests = async (tenantId) => await prisma.guestRequest.findMany({ where: { ...(tenantId !== null && { tenantId }) }, orderBy: { createdAt: 'desc' } });
+const mapGuestRequest = (req) => {
+  if (!req) return req;
+  const { metadata, ...rest } = req;
+  const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+  return { ...rest, ...metadataObj, metadata: metadataObj };
+};
+
+export const createGuestRequest = async (data) => {
+  const validDbKeys = ['requestId', 'guestName', 'room', 'requestType', 'status', 'tenantId'];
+  const dbData = {};
+  const metadataExt = {};
+  Object.keys(data).forEach(key => {
+    if (validDbKeys.includes(key)) {
+      dbData[key] = data[key];
+    } else {
+      metadataExt[key] = data[key];
+    }
+  });
+
+  const req = await prisma.guestRequest.create({ data: { ...dbData, metadata: metadataExt } });
+  return mapGuestRequest(req);
+};
+
+export const findAllGuestRequests = async (tenantId) => {
+  const reqs = await prisma.guestRequest.findMany({ where: { ...(tenantId !== null && { tenantId }) }, orderBy: { createdAt: 'desc' } });
+  return reqs.map(mapGuestRequest);
+};
+
 export const findGuestRequestById = async (requestId, tenantId) => {
-  if (tenantId === null) return await prisma.guestRequest.findFirst({ where: { requestId } });
-  return await prisma.guestRequest.findUnique({ where: { requestId_tenantId: { requestId, tenantId } } });
-};
-export const updateGuestRequest = async (requestId, tenantId, data) => {
+  let req;
   if (tenantId === null) {
-    const existing = await prisma.guestRequest.findFirst({ where: { requestId } });
-    if (!existing) return null;
-    return await prisma.guestRequest.update({ where: { id: existing.id }, data });
+    req = await prisma.guestRequest.findFirst({ where: { requestId } });
+  } else {
+    req = await prisma.guestRequest.findUnique({ where: { requestId_tenantId: { requestId, tenantId } } });
   }
-  return await prisma.guestRequest.update({ where: { requestId_tenantId: { requestId, tenantId } }, data });
+  return mapGuestRequest(req);
 };
+
+export const updateGuestRequest = async (requestId, tenantId, data) => {
+  const existing = await findGuestRequestById(requestId, tenantId);
+  if (!existing) return null;
+
+  const validDbKeys = ['guestName', 'room', 'requestType', 'status', 'tenantId'];
+  const dbData = {};
+  const metadataExt = {};
+  Object.keys(data).forEach(key => {
+    if (validDbKeys.includes(key)) {
+      dbData[key] = data[key];
+    } else {
+      metadataExt[key] = data[key];
+    }
+  });
+
+  const finalMetadata = {
+    ...(existing.metadata || {}),
+    ...metadataExt
+  };
+
+  const req = await prisma.guestRequest.update({ where: { id: existing.id }, data: { ...dbData, metadata: finalMetadata } });
+  return mapGuestRequest(req);
+};
+
 export const deleteGuestRequest = async (requestId, tenantId) => {
   if (tenantId === null) {
     const existing = await prisma.guestRequest.findFirst({ where: { requestId } });

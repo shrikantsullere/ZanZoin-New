@@ -5382,10 +5382,14 @@ export const GlobalDataProvider = ({ children }) => {
         notes: item.notes,
       };
       const res = await api.post("/concierge/luxury-items", reqData);
-      setLuxuryItems((prev) => [
-        { ...item, id: res.data.id || Date.now() },
-        ...prev,
-      ]);
+      if (res.data?.success) {
+        await fetchLuxuryItems();
+      } else {
+        setLuxuryItems((prev) => [
+          { ...item, id: res.data?.data?.id || Date.now() },
+          ...prev,
+        ]);
+      }
       addLog({
         action: "Luxury Item Registered",
         detail: `New vault entry: ${item.item}`,
@@ -5406,10 +5410,14 @@ export const GlobalDataProvider = ({ children }) => {
         status: updated.status,
         notes: updated.notes,
       };
-      await api.put(`/concierge/luxury-items/${updated.id}`, reqData);
-      setLuxuryItems((prev) =>
-        prev.map((i) => (i.id === updated.id ? updated : i)),
-      );
+      const res = await api.put(`/concierge/luxury-items/${updated.id}`, reqData);
+      if (res.data?.success) {
+        await fetchLuxuryItems();
+      } else {
+        setLuxuryItems((prev) =>
+          prev.map((i) => (i.id === updated.id ? updated : i)),
+        );
+      }
       addLog({
         action: "Luxury Item Updated",
         detail: `Recalibrated details for vault entry: ${updated.item}`,

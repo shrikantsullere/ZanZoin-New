@@ -8,8 +8,9 @@ export const createItem = async (data, performerId, tenantId) => {
   if (existing) throw new AppError('Item ID already exists', 400);
 
   const payload = {
+    ...data,
     itemId,
-    name: data.name || data.item || 'Luxury Item',
+    name: data.name || data.item || data.item_name || 'Luxury Item',
     category: data.category || 'General',
     price: data.price ? parseFloat(data.price) : 0,
     status: data.status || 'Available',
@@ -31,7 +32,8 @@ export const updateItem = async (id, data, tenantId, performerId) => {
   if (!existing) throw new AppError('Item not found', 404);
 
   const payload = {
-    name: data.name !== undefined ? data.name : existing.name,
+    ...data,
+    name: data.name !== undefined ? data.name : (data.item_name !== undefined ? data.item_name : existing.name),
     category: data.category !== undefined ? data.category : existing.category,
     price: data.price !== undefined ? parseFloat(data.price) : existing.price,
     status: data.status !== undefined ? data.status : existing.status

@@ -20,6 +20,8 @@ export const validate = (schema) => (req, res, next) => {
         return `${field}: ${e.message}`;
       }).join(', ');
       
+      console.error("[VALIDATION ERROR]:", errorMessages);
+      
       // If the user requested { success: false, message: ..., field: ... }
       // we can return it cleanly for the first error:
       return res.status(400).json({

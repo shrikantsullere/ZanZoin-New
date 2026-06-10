@@ -113,7 +113,9 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/deliveries', deliveryRoutes);
 app.use('/api/v1/missions', missionRoutes);
 import trackingRoutes from './routes/tracking.routes.js';
+import securityRoutes from './routes/security.routes.js';
 app.use('/api/v1/logistics/tracking', trackingRoutes);
+app.use('/api/v1/security', securityRoutes);
 import routeRoutes from './routes/route.routes.js';
 app.use('/api/v1/logistics/routes', routeRoutes);
 import urgentRoutes from './routes/urgent.routes.js';
@@ -158,4 +160,4 @@ app.use(async (req, res, next) => {
 app.use(globalErrorHandler);
 
 export default app;
-// Trigger restart
+// Trigger restart for prisma schema

@@ -6,7 +6,7 @@ import {
   Box, LogOut, Briefcase, Navigation, Activity, AlertCircle,
   ShieldCheck, ClipboardList, Gift, Heart, Headphones,
   ShoppingBag, Map, History, FileText, Smartphone, CreditCard,
-  Globe, Car, Sparkles
+  Globe, Car, Sparkles, ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,6 +19,7 @@ const menuItems = {
     { icon: UserCog, label: 'HQ Personnel', path: '/dashboard/users' },
     { icon: BarChart3, label: 'Audit Protocol', path: '/dashboard/audits' },
     { icon: Globe, label: 'Plans', path: '/dashboard/plans' },
+    { icon: ShieldAlert, label: 'Security Incidents', path: '/dashboard/security-events' },
     { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ],
   operations: [
@@ -107,6 +108,7 @@ const menuItems = {
     { icon: BarChart3, label: 'Audit Protocol', path: '/dashboard/audits' },
     { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
     { icon: ShieldCheck, label: 'Security Protocol', path: '/dashboard/roles-permissions' },
+    { icon: ShieldAlert, label: 'Security Incidents', path: '/dashboard/security-events' },
     { icon: Calendar, label: 'Leave & Absence', path: '/dashboard/leave' },
   ],
   client: [
@@ -210,6 +212,7 @@ const businessClientMenu = [
   { icon: Car, label: 'Chauffeur', path: '/dashboard/chauffeur' },
   { icon: Headphones, label: 'Support', path: '/dashboard/support' },
   { icon: Globe, label: 'Plans', path: '/dashboard/plans' },
+  { icon: ShieldAlert, label: 'Security Incidents', path: '/dashboard/security-events' },
   { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
 ];
 

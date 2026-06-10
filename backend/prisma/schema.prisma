@@ -970,8 +970,8 @@ model ProofOfDelivery {
   deliveryId        Int
   receiverName      String
   receiverPhone     String?
-  receiverSignature String?  @db.Text // Can be URL or Base64
-  deliveryPhoto     String?  @db.Text // Can be URL
+  receiverSignature String?  @db.LongText // Can be URL or Base64
+  deliveryPhoto     String?  @db.LongText // Can be URL
   remarks           String?  @db.Text
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -1297,3 +1297,19 @@ model LuxuryItem {
   @@index([tenantId])
   @@map("luxury_items")
 }
+
+model SecurityEvent {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int      @default(1)
+  eventType String
+  details   String?
+  location  String?
+  reporter  String?
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("security_events")
+}
+

@@ -656,8 +656,9 @@ function extractTransportModeFromOrder(row) {
 }
 
 export const GlobalDataProvider = ({ children }) => {
-  // Initial States from data.js
+  const [saasRequests, setSaasRequests] = useState([]);
   const [subscriptionRequests, setSubscriptionRequests] = useState([]);
+  const [securityEvents, setSecurityEvents] = useState([]);
   const [clients, setClients] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -1474,7 +1475,7 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchStaff = React.useCallback(async (filters = {}) => {
     try {
-      const params = {};
+      const params = { limit: 1000 };
       if (filters?.status) params.status = String(filters.status).toLowerCase();
       if (filters?.search) params.search = String(filters.search).trim();
       const res = await api.get("/users", { params });
@@ -1629,6 +1630,8 @@ export const GlobalDataProvider = ({ children }) => {
               staff_pay_rate: d.staff_pay_rate != null ? parseFloat(d.staff_pay_rate) : null,
               clientConfirmed: !!d.signature,
               signature: d.signature,
+              payout_status: (d.status === 'Delivered' || d.status === 'Completed') ? 'held' : null,
+              payout_ready_at: (d.status === 'Delivered' || d.status === 'Completed') ? new Date(new Date(d.updated_at || Date.now()).getTime() + 48 * 60 * 60 * 1000).toISOString() : null,
             };
           }),
         );
@@ -2001,8 +2004,9 @@ export const GlobalDataProvider = ({ children }) => {
       if (assignments.data?.success) {
         // Map backend missions to frontend staffAssignments structure
         const mapped = (assignments.data.data.missions || assignments.data.data || []).map(m => ({
-          ...m,
           id: m.missionNumber || m.id,
+          rawId: m.id,
+          source: 'mission',
           task: m.metadata?.task || m.missionType,
           location: m.metadata?.location || 'N/A',
           assignee: m.assignee ? `${m.assignee.firstName} ${m.assignee.lastName}` : 'System',
@@ -4789,6 +4793,31 @@ export const GlobalDataProvider = ({ children }) => {
     }
   };
 
+  const updateMission = async (updated) => {
+    try {
+      if (updated.status === 'in_progress' || updated.status === 'assigned') {
+        await api.put(`/missions/${updated.rawId}/assign`, { driverId: updated.assigneeId, vehicleId: 1 });
+      }
+      
+      if (updated.status === 'Completed' || updated.status === 'Delivered') {
+        const podPayload = {
+          receiverName: updated.receiverName || 'System Verified',
+          deliveryPhoto: updated.photo,
+          remarks: updated.notes ? `${updated.notes}\n[GPS]: ${updated.gps}` : `[GPS]: ${updated.gps}`
+        };
+        await api.post(`/missions/${updated.rawId}/pod`, podPayload);
+      } else {
+        await api.put(`/missions/${updated.rawId}/status`, { status: updated.status });
+      }
+
+      setStaffAssignments((prev) =>
+        prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+      );
+    } catch (error) {
+      console.error("Failed to update mission:", error);
+    }
+  };
+
   const clockStorageKey = () => {
     const uid = currentUser?.id ?? currentUser?.email ?? "guest";
     return `zz_clock_${uid}`;
@@ -6195,7 +6224,6 @@ export const GlobalDataProvider = ({ children }) => {
 
   const [deliveryPricing, setDeliveryPricing] = useState([]);
   const [shippingModePricing, setShippingModePricing] = useState({ Road: 0, Sea: 150, Air: 300 });
-  const [saasRequests, setSaasRequests] = useState([]);
 
   React.useEffect(() => {
     const s = systemSettings || {};
@@ -6598,6 +6626,44 @@ export const GlobalDataProvider = ({ children }) => {
     fetchSubscriptionRequests,
     fetchSupportingDocs,
   });
+  const reportSecurityEvent = async (data) => {
+    try {
+      await api.post('/security', data);
+      addLog({
+        action: data.eventType === 'PANIC' ? 'Emergency Panic' : 'Security Breach',
+        detail: `Security event logged: ${data.eventType}`,
+        type: 'alert'
+      });
+      fetchSecurityEvents();
+      return true;
+    } catch (error) {
+      console.error("Failed to report security event:", error);
+      return false;
+    }
+  };
+
+  const fetchSecurityEvents = async () => {
+    try {
+      const res = await api.get('/security');
+      if (res.data?.success) {
+        setSecurityEvents(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch security events:", error);
+    }
+  };
+
+  const resolveSecurityEvent = async (id) => {
+    try {
+      await api.put(`/security/${id}/resolve`);
+      setSecurityEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'Resolved' } : e));
+      return true;
+    } catch (error) {
+      console.error("Failed to resolve security event:", error);
+      return false;
+    }
+  };
+
   return (
     <GlobalDataContext.Provider
       value={{
@@ -6642,6 +6708,7 @@ export const GlobalDataProvider = ({ children }) => {
         staffAssignments,
         addStaffAssignment,
         updateAssignment,
+        updateMission,
         fetchSupportingDocs,
         clockIn,
         clockOut,
@@ -6854,7 +6921,11 @@ export const GlobalDataProvider = ({ children }) => {
 
         // Utility
         refreshData: fetchInitialData,
-        fetchInitialData
+        fetchInitialData,
+        reportSecurityEvent,
+        securityEvents,
+        fetchSecurityEvents,
+        resolveSecurityEvent,
       }}
     >
       {children}

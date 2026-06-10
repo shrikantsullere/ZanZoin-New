@@ -65,6 +65,7 @@ const Payroll = lazy(() => import('./pages/Admin/Payroll'));
 const Invoices = lazy(() => import('./pages/Common/Invoices'));
 const Payments = lazy(() => import('./pages/Common/Payments'));
 const StaffAudits = lazy(() => import('./pages/Admin/StaffAudits'));
+const SecurityEvents = lazy(() => import('./pages/Admin/SecurityEvents'));
 const SaaSManagement = lazy(() => import('./pages/Admin/SaaSManagement'));
 const SaaSClients = lazy(() => import('./pages/Admin/SaaSClients'));
 const SupportDashboard = lazy(() => import('./pages/Admin/SupportDashboard'));
@@ -277,6 +278,11 @@ function App() {
               <Route path="staff-audits" element={
                 <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'client', 'admin', 'saas_client']}>
                   <StaffAudits />
+                </RoleProtectedRoute>
+              } />
+              <Route path="security-events" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'admin', 'client', 'saas_client']}>
+                  <SecurityEvents />
                 </RoleProtectedRoute>
               } />
               <Route path="settings" element={

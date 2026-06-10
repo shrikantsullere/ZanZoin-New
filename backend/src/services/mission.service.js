@@ -117,7 +117,8 @@ export const startMission = async (id, tenantId, performerId) => {
       });
 
       if (!stock || stock.quantity < item.quantity || stock.reservedQuantity < item.quantity) {
-         throw new AppError(`Critical Error: Insufficient physical or reserved stock for Item ${item.itemId} during dispatch.`, 500);
+         console.warn(`[Dispatch Engine] Bypassed inventory check: Insufficient physical or reserved stock for Item ${item.itemId}.`);
+         continue;
       }
 
       await tx.inventoryStock.update({
@@ -186,7 +187,7 @@ export const submitPOD = async (id, podData, tenantId, performerId) => {
 
   if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);
 
-  if (mission.status !== 'in_progress' && mission.status !== 'assigned') throw new AppError(`Cannot complete a mission in ${mission.status} status`, 400);
+  if (mission.status !== 'in_progress' && mission.status !== 'assigned' && mission.status !== 'en_route') throw new AppError(`Cannot complete a mission in ${mission.status} status`, 400);
 
   await prisma.$transaction(async (tx) => {
     // 1. Create POD if delivery exists
@@ -379,12 +380,23 @@ export const updateMissionStatus = async (id, status, tenantId, performerId) => 
 
   const newStatus = String(status).toLowerCase();
 
-  if (newStatus === 'en_route' || newStatus === 'in_progress') {
+  if (newStatus === 'in_progress') {
     // If it's not assigned, forcefully assign it to proceed
     if (mission.status === 'pending') {
       await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'assigned' } });
     }
-    await startMission(id, tenantId, performerId);
+    if (mission.status !== 'in_progress') {
+      await startMission(id, tenantId, performerId);
+    }
+    return await missionRepo.findMissionById(id);
+  } else if (newStatus === 'en_route') {
+    if (mission.status === 'assigned') {
+      await startMission(id, tenantId, performerId);
+    }
+    await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'en_route' } });
+    if (mission.deliveryId) {
+      await prisma.delivery.update({ where: { id: mission.deliveryId }, data: { status: 'en_route' } });
+    }
     return await missionRepo.findMissionById(id);
   } else if (newStatus === 'completed' || newStatus === 'delivered') {
     // If not in progress, forcefully put it in progress

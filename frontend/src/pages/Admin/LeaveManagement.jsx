@@ -4,13 +4,14 @@ import { Calendar, Check, X as CloseIcon, Search, Clock, User } from 'lucide-rea
 import StatusBadge from '../../components/StatusBadge';
 
 const LeaveManagement = () => {
-  const { leaveRequests, updateLeaveRequest, fetchStaff } = useData();
+  const { leaveRequests, updateLeaveRequest, fetchStaff, fetchLeaveRequests } = useData();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchStaff();
-  }, [fetchStaff]);
+    fetchLeaveRequests();
+  }, [fetchStaff, fetchLeaveRequests]);
 
   const filtered = leaveRequests.filter(r => {
     const matchesFilter = filter === 'all' || r.status?.toLowerCase() === filter;

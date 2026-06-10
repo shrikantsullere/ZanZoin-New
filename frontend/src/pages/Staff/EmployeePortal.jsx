@@ -19,11 +19,12 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 const EmployeePortal = () => {
     const {
         currentUser,
-        staffAssignments, updateAssignment, fetchStaff, fetchSupportingDocs,
+        staffAssignments, updateAssignment, updateMission, fetchStaff, fetchSupportingDocs,
         payHistory, addLog, recordWorkSession, fetchPayHistory,
         leaveRequests, addLeaveRequest, fetchLeaveRequests,
         getVacationBalance, toggleAvailability,
-        deliveries, updateDelivery, fetchDeliveries,
+        deliveries, updateDelivery, fetchDeliveries, reportSecurityEvent,
+        securityEvents, fetchSecurityEvents
     } = useData();
 
     const location = useLocation();
@@ -37,7 +38,8 @@ const EmployeePortal = () => {
         if (fetchDeliveries) fetchDeliveries();
         if (fetchPayHistory) fetchPayHistory();
         if (fetchLeaveRequests) fetchLeaveRequests();
-    }, [activeTab, fetchSupportingDocs, fetchDeliveries, fetchPayHistory, fetchLeaveRequests]);
+        if (fetchSecurityEvents) fetchSecurityEvents();
+    }, [activeTab, fetchSupportingDocs, fetchDeliveries, fetchPayHistory, fetchLeaveRequests, fetchSecurityEvents]);
 
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [leaveFormData, setLeaveFormData] = useState({ type: 'Vacation', start: '', end: '', reason: '' });
@@ -114,7 +116,12 @@ const EmployeePortal = () => {
 
     const handleStatusChange = (asg, newStatus, proofData = null) => {
         if (newStatus === 'view_details') {
-            const matchingDel = deliveries.find(d => d.orderId === asg.orderId || d.id === asg.deliveryId || d.taskRef === asg.id);
+            const matchingDel = deliveries.find(d => 
+                (asg.orderId && d.orderId === asg.orderId) || 
+                (asg.deliveryId && d.id === asg.deliveryId) || 
+                (asg.id && d.taskRef === asg.id) ||
+                (asg.rawId && d.id === asg.rawId)
+            );
             if (matchingDel) {
                 setSelectedMission(matchingDel);
                 setIsMissionModalOpen(true);
@@ -133,7 +140,58 @@ const EmployeePortal = () => {
         }
 
         const updatedAsg = { ...asg, status: newStatus, ...proofData };
+
+        if (asg.source === 'delivery') {
+            const rawId = asg.rawId || asg.id;
+            const isAlreadyAssigned = String(asg.status).toLowerCase() === 'assigned';
+            let finalStatus = newStatus;
+            
+            if (newStatus === 'in_progress') {
+                finalStatus = isAlreadyAssigned ? 'en_route' : 'assigned';
+            } else if (newStatus === 'Completed') {
+                finalStatus = 'Delivered';
+            }
+
+            const payload = {
+                id: rawId,
+                status: finalStatus,
+                ...proofData,
+            };
+            // If they are accepting, assign them
+            if (newStatus === 'in_progress' || newStatus === 'assigned') {
+                payload.driverId = currentUser?.id;
+                payload.driver = currentUser?.name;
+            }
+            updateDelivery(payload);
+            addLog({
+                action: `Mission ${newStatus}`,
+                detail: `${currentUser?.name || 'User'} updated mission ${asg.id} to ${newStatus}.`,
+                type: 'system'
+            });
+            return;
+        }
         
+        if (asg.source === 'mission') {
+            const isAlreadyAssigned = String(asg.status).toLowerCase() === 'assigned';
+            const finalStatus = (newStatus === 'in_progress' && !isAlreadyAssigned) ? 'assigned' : newStatus;
+            
+            const payload = {
+                id: asg.id,
+                rawId: asg.rawId,
+                status: finalStatus,
+                assigneeId: (newStatus === 'in_progress' || newStatus === 'assigned') ? currentUser?.id : asg.assigneeId,
+                assignee: (newStatus === 'in_progress' || newStatus === 'assigned') ? currentUser?.name : asg.assignee,
+                ...proofData
+            };
+            updateMission(payload);
+            addLog({
+                action: `Mission ${newStatus}`,
+                detail: `${currentUser?.name || 'User'} updated mission ${asg.id} to ${newStatus}.`,
+                type: 'system'
+            });
+            return;
+        }
+
         if (asg.status === 'Pending' && !asg.assigneeId) {
             updatedAsg.assigneeId = currentUser?.id;
             updatedAsg.assignee = currentUser?.name;
@@ -226,14 +284,15 @@ const EmployeePortal = () => {
                     { id: 'assignments', label: 'Operational Queue', icon: ClipboardList },
                     { id: 'map', label: 'Field Map', icon: MapIcon },
                     { id: 'leave', label: 'Leave & Absence', icon: Calendar },
-                    { id: 'pay', label: 'Pay & Records', icon: History }
+                    { id: 'pay', label: 'Pay & Records', icon: History },
+                    { id: 'security', label: 'Security Logs', icon: Shield }
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => {
                             const newParams = new URLSearchParams(location.search);
                             newParams.set('tab', tab.id);
-                            navigate(`${location.pathname}?${newParams.toString()}`);
+                            navigate(`/dashboard/staff-terminal?${newParams.toString()}`);
                         }}
                         className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${
                             activeTab === tab.id
@@ -301,6 +360,7 @@ const EmployeePortal = () => {
                                             onClick={() => {
                                                 setSecurityModalType('panic');
                                                 setIsSecurityModalOpen(true);
+                                                reportSecurityEvent({ eventType: 'PANIC', location: 'GPS Broadcast Active', details: 'Immediate extraction requested.' });
                                             }}
                                             className="w-full py-4 bg-danger text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-danger/80 transition-all shadow-lg shadow-danger/20 flex items-center justify-center gap-2"
                                         >
@@ -802,6 +862,57 @@ const EmployeePortal = () => {
                     </motion.div>
                 )}
 
+                {activeTab === 'security' && (
+                    <motion.div
+                        key="security"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6"
+                    >
+                        <div className="glass-card p-6">
+                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter mb-6 flex items-center gap-2">
+                                <Shield className="text-accent" size={24} /> My Security Logs
+                            </h3>
+                            
+                            <div className="space-y-4">
+                                {securityEvents?.length === 0 ? (
+                                    <div className="text-center py-12 bg-white/5 rounded-2xl border border-white/10 border-dashed">
+                                        <Shield className="text-muted mx-auto mb-4" size={48} />
+                                        <p className="text-muted font-black italic uppercase tracking-widest text-sm">No Security Events Logged</p>
+                                        <p className="text-[10px] text-muted/70 mt-2 font-medium">No panic or breach events have been reported.</p>
+                                    </div>
+                                ) : (
+                                    securityEvents?.map(event => (
+                                        <div key={event.id} className="bg-background border border-white/10 rounded-2xl p-5 hover:border-accent/30 transition-all flex items-start justify-between gap-4 group">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                                        event.eventType === 'PANIC' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'
+                                                    }`}>
+                                                        {event.eventType}
+                                                    </span>
+                                                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest">{new Date(event.createdAt).toLocaleString()}</p>
+                                                </div>
+                                                <h4 className="text-white font-bold mb-1">{event.location || 'Unknown Location'}</h4>
+                                                <p className="text-sm text-secondary">{event.details}</p>
+                                            </div>
+                                            <div className="flex items-center shrink-0">
+                                                <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                                    event.status === 'Resolved' 
+                                                        ? 'bg-success/10 text-success border-success/20' 
+                                                        : 'bg-danger/10 text-danger border-danger/20 animate-pulse'
+                                                }`}>
+                                                    {event.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 {activeTab === 'leave' && (
                     <motion.div
                         key="leave"
@@ -1008,14 +1119,18 @@ const EmployeePortal = () => {
 
                         <div className="flex gap-3 pt-2">
                             <button
-                                onClick={() => setIsSecurityModalOpen(false)}
+                                onClick={() => {
+                                    setBreachFormData({ type: 'Unauthorized Person', location: '', detail: '' });
+                                    setIsSecurityModalOpen(false);
+                                }}
                                 className="flex-1 py-4 bg-white/5 border border-white/10 text-secondary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={() => {
-                                    addLog({ action: 'Breach Reported', detail: `${currentUser?.name || 'User'} reported a ${breachFormData.type} at ${breachFormData.location}.`, type: 'alert' });
+                                onClick={async () => {
+                                    await reportSecurityEvent({ eventType: 'BREACH', location: breachFormData.location, details: `Type: ${breachFormData.type} | Info: ${breachFormData.detail}` });
+                                    setBreachFormData({ type: 'Unauthorized Person', location: '', detail: '' });
                                     setIsSecurityModalOpen(false);
                                     swalSuccess('Report Sent', 'Transmitted to Institutional Security. Audit tracking initialized.');
                                 }}
@@ -1220,7 +1335,7 @@ const TaskCard = ({ asg, onAction }) => {
                     <div className="flex gap-2 mt-2">
                         {(() => {
                             const s = String(asg.status).toLowerCase().replace(/_/g, ' ');
-                            if (s === 'pending' || s === 'dispatched' || s === 'pending pickup') {
+                            if (s === 'pending' || s === 'dispatched' || s === 'pending pickup' || s === 'assigned') {
                                 return (
                                     <button
                                         onClick={() => onAction(asg, 'in_progress')}

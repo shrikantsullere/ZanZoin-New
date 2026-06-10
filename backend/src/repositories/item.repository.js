@@ -21,7 +21,7 @@ export const findItemBySku = async (sku, tenantId) => {
 };
 
 export const findAllItems = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status, categoryId } = query;
+  const { page = 1, limit = 10, search = '', status, categoryId, clientId } = query;
   const skip = (page - 1) * limit;
 
   const where = {
@@ -33,7 +33,8 @@ export const findAllItems = async (tenantId, query) => {
       ]
     }),
     ...(status && { status }),
-    ...(categoryId && { categoryId: Number(categoryId) })
+    ...(categoryId && { categoryId: Number(categoryId) }),
+    ...(clientId && { clientId: Number(clientId) })
   };
 
   const [items, total] = await Promise.all([

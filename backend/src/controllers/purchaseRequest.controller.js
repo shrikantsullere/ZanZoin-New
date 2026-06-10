@@ -19,6 +19,22 @@ export const getPurchaseRequests = async (req, res, next) => {
     const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null : (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
 
     const result = await prService.getPurchaseRequests(tenantIdToFilter, req.query);
+    
+    // Inject created_by from embedded userId in description for frontend filtering
+    if (result && Array.isArray(result.purchaseRequests)) {
+      result.purchaseRequests = result.purchaseRequests.map(pr => {
+        let created_by = pr.requestedBy;
+        if (pr.description && pr.description.startsWith('[userId:')) {
+          const match = pr.description.match(/^\[userId:(\d+)\]\s*(.*)/);
+          if (match) {
+            created_by = Number(match[1]);
+            pr.description = match[2];
+          }
+        }
+        return { ...pr, created_by };
+      });
+    }
+
     sendResponse(res, 200, 'Purchase Requests fetched successfully', result);
   } catch (error) {
     next(error);
@@ -31,7 +47,17 @@ export const getPurchaseRequestById = async (req, res, next) => {
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
     const pr = await prService.getPurchaseRequestById(Number(req.params.id), tenantIdToFilter);
-    sendResponse(res, 200, 'Purchase Request fetched successfully', pr);
+    let created_by = pr.requestedBy;
+    if (pr.description && pr.description.startsWith('[userId:')) {
+      const match = pr.description.match(/^\[userId:(\d+)\]\s*(.*)/);
+      if (match) {
+        created_by = Number(match[1]);
+        pr.description = match[2];
+      }
+    }
+    const safePr = { ...pr, created_by };
+    
+    sendResponse(res, 200, 'Purchase Request fetched successfully', safePr);
   } catch (error) {
     next(error);
   }

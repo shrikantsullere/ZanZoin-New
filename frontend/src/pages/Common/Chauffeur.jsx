@@ -556,9 +556,9 @@ const Chauffeur = () => {
                                 initial={{ scale: 0.96, opacity: 0, y: 16 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.96, opacity: 0, y: 16 }}
-                                className="w-full max-w-2xl max-h-[calc(100dvh-2rem)] bg-sidebar border border-border rounded-[3rem] shadow-2xl flex flex-col overflow-hidden my-auto"
+                                className="w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] bg-sidebar border border-border rounded-3xl sm:rounded-[3rem] shadow-2xl flex flex-col overflow-hidden my-auto"
                             >
-                                <div className="p-8 pb-4 border-b border-white/5 flex items-center justify-between shrink-0">
+                                <div className="p-5 sm:p-8 pb-4 border-b border-white/5 flex items-center justify-between shrink-0">
                                     <div>
                                         <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">
                                             {modalType === 'view' ? 'Manifest Details' : editingRequest ? 'Modify Transport Protocol' : 'Initialize Transport Protocol'}
@@ -572,8 +572,9 @@ const Chauffeur = () => {
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="p-8 space-y-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                                    {modalType === 'view' ? (
+                                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                    <div className="p-5 sm:p-8 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+                                        {modalType === 'view' ? (
                                         <div className="space-y-6">
                                             <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20 flex items-center justify-between">
                                                 <div className="flex items-center gap-4">
@@ -638,7 +639,7 @@ const Chauffeur = () => {
                                                 </div>
                                             )}
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="p-4 bg-white/5 rounded-xl border border-border">
                                                     <p className="text-[10px] text-muted uppercase font-black tracking-widest mb-1">Entity / Client</p>
                                                     <p className="text-sm font-bold text-white">{editingRequest?.clientName}</p>
@@ -836,7 +837,7 @@ const Chauffeur = () => {
                                             {/* Service Type Selection */}
                                             <div className="space-y-4">
                                                 <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] pl-1">Select Service Protocol</label>
-                                                <div className="grid grid-cols-3 gap-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     {['One Way', 'Round Trip', 'Daily Service'].map(type => (
                                                         <button
                                                             key={type}
@@ -856,7 +857,7 @@ const Chauffeur = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-6 pt-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Request Date</label>
                                                     <input type="text" value={editingRequest ? editingRequest.requestDate : new Date().toISOString().split('T')[0]} disabled className="w-full bg-background/50 border border-border rounded-2xl px-5 py-4 text-sm text-muted focus:outline-none font-bold" />
@@ -931,7 +932,7 @@ const Chauffeur = () => {
 
                                             {serviceType === 'Round Trip' && (
                                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 bg-accent/5 p-6 rounded-3xl border border-accent/20">
-                                                    <div className="grid grid-cols-2 gap-6">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                                         <div className="space-y-2">
                                                             <label className="text-[10px] font-black text-accent uppercase tracking-widest pl-1 italic">Return Date</label>
                                                             <input type="date" name="returnDate" defaultValue={editingRequest?.returnDate} required className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent font-bold" />
@@ -951,7 +952,7 @@ const Chauffeur = () => {
                                                 </motion.div>
                                             )}
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <button
                                                     type="button"
                                                     onClick={() => setHasLuggage(!hasLuggage)}
@@ -1041,7 +1042,7 @@ const Chauffeur = () => {
                                                         </select>
                                                     </div>
 
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         {/* Assign Driver */}
                                                         <div className="space-y-2">
                                                             <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Assign Chauffeur</label>
@@ -1095,12 +1096,13 @@ const Chauffeur = () => {
                                             )}
                                         </>
                                     )}
+                                    </div>
 
-                                    <div className="pt-10 flex items-center justify-end gap-4 pb-4">
+                                    <div className="p-5 sm:p-8 border-t border-white/5 flex items-center justify-end gap-4 shrink-0 bg-sidebar z-10 mt-auto">
                                         <button type="button" onClick={() => setShowModal(false)} className="text-muted text-[10px] font-black uppercase tracking-widest hover:text-white transition-all px-4">Abort</button>
                                         {modalType !== 'view' && (
-                                            <button type="submit" className="btn-primary flex items-center gap-3 px-12 py-5 shadow-2xl shadow-accent/20">
-                                                <CheckCircle size={20} />
+                                            <button type="submit" className="btn-primary flex items-center gap-2 sm:gap-3 px-6 sm:px-12 py-4 sm:py-5 shadow-2xl shadow-accent/20 text-xs sm:text-sm">
+                                                <CheckCircle size={18} className="sm:w-5 sm:h-5" />
                                                 <span>{editingRequest ? 'Update Protocol' : 'Confirm Protocol'}</span>
                                             </button>
                                         )}

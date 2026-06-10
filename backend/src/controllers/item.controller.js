@@ -1,5 +1,6 @@
 import * as itemService from '../services/item.service.js';
 import { sendResponse } from '../utils/response.js';
+import prisma from '../config/db.js';
 
 export const createItem = async (req, res, next) => {
   try {

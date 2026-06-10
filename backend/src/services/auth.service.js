@@ -234,3 +234,85 @@ export const resetPassword = async (token, newPassword) => {
 
   return true;
 };
+
+export const signupUser = async (data, file) => {
+  const { name, email, password, phone, accountType, role, companyName } = data;
+
+  const roleMap = {
+    customer: 'CUSTOMER',
+    client: 'BUSINESS_CLIENT',
+    saas_client: 'SAAS_CLIENT'
+  };
+  const dbRoleName = roleMap[role] || 'CUSTOMER';
+
+  const roleRecord = await prisma.role.findUnique({ where: { name: dbRoleName } });
+  if (!roleRecord) {
+    throw new AppError(`Role ${dbRoleName} not found`, 400);
+  }
+
+  const existingUser = await prisma.user.findFirst({ where: { email } });
+  if (existingUser) {
+    throw new AppError('Email is already in use', 400);
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  if (accountType === 'personal') {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        roleId: roleRecord.id,
+        status: 'active'
+      }
+    });
+    return user;
+  }
+
+  const org = await prisma.organization.create({
+    data: {
+      name: companyName || name,
+      email,
+      phone
+    }
+  });
+
+  const tenantCode = `TENANT-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+  const tenant = await prisma.tenant.create({
+    data: {
+      organizationId: org.id,
+      tenantCode,
+      status: accountType === 'saas' ? 'pending_approval' : 'active'
+    }
+  });
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      roleId: roleRecord.id,
+      tenantId: tenant.id,
+      status: 'active'
+    }
+  });
+
+  await prisma.client.create({
+    data: {
+      tenantId: tenant.id,
+      clientCode: `CLT-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
+      companyName: companyName || name,
+      contactPerson: name,
+      email,
+      phone: phone || '',
+      clientType: accountType === 'saas' ? 'SaaS' : 'Business',
+      source: file ? file.filename : null,
+      status: 'active'
+    }
+  });
+
+  return user;
+};

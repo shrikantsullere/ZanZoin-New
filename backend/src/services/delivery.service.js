@@ -72,7 +72,7 @@ export const createDelivery = async (data, performerId, tenantId) => {
     deliveryData.clientId = clientIdToUse;
   }
 
-  if (!['approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress'].includes(order.status)) {
+  if (!['draft', 'pending', 'approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress'].includes(order.status)) {
     throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
   }
 
@@ -144,8 +144,8 @@ export const createDelivery = async (data, performerId, tenantId) => {
 
   const newDelivery = await deliveryRepo.createDelivery(deliveryData, items, tenantId);
 
-  // If order was approved, mark it as ready_for_delivery automatically
-  if (order.status === 'approved') {
+  // If order was approved, draft or pending, mark it as ready_for_delivery automatically
+  if (['draft', 'pending', 'Pending', 'approved'].includes(order.status)) {
     await orderRepo.updateOrderStatus(order.id, 'ready_for_delivery');
   }
 

@@ -126,6 +126,7 @@ export const createGuestRequest = async (data, performerId, tenantId) => {
     room: data.room || '',
     requestType: data.requestType || data.type || 'General',
     status: data.status || 'Pending',
+    created_by: performerId,
     tenantId
   };
 

@@ -90,9 +90,14 @@ export const checkPermission = (routeIdentifier, action) => {
         return next();
       }
 
-      const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(roleName);
-      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'DELIVERIES', 'WAREHOUSES', 'INVOICES', 'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS', 'ITEMS', 'PLANS'].includes(routeIdentifier)) {
+      const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT', 'UNKNOWN', 'GUEST'].includes(roleName);
+      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'DELIVERIES', 'WAREHOUSES', 'INVOICES', 'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS', 'ITEMS', 'PLANS', 'TRACKING', 'MISSIONS', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE'].includes(routeIdentifier)) {
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Customer Bypass)`);
+        return next();
+      }
+
+      if (isCustomer && ['CREATE', 'UPDATE', 'DELETE', 'ADJUST', 'TRANSFER'].includes(action) && ['ORDERS', 'SUPPORT', 'DELIVERIES', 'ITEMS', 'STOCK', 'PURCHASE_REQUESTS'].includes(routeIdentifier)) {
+        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Customer Action Bypass)`);
         return next();
       }
 
@@ -124,11 +129,11 @@ export const checkPermission = (routeIdentifier, action) => {
       if (!hasAccess && !isSuperAdmin) {
         // Implicit bypass for internal staff roles for core operational workflows
         const staffRoles = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'];
-        const isStaff = staffRoles.includes(roleName.toLowerCase());
+        const isStaff = staffRoles.some(r => roleName.toLowerCase().includes(r));
         
         const operationalRoutes = [
           'ORDERS', 'PROJECTS', 'MISSIONS', 'DELIVERIES', 'INVOICES', 
-          'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 
+          'VENDORS', 'CLIENTS', 'USERS', 'WAREHOUSES', 'ITEMS', 'STOCK', 'GRN',
           'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS',
           'TRACKING', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE'
         ];
@@ -138,7 +143,7 @@ export const checkPermission = (routeIdentifier, action) => {
           return next();
         }
 
-        if (['CREATE', 'UPDATE', 'DELETE', 'MANAGE'].includes(action) && operationalRoutes.includes(routeIdentifier) && isStaff) {
+        if (['CREATE', 'UPDATE', 'DELETE', 'MANAGE', 'ADJUST', 'TRANSFER'].includes(action) && operationalRoutes.includes(routeIdentifier) && isStaff) {
           console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Staff Operational Bypass)`);
           return next();
         }

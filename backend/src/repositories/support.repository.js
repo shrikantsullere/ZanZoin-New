@@ -29,7 +29,7 @@ export const createEvent = async (data) => await prisma.event.create({ data });
 export const findAllEvents = async (tenantId) => await prisma.event.findMany({
   where: { ...(tenantId !== null && { tenantId }) },
   include: {
-    client: { select: { id: true, name: true, contactName: true } },
+    client: { select: { id: true, companyName: true, contactPerson: true } },
     manager: { select: { id: true, name: true } }
   },
   orderBy: { createdAt: 'desc' }

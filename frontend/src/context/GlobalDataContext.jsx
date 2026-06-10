@@ -2107,17 +2107,21 @@ export const GlobalDataProvider = ({ children }) => {
       }
       if (eventsData.data?.success) {
         const eventsList = Array.isArray(eventsData.data.data) ? eventsData.data.data : [];
-        const mappedEvents = eventsList.map((e) => ({
-          ...e,
-          title: e.name,
-          client: e.client_name,
-          date: e.event_date ? e.event_date.split("T")[0] : "",
-          imageUrl: e.image_url,
-          plannerName: e.planner_name,
-          specialRequests: e.special_requests,
-          guestCount: e.guest_count,
-          moodBoardUrl: e.mood_board_url,
-        }));
+        const mappedEvents = eventsList.map((e) => {
+          const clientName = e.client_name || e.client?.companyName || e.client?.name || "";
+          return {
+            ...e,
+            title: e.name || e.title,
+            client_name: clientName,
+            client: clientName || e.client,
+            date: e.event_date ? e.event_date.split("T")[0] : e.date ? e.date.split("T")[0] : "",
+            imageUrl: e.image_url || e.imageUrl,
+            plannerName: e.planner_name || e.plannerName,
+            specialRequests: e.special_requests || e.specialRequests,
+            guestCount: e.guest_count || e.guestCount,
+            moodBoardUrl: e.mood_board_url || e.moodBoardUrl,
+          };
+        });
         // Store raw events so the filter-effect can re-apply when user loads
         setRawEvents(mappedEvents);
         if (currentUser) setEvents(filterDataForCurrentUser(mappedEvents));

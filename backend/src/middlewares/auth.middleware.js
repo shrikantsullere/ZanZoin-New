@@ -96,7 +96,7 @@ export const checkPermission = (routeIdentifier, action) => {
         return next();
       }
 
-      if (isCustomer && ['CREATE', 'UPDATE', 'DELETE', 'ADJUST', 'TRANSFER'].includes(action) && ['ORDERS', 'SUPPORT', 'DELIVERIES', 'ITEMS', 'STOCK'].includes(routeIdentifier)) {
+      if (isCustomer && ['CREATE', 'UPDATE', 'DELETE', 'ADJUST', 'TRANSFER'].includes(action) && ['ORDERS', 'SUPPORT', 'DELIVERIES', 'ITEMS', 'STOCK', 'PURCHASE_REQUESTS'].includes(routeIdentifier)) {
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Customer Action Bypass)`);
         return next();
       }

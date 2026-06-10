@@ -609,11 +609,13 @@ model Item {
   description   String?  @db.Text
   reorderLevel  Float    @default(0)
   inventoryType String   @default("INTERNAL") // INTERNAL, MARKETPLACE
+  clientId      Int?
   status        String   @default("active")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  client         Client?          @relation(fields: [clientId], references: [id])
   category       ItemCategory     @relation(fields: [categoryId], references: [id])
   unit           ItemUnit         @relation(fields: [unitId], references: [id])
   grnItems       GRNItem[]
@@ -780,6 +782,7 @@ model Client {
   orders     Order[]
   deliveries Delivery[]
   invoices   Invoice[]
+  items      Item[]
   Event      Event[]
 
   @@index([tenantId])

@@ -1,11 +1,15 @@
 import express from 'express';
 import * as authController from '../controllers/auth.controller.js';
 import { validate } from '../middlewares/validate.middleware.js';
-import { loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema, updateProfileSchema, refreshTokenSchema } from '../validators/auth.validator.js';
+import { loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema, updateProfileSchema, refreshTokenSchema, signupSchema } from '../validators/auth.validator.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
-const router = express.Router();
+import multer from 'multer';
 
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/signup', upload.single('businessLicense'), validate(signupSchema), authController.signup);
 router.post('/login', validate(loginSchema), authController.login);
 router.post('/refresh-token', validate(refreshTokenSchema), authController.refreshToken);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);

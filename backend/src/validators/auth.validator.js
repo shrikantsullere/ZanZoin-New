@@ -42,3 +42,15 @@ export const updateProfileSchema = z.object({
     avatar: z.string().url().optional(),
   }),
 });
+
+export const signupSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Name is required'),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    phone: z.string().optional(),
+    accountType: z.enum(['personal', 'business', 'saas']),
+    role: z.enum(['customer', 'client', 'saas_client']),
+    companyName: z.string().optional(),
+  }),
+});

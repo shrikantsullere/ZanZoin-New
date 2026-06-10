@@ -11,6 +11,7 @@ import StatusBadge from '../../components/StatusBadge';
 import { CLIENTS as CLIENTS_SEED, marketplaceCategorySelectOptions, normalizeToMarketplaceCategory, canonicalMarketplaceCategory } from '../../utils/data';
 import { useLocation } from 'react-router-dom';
 import { toAbsoluteImageUrl } from '../../utils/apiHelpers.js';
+import { normalizeRole } from '../../utils/authUtils';
 import { useItems, useWarehouses, useItemCategories, useItemUnits } from '../../hooks/api/useInventory';
 import realApi from '../../services/api/setupAxios';
 
@@ -99,7 +100,7 @@ const Inventory = () => {
     inventorySegment: 'Business',
     clientId: ''
   });
-  const userRoleNorm = typeof currentUser?.role === 'object' ? String(currentUser?.role?.name || '').toLowerCase().replace(/[\s_]+/g, '') : String(currentUser?.role || '').toLowerCase().replace(/[\s_]+/g, '');
+  const userRoleNorm = normalizeRole(currentUser?.role);
   const [activeTab, setActiveTab] = useState(['superadmin', 'admin', 'inventory', 'inventorymanager', 'procurement', 'operations'].includes(userRoleNorm) ? 'Marketplace' : 'Business');
 
   /** When stock entry name matches an existing SKU, keep category dropdown aligned with that row */
@@ -327,6 +328,7 @@ const Inventory = () => {
               unitId: uId,
               description: formData.description || '',
               inventoryType: formData.inventoryType === 'Marketplace' ? 'MARKETPLACE' : 'INTERNAL',
+              clientId: (formData.inventoryType === 'Client' && isCustomer && myClient) ? myClient.id : (parseInt(formData.clientId) || null),
               qty: Number(formData.qty) || 0,
               price: Number(formData.price) || 0,
               warehouseId: wid,
@@ -928,7 +930,7 @@ const Inventory = () => {
                 </div>
               </div>
 
-              {formData.inventoryType === 'Client' && (
+              {formData.inventoryType === 'Client' && !isCustomer && (
                 <div className="space-y-1 col-span-1 md:col-span-2">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest text-accent">Select Client Owner</label>
                   <select

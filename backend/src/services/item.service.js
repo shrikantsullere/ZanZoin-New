@@ -43,6 +43,7 @@ export const createItem = async (data, performerId, tenantId) => {
   delete createPayload.warehouseId;
   delete createPayload.price;
 
+
   const newItem = await itemRepo.createItem(createPayload);
 
   await logAudit({

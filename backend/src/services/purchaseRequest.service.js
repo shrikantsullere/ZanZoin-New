@@ -18,11 +18,24 @@ export const createPurchaseRequest = async (data, performerId, tenantId) => {
     throw new AppError('Department not found', 404);
   }
 
-  const { items, ...prData } = data;
-  prData.requestedBy = employeeId;
-  prData.status = 'draft';
+  const safePrData = {
+    title: data.title || data.requestType || 'Purchase Request',
+    description: `[userId:${performerId}] ${data.description || ''}`.trim(),
+    departmentId: data.departmentId ? Number(data.departmentId) : 1,
+    requestedBy: employeeId,
+    status: 'draft',
+    priority: data.priority || 'medium'
+  };
 
-  const newPr = await prRepository.createPurchaseRequest(prData, items, tenantId);
+  const safeItems = Array.isArray(data.items) ? data.items.map(item => ({
+    itemName: item.itemName || item.name || 'Unknown Item',
+    description: item.description || '',
+    quantity: Number(item.quantity || item.qty || 1),
+    unit: item.unit || 'Pieces',
+    estimatedCost: Number(item.estimatedCost || item.price || 0)
+  })) : [];
+
+  const newPr = await prRepository.createPurchaseRequest(safePrData, safeItems, tenantId);
 
   await logAudit({
     module: 'PURCHASE_REQUESTS',
@@ -54,8 +67,21 @@ export const updatePurchaseRequest = async (id, data, tenantId, performerId) => 
     throw new AppError(`Cannot update PR in ${pr.status} status`, 400);
   }
 
-  const { items, ...prData } = data;
-  const updatedPr = await prRepository.updatePurchaseRequest(id, prData, items);
+  const safePrData = {};
+  if (data.title) safePrData.title = data.title;
+  if (data.description !== undefined) safePrData.description = data.description;
+  if (data.departmentId) safePrData.departmentId = Number(data.departmentId);
+  if (data.priority) safePrData.priority = data.priority;
+
+  const safeItems = Array.isArray(data.items) ? data.items.map(item => ({
+    itemName: item.itemName || item.name || 'Unknown Item',
+    description: item.description || '',
+    quantity: Number(item.quantity || item.qty || 1),
+    unit: item.unit || 'Pieces',
+    estimatedCost: Number(item.estimatedCost || item.price || 0)
+  })) : undefined;
+
+  const updatedPr = await prRepository.updatePurchaseRequest(id, safePrData, safeItems);
 
   await logAudit({
     module: 'PURCHASE_REQUESTS',

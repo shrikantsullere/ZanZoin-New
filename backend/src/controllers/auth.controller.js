@@ -1,6 +1,16 @@
 import * as authService from '../services/auth.service.js';
 import { sendResponse } from '../utils/response.js';
 
+export const signup = async (req, res, next) => {
+  try {
+    const user = await authService.signupUser(req.body, req.file);
+    user.password = undefined;
+    sendResponse(res, 201, 'Signup successful', { user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const login = async (req, res, next) => {
   try {
     const { email, password, tenantId } = req.body;

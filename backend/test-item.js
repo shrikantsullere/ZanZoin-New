@@ -1,41 +1,33 @@
-import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
-dotenv.config();
+async function testItemCreation() {
+  const payload = {
+    name: "aDCV",
+    categoryId: 1,
+    unitId: 1,
+    description: "dscv",
+    inventoryType: "INTERNAL",
+    clientId: 5,
+    sku: "SKU-TEST-99",
+    qty: 2,
+    warehouseId: 2,
+    price: 231
+  };
 
-const prisma = new PrismaClient();
+  try {
+    const res = await fetch('http://localhost:8000/api/v1/items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Mocking an admin user (assuming JWT token is required, I might get 401 Unauthorized if auth is enforced)
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    // I don't have a token, but let's see if we get a 500 error or a 401 error.
+    const data = await res.json();
+    console.log(res.status, data);
+  } catch (e) {
+    console.error(e);
+  }
+}
 
-(async () => {
-  // Find a business client
-  const user = await prisma.user.findFirst({ where: { role: { name: 'BUSINESS_CLIENT' } }, include: { role: true } });
-  console.log('Testing with User:', user.email, 'Role:', user.role.name);
-  
-  const token = jwt.sign(
-    { id: user.id, email: user.email, roleId: user.roleId },
-    process.env.JWT_SECRET || 'ZANEZION_SECURE_TOKEN_SECRET_9921',
-    { expiresIn: '24h' }
-  );
-
-  const res1 = await fetch('http://localhost:8000/api/v1/items', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      name: "Test Marketplace Item", 
-      categoryId: 1, 
-      unitId: 1, 
-      description: "Testing Customer Item Bypass", 
-      inventoryType: "MARKETPLACE", 
-      price: 150, 
-      qty: 10, 
-      warehouseId: 3
-    })
-  });
-  console.log('CREATE ITEM:', res1.status, await res1.text());
-
-  const res2 = await fetch('http://localhost:8000/api/v1/items', {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  console.log('FETCH ITEMS:', res2.status, (await res2.json()).data.items.length, 'items');
-
-  process.exit(0);
-})();
+testItemCreation();

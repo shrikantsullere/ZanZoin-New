@@ -16,18 +16,26 @@ const prisma = new PrismaClient();
     { expiresIn: '24h' }
   );
 
-  const res1 = await fetch('http://localhost:8000/api/v1/stock/adjust', {
+  const res1 = await fetch('http://localhost:8000/api/v1/items', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({
-      warehouseId: 3, 
-      itemId: 4, 
-      quantity: 2, 
-      type: "DEDUCT", 
-      remarks: "Issued to test"
+      name: "Test Marketplace Item", 
+      categoryId: 1, 
+      unitId: 1, 
+      description: "Testing Customer Item Bypass", 
+      inventoryType: "MARKETPLACE", 
+      price: 150, 
+      qty: 10, 
+      warehouseId: 3
     })
   });
-  console.log('ADJUST STOCK:', res1.status, await res1.text());
+  console.log('CREATE ITEM:', res1.status, await res1.text());
+
+  const res2 = await fetch('http://localhost:8000/api/v1/items', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  console.log('FETCH ITEMS:', res2.status, (await res2.json()).data.items.length, 'items');
 
   process.exit(0);
 })();

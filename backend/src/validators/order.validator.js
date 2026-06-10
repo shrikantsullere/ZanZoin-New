@@ -22,5 +22,5 @@ export const createOrderSchema = z.object({
 }).passthrough();
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(['submitted', 'review', 'approved', 'rejected', 'cancelled'], { required_error: 'Valid status is required' })
+  status: z.string({ required_error: 'Valid status is required' }).min(1, 'Status cannot be empty')
 });

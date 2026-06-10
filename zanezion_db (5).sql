@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 06, 2026 at 11:12 AM
+-- Generation Time: Jun 10, 2026 at 09:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -230,7 +230,146 @@ INSERT INTO `audit_logs` (`id`, `module`, `action`, `description`, `oldValue`, `
 (185, 'PLANS', 'CREATE', 'Created plan ddd', 'null', '{\"id\":1,\"name\":\"ddd\",\"description\":\"sffd\",\"price\":123,\"billingCycle\":\"MONTHLY\",\"maxUsers\":100,\"maxStorage\":1024,\"features\":{\"tier\":\"ds\",\"yearlyPrice\":1234,\"commitment\":\"Monthly or Yearly subscription.\",\"list\":[\"fdsc\"]},\"isActive\":true,\"createdAt\":\"2026-06-06T07:31:11.204Z\",\"updatedAt\":\"2026-06-06T07:31:11.204Z\"}', 1, '2026-06-06 07:31:11.297'),
 (186, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 07:37:27.957'),
 (187, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-06 07:44:41.440'),
-(188, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 09:06:28.386');
+(188, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 09:06:28.386'),
+(189, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 09:50:15.883'),
+(190, 'USERS', 'UPDATE', 'Updated user superadmin@zanezion.com', 'null', '{\"name\":\"SUPER_ADMIN \",\"phone\":null,\"roleId\":1,\"status\":\"active\",\"vacationBalance\":0,\"birthday\":null,\"nibNumber\":null,\"employmentStatus\":\"Full Time\",\"hasPassport\":false,\"hasLicense\":false,\"hasNIB\":false,\"hasResume\":false,\"bankingInfo\":{}}', 1, '2026-06-06 10:00:24.311'),
+(191, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 10:07:11.795'),
+(192, 'USERS', 'UPDATE', 'Updated user superadmin@zanezion.com', 'null', '{\"name\":\"SUPER_AD\",\"phone\":null,\"roleId\":1,\"status\":\"active\",\"vacationBalance\":0,\"birthday\":null,\"nibNumber\":null,\"employmentStatus\":\"Full Time\",\"hasPassport\":false,\"hasLicense\":false,\"hasNIB\":false,\"hasResume\":false,\"bankingInfo\":{}}', 1, '2026-06-06 10:07:39.155'),
+(193, 'USERS', 'UPDATE', 'Updated user superadmin@zanezion.com', 'null', '{\"name\":\"SUPER_admin\",\"phone\":null,\"roleId\":1,\"status\":\"active\",\"vacationBalance\":0,\"birthday\":null,\"nibNumber\":null,\"employmentStatus\":\"Full Time\",\"hasPassport\":false,\"hasLicense\":false,\"hasNIB\":false,\"hasResume\":false,\"bankingInfo\":{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}}', 1, '2026-06-06 10:07:49.719'),
+(194, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-06 10:16:42.019'),
+(195, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 10:28:53.338'),
+(196, 'SETTINGS', 'UPDATE', 'Updated setting shipping_modes', 'null', '{\"value\":\"{\\\"Road\\\":11,\\\"Sea\\\":150,\\\"Air\\\":300}\"}', 1, '2026-06-06 10:29:10.900'),
+(197, 'PLANS', 'UPDATE', 'Updated plan ddd', '{\"id\":1,\"name\":\"ddd\",\"description\":\"sffd\",\"price\":123,\"billingCycle\":\"MONTHLY\",\"maxUsers\":100,\"maxStorage\":1024,\"features\":{\"tier\":\"ds\",\"yearlyPrice\":1234,\"commitment\":\"Monthly or Yearly subscription.\",\"list\":[\"fdsc\"]},\"isActive\":true,\"createdAt\":\"2026-06-06T07:31:11.204Z\",\"updatedAt\":\"2026-06-06T07:31:11.204Z\"}', '{\"id\":1,\"name\":\"ddd\",\"description\":\"sffd\",\"price\":1233,\"billingCycle\":\"MONTHLY\",\"maxUsers\":100,\"maxStorage\":1024,\"features\":{\"tier\":\"ds\",\"yearlyPrice\":1234,\"commitment\":\"Monthly or Yearly subscription.\",\"list\":[\"fdsc\"]},\"isActive\":true,\"createdAt\":\"2026-06-06T07:31:11.204Z\",\"updatedAt\":\"2026-06-06T10:35:05.543Z\"}', 1, '2026-06-06 10:35:05.700'),
+(198, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 10:35:58.591'),
+(199, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-06 10:36:21.836'),
+(200, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-06 10:36:26.221'),
+(201, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-06 10:39:55.353'),
+(202, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 10:41:00.611'),
+(203, 'CLIENTS', 'UPDATE', 'Updated Client dzx', '{\"id\":1,\"tenantId\":1,\"clientCode\":\"CLT-952985\",\"companyName\":\"dzx\",\"contactPerson\":\"knjkndkjn\",\"email\":\"sacX@gmail.com\",\"phone\":\"123456789\",\"address\":\"knk\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-06T05:49:13.001Z\",\"updatedAt\":\"2026-06-06T05:49:13.001Z\",\"contacts\":[]}', '{\"id\":1,\"tenantId\":1,\"clientCode\":\"CLT-952985\",\"companyName\":\"dzx\",\"contactPerson\":\"knjkndkjn\",\"email\":\"sacX@gmail.com\",\"phone\":\"123456789\",\"address\":\"knk\",\"city\":null,\"country\":null,\"status\":\"inactive\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-06T05:49:13.001Z\",\"updatedAt\":\"2026-06-06T10:48:44.308Z\"}', 1, '2026-06-06 10:48:44.359'),
+(204, 'CLIENTS', 'UPDATE', 'Updated Client dzx', '{\"id\":1,\"tenantId\":1,\"clientCode\":\"CLT-952985\",\"companyName\":\"dzx\",\"contactPerson\":\"knjkndkjn\",\"email\":\"sacX@gmail.com\",\"phone\":\"123456789\",\"address\":\"knk\",\"city\":null,\"country\":null,\"status\":\"inactive\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-06T05:49:13.001Z\",\"updatedAt\":\"2026-06-06T10:48:44.308Z\",\"contacts\":[]}', '{\"id\":1,\"tenantId\":1,\"clientCode\":\"CLT-952985\",\"companyName\":\"dzx\",\"contactPerson\":\"knjkndkjn\",\"email\":\"sacX@gmail.com\",\"phone\":\"123456789\",\"address\":\"knk\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-06T05:49:13.001Z\",\"updatedAt\":\"2026-06-06T10:48:49.047Z\"}', 1, '2026-06-06 10:48:49.065'),
+(205, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T06:03:25.730Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:12.285Z\"}', 1, '2026-06-06 10:49:12.317'),
+(206, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:12.285Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:28.021Z\"}', 1, '2026-06-06 10:49:28.040'),
+(207, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:28.021Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:40.904Z\"}', 1, '2026-06-06 10:49:40.919');
+INSERT INTO `audit_logs` (`id`, `module`, `action`, `description`, `oldValue`, `newValue`, `performedBy`, `timestamp`) VALUES
+(208, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:49:40.904Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:53:04.554Z\"}', 1, '2026-06-06 10:53:04.983'),
+(209, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:53:04.554Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:54:01.839Z\"}', 1, '2026-06-06 10:54:01.980'),
+(210, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-06 10:59:46.101'),
+(211, 'VENDORS', 'UPDATE', 'Updated vendor wSA', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"category\":null,\"rating\":90,\"delivery\":90,\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T10:54:01.839Z\"}', '{\"id\":3,\"tenantId\":1,\"vendorCode\":\"VND-805557\",\"companyName\":\"wSA\",\"contactPerson\":\"AS\",\"email\":\"wSA@gmail.com\",\"phone\":\"1234567890\",\"address\":\"njdnn\",\"status\":\"active\",\"category\":\"Jewelry\",\"rating\":9,\"delivery\":90,\"createdAt\":\"2026-06-06T06:03:25.730Z\",\"updatedAt\":\"2026-06-06T11:00:15.546Z\"}', 1, '2026-06-06 11:00:15.632'),
+(212, 'USERS', 'UPDATE', 'Updated user asdfg@gmail.com', 'null', '{\"name\":\"qdw\",\"phone\":\"1234566789\",\"status\":\"Active\",\"vacationBalance\":109,\"birthday\":null,\"nibNumber\":null,\"employmentStatus\":\"Full Time\",\"hasPassport\":false,\"hasLicense\":false,\"hasNIB\":false,\"hasResume\":false,\"bankingInfo\":{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}}', 10, '2026-06-06 11:00:53.537'),
+(213, 'AUTH', 'LOGIN', 'User login: fieldstaff@zanezion.com', 'null', 'null', 9, '2026-06-06 11:01:14.698'),
+(214, 'AUTH', 'LOGIN', 'User login: fieldstaff@zanezion.com', 'null', 'null', 9, '2026-06-06 11:10:43.058'),
+(215, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-06 17:45:38.905'),
+(216, 'ORDERS', 'CREATE', 'Created Order ORD-2026-0001 for Client dzx', 'null', '{\"id\":1,\"tenantId\":1,\"orderNumber\":\"ORD-2026-0001\",\"clientId\":1,\"createdById\":1,\"status\":\"draft\",\"priority\":\"normal\",\"orderType\":\"PRODUCT\",\"totalAmount\":0,\"createdAt\":\"2026-06-06T17:48:34.742Z\",\"updatedAt\":\"2026-06-06T17:48:34.742Z\",\"items\":[],\"client\":{\"id\":1,\"tenantId\":1,\"clientCode\":\"CLT-952985\",\"companyName\":\"dzx\",\"contactPerson\":\"knjkndkjn\",\"email\":\"sacX@gmail.com\",\"phone\":\"123456789\",\"address\":\"knk\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-06T05:49:13.001Z\",\"updatedAt\":\"2026-06-06T10:48:49.047Z\"},\"metadata\":{\"customItems\":[{\"name\":\"fftft\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-06\",\"request_date\":\"2026-06-06\",\"due_date\":\"2026-06-06\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null},\"customItems\":[{\"name\":\"fftft\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-06\",\"request_date\":\"2026-06-06\",\"due_date\":\"2026-06-06\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 2, '2026-06-06 17:48:34.795'),
+(217, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-06 18:08:01.625'),
+(218, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-06 18:24:15.808'),
+(219, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-07 06:37:03.366'),
+(220, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-07 06:59:03.522'),
+(221, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-07 07:01:14.431'),
+(222, 'USERS', 'CREATE', 'Created user dg@gmail.com', 'null', '{\"id\":11,\"email\":\"dg@gmail.com\",\"roleId\":4}', 2, '2026-06-07 07:13:45.091'),
+(223, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-07 07:18:22.822'),
+(224, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-07 07:33:22.638'),
+(225, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-07 07:57:45.810'),
+(226, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-07 07:57:56.096'),
+(227, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 05:04:14.348'),
+(228, 'CLIENTS', 'CREATE', 'Created Client da (CLT-167288)', 'null', '{\"id\":2,\"tenantId\":1,\"clientCode\":\"CLT-167288\",\"companyName\":\"da\",\"contactPerson\":\"nkjdn\",\"email\":\"da@gmail.com\",\"phone\":\"23939213\",\"address\":\"ds\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-08T05:06:07.296Z\",\"updatedAt\":\"2026-06-08T05:06:07.296Z\"}', 2, '2026-06-08 05:06:07.308'),
+(229, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 05:21:02.753'),
+(230, 'WAREHOUSES', 'CREATE', 'Created Warehouse 3q', 'null', '{\"id\":1,\"tenantId\":1,\"name\":\"3q\",\"location\":\"d\",\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-08T05:25:02.940Z\",\"updatedAt\":\"2026-06-08T05:25:02.940Z\",\"manager\":null}', 2, '2026-06-08 05:25:03.044'),
+(231, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 05:36:52.890'),
+(232, 'WAREHOUSES', 'CREATE', 'Created Warehouse r3eqdsaew', 'null', '{\"id\":2,\"tenantId\":1,\"name\":\"r3eqdsaew\",\"location\":\"dasf\",\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-08T05:38:28.576Z\",\"updatedAt\":\"2026-06-08T05:38:28.576Z\",\"manager\":null}', 2, '2026-06-08 05:38:28.603'),
+(233, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 05:53:55.373'),
+(234, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 06:22:00.961'),
+(235, 'USERS', 'CREATE', 'Created user taefvb@gmail.com', 'null', '{\"id\":12,\"email\":\"taefvb@gmail.com\",\"roleId\":7}', 2, '2026-06-08 06:27:30.567'),
+(236, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 06:38:00.135'),
+(237, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 06:55:33.290'),
+(238, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 07:19:13.245'),
+(239, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', NULL, NULL, 2, '2026-06-08 07:36:02.705'),
+(240, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 09:36:01.904'),
+(241, 'ORDERS', 'CREATE', 'Created Order ORD-2026-0003 for Client dsafd', 'null', '{\"id\":3,\"tenantId\":1,\"orderNumber\":\"ORD-2026-0003\",\"clientId\":4,\"createdById\":1,\"status\":\"draft\",\"priority\":\"normal\",\"orderType\":\"PRODUCT\",\"totalAmount\":0,\"createdAt\":\"2026-06-08T09:36:38.587Z\",\"updatedAt\":\"2026-06-08T09:36:38.587Z\",\"items\":[],\"client\":{\"id\":4,\"tenantId\":1,\"clientCode\":\"CLT-730470\",\"companyName\":\"dsafd\",\"contactPerson\":\"dfg\",\"email\":\"fsaf@gmail.com\",\"phone\":\"123456\",\"address\":\"xacs\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-08T07:45:30.526Z\",\"updatedAt\":\"2026-06-08T07:45:30.526Z\"},\"metadata\":{\"customItems\":[{\"name\":\"dsd\",\"qty\":1,\"price\":\"213\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Delivery\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-08\",\"request_date\":\"2026-06-08\",\"due_date\":\"2026-06-08\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null},\"customItems\":[{\"name\":\"dsd\",\"qty\":1,\"price\":\"213\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Delivery\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-08\",\"request_date\":\"2026-06-08\",\"due_date\":\"2026-06-08\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 2, '2026-06-08 09:36:38.681'),
+(242, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 09:54:19.464'),
+(243, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 10:10:25.738'),
+(244, 'ITEMS', 'CREATE', 'Created Item dt3rgsx (SKU: SKU-952026335)', 'null', '{\"id\":3,\"tenantId\":1,\"categoryId\":1,\"unitId\":1,\"sku\":\"SKU-952026335\",\"name\":\"dt3rgsx\",\"description\":\"gdfg\",\"reorderLevel\":0,\"inventoryType\":\"INTERNAL\",\"status\":\"active\",\"createdAt\":\"2026-06-08T10:19:12.053Z\",\"updatedAt\":\"2026-06-08T10:19:12.053Z\",\"category\":{\"id\":1,\"tenantId\":1,\"name\":\"General\",\"description\":null,\"status\":\"active\",\"createdAt\":\"2026-06-05T11:41:46.421Z\",\"updatedAt\":\"2026-06-05T11:41:46.421Z\"},\"unit\":{\"id\":1,\"tenantId\":1,\"name\":\"Pieces\",\"shortName\":\"pcs\",\"status\":\"active\",\"createdAt\":\"2026-06-05T11:41:46.428Z\",\"updatedAt\":\"2026-06-05T11:41:46.428Z\"}}', 2, '2026-06-08 10:19:12.140'),
+(245, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 10:26:42.497'),
+(246, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-08 10:34:32.464'),
+(247, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 10:51:52.108'),
+(248, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 10:51:53.125'),
+(249, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-08 12:42:18.743'),
+(250, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-08 12:42:45.310'),
+(251, 'USERS', 'CREATE', 'Created user jbbdmnb@gmail.com', 'null', '{\"id\":13,\"email\":\"jbbdmnb@gmail.com\",\"roleId\":9}', 2, '2026-06-08 12:54:47.150'),
+(252, 'WAREHOUSES', 'CREATE', 'Created Warehouse 3eqw', 'null', '{\"id\":3,\"tenantId\":1,\"name\":\"3eqw\",\"location\":\"jbjnjkn\",\"capacity\":0,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-08T12:55:24.499Z\",\"updatedAt\":\"2026-06-08T12:55:24.499Z\",\"manager\":null}', 2, '2026-06-08 12:55:24.532'),
+(253, 'VENDORS', 'CREATE', 'Created vendor oooooooo', 'null', '{\"id\":4,\"tenantId\":1,\"vendorCode\":\"VND-380790\",\"companyName\":\"oooooooo\",\"contactPerson\":null,\"email\":\"jdsjbjhu@gmail.com\",\"phone\":\"112324354\",\"address\":\"dasf\",\"status\":\"inactive\",\"category\":\"Jewelry\",\"rating\":3,\"delivery\":89,\"createdAt\":\"2026-06-08T12:56:20.797Z\",\"updatedAt\":\"2026-06-08T12:56:20.797Z\"}', 2, '2026-06-08 12:56:20.809'),
+(254, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 06:16:08.859'),
+(255, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 06:38:01.644'),
+(256, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 06:57:52.645'),
+(257, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 07:10:22.880'),
+(258, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 07:10:40.457'),
+(259, 'AUTH', 'LOGIN', 'User login: inventory@zanezion.com', 'null', 'null', 6, '2026-06-09 07:11:17.490'),
+(260, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-09 07:11:36.856'),
+(261, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 07:23:58.199'),
+(262, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 07:39:07.410'),
+(263, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 08:39:37.141'),
+(264, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 08:59:25.781'),
+(265, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 09:25:56.156'),
+(266, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 09:47:13.121'),
+(267, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 10:04:16.337'),
+(268, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-09 10:17:38.696'),
+(269, 'VENDORS', 'UPDATE', 'Updated vendor oooooooo', '{\"id\":4,\"tenantId\":1,\"vendorCode\":\"VND-380790\",\"companyName\":\"oooooooo\",\"contactPerson\":null,\"email\":\"jdsjbjhu@gmail.com\",\"phone\":\"112324354\",\"address\":\"dasf\",\"status\":\"inactive\",\"category\":\"Jewelry\",\"rating\":3,\"delivery\":89,\"createdAt\":\"2026-06-08T12:56:20.797Z\",\"updatedAt\":\"2026-06-08T12:56:20.797Z\"}', '{\"id\":4,\"tenantId\":1,\"vendorCode\":\"VND-380790\",\"companyName\":\"oooooooo\",\"contactPerson\":null,\"email\":\"jdsjbjhu@gmail.com\",\"phone\":\"112324354\",\"address\":\"dasf\",\"status\":\"active\",\"category\":\"Jewelry\",\"rating\":3,\"delivery\":89,\"createdAt\":\"2026-06-08T12:56:20.797Z\",\"updatedAt\":\"2026-06-09T10:17:54.717Z\"}', 2, '2026-06-09 10:17:54.754'),
+(270, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 10:18:03.121'),
+(271, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 10:18:22.715'),
+(272, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 10:18:33.299'),
+(273, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 10:18:33.660'),
+(274, 'AUTH', 'LOGIN', 'User login: procurement@zanezion.com', 'null', 'null', 4, '2026-06-09 10:33:53.071'),
+(275, 'VENDORS', 'DELETE', 'Deleted vendor Test Company', '{\"id\":2,\"tenantId\":1,\"vendorCode\":\"VND-TEST-001\",\"companyName\":\"Test Company\",\"contactPerson\":null,\"email\":\"test@example.com\",\"phone\":\"1234567890\",\"address\":null,\"status\":\"approved\",\"category\":null,\"rating\":90,\"delivery\":90,\"createdAt\":\"2026-06-05T13:14:19.536Z\",\"updatedAt\":\"2026-06-05T13:14:19.536Z\"}', 'null', 4, '2026-06-09 10:34:13.794'),
+(276, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 10:40:38.491'),
+(277, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 11:20:06.134'),
+(278, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-09 11:54:11.984'),
+(279, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-09 11:54:14.636'),
+(280, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-09 11:54:56.866'),
+(281, 'AUTH', 'LOGIN', 'User login: operations@zanezion.com', 'null', 'null', 3, '2026-06-09 12:09:35.803'),
+(282, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 12:10:03.746'),
+(283, 'ROUTES', 'CREATE', 'Established new supply route fdf', 'null', '{\"id\":1,\"tenantId\":1,\"routeId\":\"gfdv\",\"name\":\"fdf\",\"type\":\"Land\",\"distance\":\"123\",\"avgTime\":\"3\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:10:30.917Z\",\"updatedAt\":\"2026-06-09T12:10:30.917Z\"}', 5, '2026-06-09 12:10:30.980'),
+(284, 'ROUTES', 'UPDATE', 'Updated supply route fdf', '{\"id\":1,\"tenantId\":1,\"routeId\":\"gfdv\",\"name\":\"fdf\",\"type\":\"Land\",\"distance\":\"123\",\"avgTime\":\"3\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:10:30.917Z\",\"updatedAt\":\"2026-06-09T12:10:30.917Z\"}', '{\"id\":1,\"tenantId\":1,\"routeId\":\"gfdv\",\"name\":\"fdf\",\"type\":\"Land\",\"distance\":\"123\",\"avgTime\":\"3\",\"status\":\"Disabled\",\"createdAt\":\"2026-06-09T12:10:30.917Z\",\"updatedAt\":\"2026-06-09T12:15:12.652Z\"}', 5, '2026-06-09 12:15:12.861'),
+(285, 'ROUTES', 'DELETE', 'Deleted supply route fdf', '{\"id\":1,\"tenantId\":1,\"routeId\":\"gfdv\",\"name\":\"fdf\",\"type\":\"Land\",\"distance\":\"123\",\"avgTime\":\"3\",\"status\":\"Disabled\",\"createdAt\":\"2026-06-09T12:10:30.917Z\",\"updatedAt\":\"2026-06-09T12:15:12.652Z\"}', 'null', 5, '2026-06-09 12:15:27.422'),
+(286, 'TRACKING', 'CREATE', 'Initiated sync for asset cddc', 'null', '{\"id\":1,\"tenantId\":1,\"trackerId\":\"TRK-267\",\"asset\":\"cddc\",\"location\":\"sads\",\"signal\":\"Strong\",\"eta\":\"Calculating...c\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:17:46.558Z\",\"updatedAt\":\"2026-06-09T12:17:46.558Z\"}', 5, '2026-06-09 12:17:46.630'),
+(287, 'TRACKING', 'UPDATE', 'Updated tracking for asset cddc', '{\"id\":1,\"tenantId\":1,\"trackerId\":\"TRK-267\",\"asset\":\"cddc\",\"location\":\"sads\",\"signal\":\"Strong\",\"eta\":\"Calculating...c\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:17:46.558Z\",\"updatedAt\":\"2026-06-09T12:17:46.558Z\"}', '{\"id\":1,\"tenantId\":1,\"trackerId\":\"TRK-267\",\"asset\":\"cddc\",\"location\":\"sads\",\"signal\":\"Strong\",\"eta\":\"Calculating...c\",\"status\":\"En Route\",\"createdAt\":\"2026-06-09T12:17:46.558Z\",\"updatedAt\":\"2026-06-09T12:17:53.284Z\"}', 5, '2026-06-09 12:17:53.312'),
+(288, 'URGENT', 'CREATE', 'Logged urgent alert sxxssa', 'null', '{\"id\":1,\"tenantId\":1,\"alertId\":\"sa\",\"task\":\"sxxssa\",\"priority\":\"Critical\",\"time\":\"3\",\"location\":\"sss\",\"assignee\":\"Pending\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:24:34.525Z\",\"updatedAt\":\"2026-06-09T12:24:34.525Z\"}', 5, '2026-06-09 12:24:34.555'),
+(289, 'URGENT', 'UPDATE', 'Updated urgent alert sxxssa', '{\"id\":1,\"tenantId\":1,\"alertId\":\"sa\",\"task\":\"sxxssa\",\"priority\":\"Critical\",\"time\":\"3\",\"location\":\"sss\",\"assignee\":\"Pending\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:24:34.525Z\",\"updatedAt\":\"2026-06-09T12:24:34.525Z\"}', '{\"id\":1,\"tenantId\":1,\"alertId\":\"sa\",\"task\":\"sxxssa\",\"priority\":\"Critical\",\"time\":\"3\",\"location\":\"sss\",\"assignee\":\"Pendingg\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:24:34.525Z\",\"updatedAt\":\"2026-06-09T12:24:48.838Z\"}', 5, '2026-06-09 12:24:48.854'),
+(290, 'URGENT', 'DELETE', 'Deleted urgent alert sxxssa', '{\"id\":1,\"tenantId\":1,\"alertId\":\"sa\",\"task\":\"sxxssa\",\"priority\":\"Critical\",\"time\":\"3\",\"location\":\"sss\",\"assignee\":\"Pendingg\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:24:34.525Z\",\"updatedAt\":\"2026-06-09T12:24:48.838Z\"}', 'null', 5, '2026-06-09 12:25:02.551'),
+(291, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 12:25:10.692'),
+(292, 'URGENT', 'CREATE', 'Logged urgent alert edfewd', 'null', '{\"id\":2,\"tenantId\":1,\"alertId\":\"sdFv\",\"task\":\"edfewd\",\"priority\":\"Critical\",\"time\":\"34\",\"location\":\"edwsde\",\"assignee\":\"Pending\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:25:34.848Z\",\"updatedAt\":\"2026-06-09T12:25:34.848Z\"}', 5, '2026-06-09 12:25:34.893'),
+(293, 'URGENT', 'DELETE', 'Deleted urgent alert edfewd', '{\"id\":2,\"tenantId\":1,\"alertId\":\"sdFv\",\"task\":\"edfewd\",\"priority\":\"Critical\",\"time\":\"34\",\"location\":\"edwsde\",\"assignee\":\"Pending\",\"status\":\"Active\",\"createdAt\":\"2026-06-09T12:25:34.848Z\",\"updatedAt\":\"2026-06-09T12:25:34.848Z\"}', 'null', 5, '2026-06-09 12:25:38.262'),
+(294, 'AUTH', 'LOGIN', 'User login: logistics@zanezion.com', 'null', 'null', 5, '2026-06-09 12:28:51.983'),
+(295, 'AUTH', 'LOGIN', 'User login: inventory@zanezion.com', 'null', 'null', 6, '2026-06-09 12:31:40.296'),
+(296, 'ITEMS', 'CREATE', 'Created Item cczdczz (SKU: SKU-453363878)', 'null', '{\"id\":4,\"tenantId\":1,\"categoryId\":1,\"unitId\":1,\"sku\":\"SKU-453363878\",\"name\":\"cczdczz\",\"description\":\"ds\",\"reorderLevel\":0,\"inventoryType\":\"MARKETPLACE\",\"status\":\"active\",\"createdAt\":\"2026-06-09T12:34:13.385Z\",\"updatedAt\":\"2026-06-09T12:34:13.385Z\",\"category\":{\"id\":1,\"tenantId\":1,\"name\":\"General\",\"description\":null,\"status\":\"active\",\"createdAt\":\"2026-06-05T11:41:46.421Z\",\"updatedAt\":\"2026-06-05T11:41:46.421Z\"},\"unit\":{\"id\":1,\"tenantId\":1,\"name\":\"Pieces\",\"shortName\":\"pcs\",\"status\":\"active\",\"createdAt\":\"2026-06-05T11:41:46.428Z\",\"updatedAt\":\"2026-06-05T11:41:46.428Z\"}}', 6, '2026-06-09 12:34:13.459'),
+(297, 'WAREHOUSES', 'CREATE', 'Created Warehouse bcvhfhgftyfd', 'null', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":0,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:36:45.319Z\",\"manager\":null}', 6, '2026-06-09 12:36:45.347'),
+(298, 'AUTH', 'LOGIN', 'User login: inventory@zanezion.com', 'null', 'null', 6, '2026-06-09 12:48:11.842'),
+(299, 'WAREHOUSES', 'UPDATE', 'Updated Warehouse bcvhfhgftyfd', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":0,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:36:45.319Z\",\"manager\":null}', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":456,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:48:22.238Z\",\"manager\":null}', 6, '2026-06-09 12:48:22.298'),
+(300, 'WAREHOUSES', 'UPDATE', 'Updated Warehouse bcvhfhgftyfd', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":456,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:48:22.238Z\",\"manager\":null}', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":456,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:48:48.495Z\",\"manager\":null}', 6, '2026-06-09 12:48:48.512'),
+(301, 'AUTH', 'LOGIN', 'User login: inventory@zanezion.com', 'null', 'null', 6, '2026-06-09 13:04:24.080'),
+(302, 'WAREHOUSES', 'UPDATE', 'Updated Warehouse bcvhfhgftyfd', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":456,\"managerId\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T12:48:48.495Z\",\"manager\":null}', '{\"id\":4,\"tenantId\":1,\"name\":\"bcvhfhgftyfd\",\"location\":\"fcvbvc\",\"capacity\":456,\"managerId\":9,\"status\":\"active\",\"createdAt\":\"2026-06-09T12:36:45.319Z\",\"updatedAt\":\"2026-06-09T13:04:40.760Z\",\"manager\":{\"firstName\":\"FIELD_STAFF\",\"lastName\":\"User\"}}', 6, '2026-06-09 13:04:40.808'),
+(303, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-09 13:08:37.553'),
+(304, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 05:09:55.991'),
+(305, 'CONCIERGE', 'CREATE', 'Added luxury item Luxury Item', 'null', '{\"id\":1,\"tenantId\":1,\"itemId\":\"LXY-3865\",\"name\":\"Luxury Item\",\"category\":\"General\",\"price\":0,\"status\":\"Stored\",\"createdAt\":\"2026-06-10T05:17:52.582Z\",\"updatedAt\":\"2026-06-10T05:17:52.582Z\"}', 7, '2026-06-10 05:17:52.753'),
+(306, 'ORDERS', 'CREATE', 'Created Order ORD-2026-0006 for Client saXZcaxz', 'null', '{\"id\":6,\"tenantId\":1,\"orderNumber\":\"ORD-2026-0006\",\"clientId\":3,\"createdById\":7,\"status\":\"draft\",\"priority\":\"normal\",\"orderType\":\"PRODUCT\",\"totalAmount\":0,\"createdAt\":\"2026-06-10T05:21:37.458Z\",\"updatedAt\":\"2026-06-10T05:21:37.458Z\",\"items\":[],\"client\":{\"id\":3,\"tenantId\":1,\"clientCode\":\"CLT-340923\",\"companyName\":\"saXZcaxz\",\"contactPerson\":\"kjdkf,mads\",\"email\":\"sdfdv@gmail.com\",\"phone\":\"124277943\",\"address\":\"dkjkajl\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-08T07:39:01.019Z\",\"updatedAt\":\"2026-06-08T07:39:01.019Z\"},\"metadata\":{\"customItems\":[{\"name\":\"acsds\",\"qty\":\"234\",\"price\":\"14\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"canada\",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null},\"customItems\":[{\"name\":\"acsds\",\"qty\":\"234\",\"price\":\"14\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"canada\",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 7, '2026-06-10 05:21:37.536'),
+(307, 'MISSIONS', 'CREATE', 'Assigned Mission MSN-2026-0001 to CONCIERGE User', 'null', '{\"id\":1,\"tenantId\":1,\"missionNumber\":\"MSN-2026-0001\",\"missionType\":\"Delivery\",\"deliveryId\":null,\"orderId\":null,\"assignedEmployeeId\":7,\"startDate\":null,\"endDate\":null,\"status\":\"assigned\",\"metadata\":{\"task\":\"Dispatch Order #6 - acsds\",\"location\":\"usa\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"canada\",\"deliveryLocation\":\"usa\"},\"remarks\":\"\",\"createdAt\":\"2026-06-10T05:21:37.847Z\",\"updatedAt\":\"2026-06-10T05:21:37.847Z\",\"assignee\":{\"id\":7,\"tenantId\":1,\"userId\":7,\"employeeCode\":\"EMP-0007\",\"firstName\":\"CONCIERGE\",\"lastName\":\"User\",\"phone\":null,\"departmentId\":1,\"designationId\":1,\"joiningDate\":\"2026-06-09T13:01:55.757Z\",\"vehicleType\":null,\"vehiclePlate\":null,\"vehicleModel\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T13:01:55.759Z\",\"updatedAt\":\"2026-06-09T13:01:55.759Z\"},\"delivery\":null}', 7, '2026-06-10 05:21:37.887'),
+(308, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 05:27:52.760'),
+(309, 'ORDERS', 'CREATE', 'Created Order ORD-2026-0007 for Client saXZcaxz', 'null', '{\"id\":7,\"tenantId\":1,\"orderNumber\":\"ORD-2026-0007\",\"clientId\":3,\"createdById\":7,\"status\":\"draft\",\"priority\":\"normal\",\"orderType\":\"PRODUCT\",\"totalAmount\":0,\"createdAt\":\"2026-06-10T05:40:48.243Z\",\"updatedAt\":\"2026-06-10T05:40:48.243Z\",\"items\":[],\"client\":{\"id\":3,\"tenantId\":1,\"clientCode\":\"CLT-340923\",\"companyName\":\"saXZcaxz\",\"contactPerson\":\"kjdkf,mads\",\"email\":\"sdfdv@gmail.com\",\"phone\":\"124277943\",\"address\":\"dkjkajl\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-08T07:39:01.019Z\",\"updatedAt\":\"2026-06-08T07:39:01.019Z\"},\"metadata\":{\"customItems\":[{\"name\":\"eeeee\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Delivery\",\"notes\":null,\"location\":\"pakistan\",\"delivery_address\":\"pakistan\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null},\"customItems\":[{\"name\":\"eeeee\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Delivery\",\"notes\":null,\"location\":\"pakistan\",\"delivery_address\":\"pakistan\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 7, '2026-06-10 05:40:48.363'),
+(310, 'MISSIONS', 'CREATE', 'Assigned Mission MSN-2026-0002 to CONCIERGE User', 'null', '{\"id\":2,\"tenantId\":1,\"missionNumber\":\"MSN-2026-0002\",\"missionType\":\"Delivery\",\"deliveryId\":null,\"orderId\":null,\"assignedEmployeeId\":7,\"startDate\":null,\"endDate\":null,\"status\":\"assigned\",\"metadata\":{\"task\":\"Dispatch Order #7 - eeeee\",\"location\":\"pakistan\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"usa \",\"deliveryLocation\":\"pakistan\"},\"remarks\":\"\",\"createdAt\":\"2026-06-10T05:40:48.672Z\",\"updatedAt\":\"2026-06-10T05:40:48.672Z\",\"assignee\":{\"id\":7,\"tenantId\":1,\"userId\":7,\"employeeCode\":\"EMP-0007\",\"firstName\":\"CONCIERGE\",\"lastName\":\"User\",\"phone\":null,\"departmentId\":1,\"designationId\":1,\"joiningDate\":\"2026-06-09T13:01:55.757Z\",\"vehicleType\":null,\"vehiclePlate\":null,\"vehicleModel\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T13:01:55.759Z\",\"updatedAt\":\"2026-06-09T13:01:55.759Z\"},\"delivery\":null}', 7, '2026-06-10 05:40:48.738'),
+(311, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 05:43:11.923'),
+(312, 'ORDERS', 'CREATE', 'Created Order ORD-2026-0008 for Client saXZcaxz', 'null', '{\"id\":8,\"tenantId\":1,\"orderNumber\":\"ORD-2026-0008\",\"clientId\":3,\"createdById\":7,\"status\":\"draft\",\"priority\":\"normal\",\"orderType\":\"PRODUCT\",\"totalAmount\":0,\"createdAt\":\"2026-06-10T05:43:47.384Z\",\"updatedAt\":\"2026-06-10T05:43:47.384Z\",\"items\":[],\"client\":{\"id\":3,\"tenantId\":1,\"clientCode\":\"CLT-340923\",\"companyName\":\"saXZcaxz\",\"contactPerson\":\"kjdkf,mads\",\"email\":\"sdfdv@gmail.com\",\"phone\":\"124277943\",\"address\":\"dkjkajl\",\"city\":null,\"country\":null,\"status\":\"active\",\"clientType\":\"Personal\",\"billingCycle\":\"Monthly\",\"paymentMethod\":\"Wire Transfer\",\"plan\":\"Free\",\"logoUrl\":null,\"source\":\"Manual\",\"createdAt\":\"2026-06-08T07:39:01.019Z\",\"updatedAt\":\"2026-06-08T07:39:01.019Z\"},\"metadata\":{\"customItems\":[{\"name\":\"dwqsav\",\"qty\":1,\"price\":\"12\"}],\"companyId\":null,\"vendorId\":3,\"vendor_name\":\"wSA\",\"type\":\"Custom Order\",\"notes\":null,\"location\":\"india\",\"delivery_address\":\"india\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null},\"customItems\":[{\"name\":\"dwqsav\",\"qty\":1,\"price\":\"12\"}],\"companyId\":null,\"vendorId\":3,\"vendor_name\":\"wSA\",\"type\":\"Custom Order\",\"notes\":null,\"location\":\"india\",\"delivery_address\":\"india\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 7, '2026-06-10 05:43:47.444'),
+(313, 'MISSIONS', 'CREATE', 'Assigned Mission MSN-2026-0003 to CONCIERGE User', 'null', '{\"id\":3,\"tenantId\":1,\"missionNumber\":\"MSN-2026-0003\",\"missionType\":\"Delivery\",\"deliveryId\":null,\"orderId\":null,\"assignedEmployeeId\":7,\"startDate\":null,\"endDate\":null,\"status\":\"assigned\",\"metadata\":{\"task\":\"Dispatch Order #8 - dwqsav\",\"location\":\"india\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"usa \",\"deliveryLocation\":\"india\"},\"remarks\":\"\",\"createdAt\":\"2026-06-10T05:43:47.689Z\",\"updatedAt\":\"2026-06-10T05:43:47.689Z\",\"assignee\":{\"id\":7,\"tenantId\":1,\"userId\":7,\"employeeCode\":\"EMP-0007\",\"firstName\":\"CONCIERGE\",\"lastName\":\"User\",\"phone\":null,\"departmentId\":1,\"designationId\":1,\"joiningDate\":\"2026-06-09T13:01:55.757Z\",\"vehicleType\":null,\"vehiclePlate\":null,\"vehicleModel\":null,\"status\":\"active\",\"createdAt\":\"2026-06-09T13:01:55.759Z\",\"updatedAt\":\"2026-06-09T13:01:55.759Z\"},\"delivery\":null}', 7, '2026-06-10 05:43:47.716'),
+(314, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 05:59:06.300'),
+(315, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 06:15:36.435'),
+(316, 'CONCIERGE', 'CREATE', 'Added luxury item Luxury Item', 'null', '{\"id\":2,\"tenantId\":1,\"itemId\":\"LXY-1984\",\"name\":\"Luxury Item\",\"category\":\"General\",\"price\":0,\"status\":\"Stored\",\"createdAt\":\"2026-06-10T06:18:07.147Z\",\"updatedAt\":\"2026-06-10T06:18:07.147Z\"}', 7, '2026-06-10 06:18:07.222'),
+(317, 'CONCIERGE', 'CREATE', 'Added luxury item dedsd', 'null', '{\"id\":3,\"tenantId\":1,\"itemId\":\"LXY-8506\",\"name\":\"dedsd\",\"category\":\"General\",\"price\":0,\"status\":\"In Use\",\"createdAt\":\"2026-06-10T06:23:32.678Z\",\"updatedAt\":\"2026-06-10T06:23:32.678Z\",\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\",\"metadata\":{\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\"}}', 7, '2026-06-10 06:23:32.782'),
+(318, 'CONCIERGE', 'UPDATE', 'Updated luxury item dedsd', '{\"id\":3,\"tenantId\":1,\"itemId\":\"LXY-8506\",\"name\":\"dedsd\",\"category\":\"General\",\"price\":0,\"status\":\"In Use\",\"createdAt\":\"2026-06-10T06:23:32.678Z\",\"updatedAt\":\"2026-06-10T06:23:32.678Z\",\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\",\"metadata\":{\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\"}}', '{\"id\":3,\"tenantId\":1,\"itemId\":\"LXY-8506\",\"name\":\"dedsd\",\"category\":\"General\",\"price\":0,\"status\":\"Stored\",\"createdAt\":\"2026-06-10T06:23:32.678Z\",\"updatedAt\":\"2026-06-10T06:23:40.215Z\",\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\",\"metadata\":{\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\"}}', 7, '2026-06-10 06:23:40.381'),
+(319, 'CONCIERGE', 'DELETE', 'Deleted luxury item Luxury Item', '{\"id\":2,\"tenantId\":1,\"itemId\":\"LXY-1984\",\"name\":\"Luxury Item\",\"category\":\"General\",\"price\":0,\"status\":\"Stored\",\"createdAt\":\"2026-06-10T06:18:07.147Z\",\"updatedAt\":\"2026-06-10T06:18:07.147Z\",\"metadata\":{}}', 'null', 7, '2026-06-10 06:23:45.391'),
+(320, 'CONCIERGE', 'DELETE', 'Deleted luxury item Luxury Item', '{\"id\":1,\"tenantId\":1,\"itemId\":\"LXY-3865\",\"name\":\"Luxury Item\",\"category\":\"General\",\"price\":0,\"status\":\"Stored\",\"createdAt\":\"2026-06-10T05:17:52.582Z\",\"updatedAt\":\"2026-06-10T05:17:52.582Z\",\"metadata\":{}}', 'null', 7, '2026-06-10 06:23:48.938'),
+(321, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 06:31:34.271'),
+(322, 'AUTH', 'LOGIN', 'User login: superadmin@zanezion.com', 'null', 'null', 1, '2026-06-10 06:35:42.049'),
+(323, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 06:47:25.871'),
+(324, 'AUTH', 'LOGIN', 'User login: admin@zanezion.com', 'null', 'null', 2, '2026-06-10 06:49:10.432'),
+(325, 'AUTH', 'LOGIN', 'User login: concierge@zanezion.com', 'null', 'null', 7, '2026-06-10 07:01:51.868'),
+(326, 'AUTH', 'LOGIN', 'User login: businessclient@zanezion.com', 'null', 'null', 8, '2026-06-10 07:02:55.887');
 
 -- --------------------------------------------------------
 
@@ -265,7 +404,10 @@ CREATE TABLE `clients` (
 --
 
 INSERT INTO `clients` (`id`, `tenantId`, `clientCode`, `companyName`, `contactPerson`, `email`, `phone`, `address`, `city`, `country`, `status`, `createdAt`, `updatedAt`, `billingCycle`, `clientType`, `logoUrl`, `paymentMethod`, `plan`, `source`) VALUES
-(1, 1, 'CLT-952985', 'dzx', 'knjkndkjn', 'sacX@gmail.com', '123456789', 'knk', NULL, NULL, 'active', '2026-06-06 05:49:13.001', '2026-06-06 05:49:13.001', 'Monthly', 'Personal', NULL, 'Wire Transfer', 'Free', 'Manual');
+(1, 1, 'CLT-952985', 'dzx', 'knjkndkjn', 'sacX@gmail.com', '123456789', 'knk', NULL, NULL, 'active', '2026-06-06 05:49:13.001', '2026-06-06 10:48:49.047', 'Monthly', 'Personal', NULL, 'Wire Transfer', 'Free', 'Manual'),
+(2, 1, 'CLT-167288', 'da', 'nkjdn', 'da@gmail.com', '23939213', 'ds', NULL, NULL, 'active', '2026-06-08 05:06:07.296', '2026-06-08 05:06:07.296', 'Monthly', 'Personal', NULL, 'Wire Transfer', 'Free', 'Manual'),
+(3, 1, 'CLT-340923', 'saXZcaxz', 'kjdkf,mads', 'sdfdv@gmail.com', '124277943', 'dkjkajl', NULL, NULL, 'active', '2026-06-08 07:39:01.019', '2026-06-08 07:39:01.019', 'Monthly', 'Personal', NULL, 'Wire Transfer', 'Free', 'Manual'),
+(4, 1, 'CLT-730470', 'dsafd', 'dfg', 'fsaf@gmail.com', '123456', 'xacs', NULL, NULL, 'active', '2026-06-08 07:45:30.526', '2026-06-08 07:45:30.526', 'Monthly', 'Personal', NULL, 'Wire Transfer', 'Free', 'Manual');
 
 -- --------------------------------------------------------
 
@@ -305,7 +447,18 @@ CREATE TABLE `deliveries` (
   `deliveryDate` datetime(3) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
-  `updatedAt` datetime(3) NOT NULL
+  `updatedAt` datetime(3) NOT NULL,
+  `deliveryFee` double DEFAULT NULL,
+  `dropLocation` varchar(191) DEFAULT NULL,
+  `dueDate` datetime(3) DEFAULT NULL,
+  `etaSchedule` datetime(3) DEFAULT NULL,
+  `missionType` varchar(191) NOT NULL DEFAULT 'Delivery',
+  `pickupLocation` varchar(191) DEFAULT NULL,
+  `requestDate` datetime(3) DEFAULT NULL,
+  `routeDistance` double DEFAULT NULL,
+  `staffPayRate` double DEFAULT NULL,
+  `transportMode` varchar(191) NOT NULL DEFAULT 'Road',
+  `vehicleRef` varchar(191) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -410,7 +563,19 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `tenantId`, `userId`, `employeeCode`, `firstName`, `lastName`, `phone`, `departmentId`, `designationId`, `joiningDate`, `status`, `createdAt`, `updatedAt`, `vehicleModel`, `vehiclePlate`, `vehicleType`) VALUES
-(1, 1, 2, 'EMP-ADMIN', 'Admin', 'User', NULL, 1, 1, '2026-06-05 12:37:08.605', 'active', '2026-06-05 12:37:08.617', '2026-06-05 12:37:08.617', NULL, NULL, NULL);
+(1, 1, 2, 'EMP-ADMIN', 'Admin', 'User', NULL, 1, 1, '2026-06-05 12:37:08.605', 'active', '2026-06-05 12:37:08.617', '2026-06-05 12:37:08.617', NULL, NULL, NULL),
+(2, 1, 1, 'EMP-0001', 'SUPER_admin', '', NULL, 1, 1, '2026-06-09 13:01:55.654', 'active', '2026-06-09 13:01:55.657', '2026-06-09 13:01:55.657', NULL, NULL, NULL),
+(3, 1, 3, 'EMP-0003', 'OPERATIONS', 'User', NULL, 1, 1, '2026-06-09 13:01:55.720', 'active', '2026-06-09 13:01:55.722', '2026-06-09 13:01:55.722', NULL, NULL, NULL),
+(4, 1, 4, 'EMP-0004', 'PROCUREMENT', 'User', NULL, 1, 1, '2026-06-09 13:01:55.739', 'active', '2026-06-09 13:01:55.741', '2026-06-09 13:01:55.741', NULL, NULL, NULL),
+(5, 1, 5, 'EMP-0005', 'LOGISTICS', 'User', NULL, 1, 1, '2026-06-09 13:01:55.746', 'active', '2026-06-09 13:01:55.748', '2026-06-09 13:01:55.748', NULL, NULL, NULL),
+(6, 1, 6, 'EMP-0006', 'INVENTORY', 'User', NULL, 1, 1, '2026-06-09 13:01:55.752', 'active', '2026-06-09 13:01:55.754', '2026-06-09 13:01:55.754', NULL, NULL, NULL),
+(7, 1, 7, 'EMP-0007', 'CONCIERGE', 'User', NULL, 1, 1, '2026-06-09 13:01:55.757', 'active', '2026-06-09 13:01:55.759', '2026-06-09 13:01:55.759', NULL, NULL, NULL),
+(8, 1, 8, 'EMP-0008', 'BUSINESS_CLIENT', 'User', NULL, 1, 1, '2026-06-09 13:01:55.767', 'active', '2026-06-09 13:01:55.769', '2026-06-09 13:01:55.769', NULL, NULL, NULL),
+(9, 1, 9, 'EMP-0009', 'FIELD_STAFF', 'User', NULL, 1, 1, '2026-06-09 13:01:55.772', 'active', '2026-06-09 13:01:55.774', '2026-06-09 13:01:55.774', NULL, NULL, NULL),
+(10, 1, 10, 'EMP-0010', 'qdw', '', NULL, 1, 1, '2026-06-09 13:01:55.779', 'active', '2026-06-09 13:01:55.780', '2026-06-09 13:01:55.780', NULL, NULL, NULL),
+(11, 1, 11, 'EMP-0011', 'SFD', '', NULL, 1, 1, '2026-06-09 13:01:55.784', 'active', '2026-06-09 13:01:55.785', '2026-06-09 13:01:55.785', NULL, NULL, NULL),
+(12, 1, 12, 'EMP-0012', 'DSAFDG', '', NULL, 1, 1, '2026-06-09 13:01:55.789', 'active', '2026-06-09 13:01:55.790', '2026-06-09 13:01:55.790', NULL, NULL, NULL),
+(13, 1, 13, 'EMP-0013', 'abcdd', '', NULL, 1, 1, '2026-06-09 13:01:55.794', 'active', '2026-06-09 13:01:55.796', '2026-06-09 13:01:55.796', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -432,6 +597,37 @@ CREATE TABLE `employee_documents` (
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `updatedAt` datetime(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+CREATE TABLE `events` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `eventId` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `date` varchar(191) DEFAULT NULL,
+  `location` varchar(191) DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Scheduled',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL,
+  `clientId` int(11) DEFAULT NULL,
+  `guestCount` int(11) DEFAULT NULL,
+  `managerId` int(11) DEFAULT NULL,
+  `moodBoardUrl` varchar(191) DEFAULT NULL,
+  `plannerName` varchar(191) DEFAULT NULL,
+  `specialRequests` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id`, `tenantId`, `eventId`, `name`, `date`, `location`, `status`, `createdAt`, `updatedAt`, `clientId`, `guestCount`, `managerId`, `moodBoardUrl`, `plannerName`, `specialRequests`) VALUES
+(1, 1, 'EVT-6976', 'wqeqwdwd', '2026-06-10', 'efrvwewd', 'completed', '2026-06-10 05:54:13.547', '2026-06-10 05:54:31.503', 3, 23, 7, '', 'dsfdss', 'dfvdsafv');
 
 -- --------------------------------------------------------
 
@@ -479,6 +675,34 @@ CREATE TABLE `grn_items` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `guest_requests`
+--
+
+CREATE TABLE `guest_requests` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `requestId` varchar(191) NOT NULL,
+  `guestName` varchar(191) NOT NULL,
+  `room` varchar(191) DEFAULT NULL,
+  `requestType` varchar(191) DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Pending',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `guest_requests`
+--
+
+INSERT INTO `guest_requests` (`id`, `tenantId`, `requestId`, `guestName`, `room`, `requestType`, `status`, `createdAt`, `updatedAt`, `metadata`) VALUES
+(1, 1, 'GRQ-2306', 'Guest', '', 'General', 'Pending', '2026-06-09 13:08:58.032', '2026-06-09 13:08:58.032', NULL),
+(2, 1, 'GRQ-8742', 'Guest', '', 'General', 'Pending', '2026-06-10 05:18:16.093', '2026-06-10 05:18:16.093', NULL),
+(4, 1, 'GRQ-4988', 'qdvwed', '', 'General', 'In Progress', '2026-06-10 06:16:11.934', '2026-06-10 06:16:34.278', '{\"client_id\":4,\"guest\":\"qdvwed\",\"requested_by\":\"dswqq\",\"request_details\":\"dqsa\",\"delivery_time\":\"2026-06-10 00:00:00\",\"priority\":\"Medium\"}');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `inventory_stock`
 --
 
@@ -492,6 +716,13 @@ CREATE TABLE `inventory_stock` (
   `lastUpdated` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `stockType` varchar(191) NOT NULL DEFAULT 'INTERNAL'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `inventory_stock`
+--
+
+INSERT INTO `inventory_stock` (`id`, `tenantId`, `warehouseId`, `itemId`, `quantity`, `reservedQuantity`, `lastUpdated`, `stockType`) VALUES
+(1, 1, 2, 4, 2, 0, '2026-06-09 12:34:13.385', 'INTERNAL');
 
 -- --------------------------------------------------------
 
@@ -563,7 +794,9 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `tenantId`, `categoryId`, `unitId`, `sku`, `name`, `description`, `reorderLevel`, `status`, `createdAt`, `updatedAt`, `inventoryType`) VALUES
-(2, 1, 1, 1, 'SKU-58405650', 'SKU Test Watch', NULL, 0, 'active', '2026-06-05 11:56:24.070', '2026-06-05 11:56:24.070', 'INTERNAL');
+(2, 1, 1, 1, 'SKU-58405650', 'SKU Test Watch', NULL, 0, 'active', '2026-06-05 11:56:24.070', '2026-06-05 11:56:24.070', 'INTERNAL'),
+(3, 1, 1, 1, 'SKU-952026335', 'dt3rgsx', 'gdfg', 0, 'active', '2026-06-08 10:19:12.053', '2026-06-08 10:19:12.053', 'INTERNAL'),
+(4, 1, 1, 1, 'SKU-453363878', 'cczdczz', 'ds', 0, 'active', '2026-06-09 12:34:13.385', '2026-06-09 12:34:13.385', 'MARKETPLACE');
 
 -- --------------------------------------------------------
 
@@ -610,6 +843,62 @@ CREATE TABLE `item_units` (
 
 INSERT INTO `item_units` (`id`, `tenantId`, `name`, `shortName`, `status`, `createdAt`, `updatedAt`) VALUES
 (1, 1, 'Pieces', 'pcs', 'active', '2026-06-05 11:41:46.428', '2026-06-05 11:41:46.428');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `leave_requests`
+--
+
+CREATE TABLE `leave_requests` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) DEFAULT NULL,
+  `userId` int(11) NOT NULL,
+  `leaveType` varchar(191) NOT NULL,
+  `startDate` datetime(3) NOT NULL,
+  `endDate` datetime(3) NOT NULL,
+  `reason` text DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'pending',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL,
+  `hours` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `leave_requests`
+--
+
+INSERT INTO `leave_requests` (`id`, `tenantId`, `userId`, `leaveType`, `startDate`, `endDate`, `reason`, `status`, `createdAt`, `updatedAt`, `hours`) VALUES
+(1, NULL, 4, 'Personal Leave', '2026-06-08 00:00:00.000', '2026-06-10 00:00:00.000', 'No reason provided', 'Pending', '2026-06-09 10:39:40.804', '2026-06-09 10:39:40.804', NULL),
+(2, NULL, 5, 'Vacation', '2026-06-09 00:00:00.000', '2026-06-10 00:00:00.000', 'No reason provided', 'Pending', '2026-06-09 12:28:34.862', '2026-06-09 12:28:34.862', NULL),
+(3, NULL, 6, 'Personal Leave', '2026-06-10 00:00:00.000', '2026-06-11 00:00:00.000', 'No reason provided', 'Pending', '2026-06-09 13:08:25.972', '2026-06-09 13:08:25.972', 4),
+(4, NULL, 7, 'Vacation', '2026-06-10 00:00:00.000', '2026-06-19 00:00:00.000', 'No reason provided', 'Pending', '2026-06-10 07:02:14.919', '2026-06-10 07:02:14.919', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `luxury_items`
+--
+
+CREATE TABLE `luxury_items` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `itemId` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `category` varchar(191) DEFAULT NULL,
+  `price` double DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Available',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `luxury_items`
+--
+
+INSERT INTO `luxury_items` (`id`, `tenantId`, `itemId`, `name`, `category`, `price`, `status`, `createdAt`, `updatedAt`, `metadata`) VALUES
+(3, 1, 'LXY-8506', 'dedsd', 'General', 0, 'Stored', '2026-06-10 06:23:32.678', '2026-06-10 06:23:40.215', '{\"item_name\":\"dedsd\",\"owner_name\":\"sadasd\",\"vault_location\":\"Vault Alpha\",\"estimated_value\":\"dsadds\"}');
 
 -- --------------------------------------------------------
 
@@ -694,6 +983,15 @@ CREATE TABLE `missions` (
   `orderId` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `missions`
+--
+
+INSERT INTO `missions` (`id`, `tenantId`, `missionNumber`, `deliveryId`, `assignedEmployeeId`, `startDate`, `endDate`, `status`, `remarks`, `createdAt`, `updatedAt`, `metadata`, `missionType`, `orderId`) VALUES
+(1, 1, 'MSN-2026-0001', NULL, 7, NULL, NULL, 'assigned', '', '2026-06-10 05:21:37.847', '2026-06-10 05:21:37.847', '{\"task\":\"Dispatch Order #6 - acsds\",\"location\":\"usa\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"canada\",\"deliveryLocation\":\"usa\"}', 'Delivery', NULL),
+(2, 1, 'MSN-2026-0002', NULL, 7, NULL, NULL, 'assigned', '', '2026-06-10 05:40:48.672', '2026-06-10 05:40:48.672', '{\"task\":\"Dispatch Order #7 - eeeee\",\"location\":\"pakistan\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"usa \",\"deliveryLocation\":\"pakistan\"}', 'Delivery', NULL),
+(3, 1, 'MSN-2026-0003', NULL, 7, NULL, NULL, 'assigned', '', '2026-06-10 05:43:47.689', '2026-06-10 05:43:47.689', '{\"task\":\"Dispatch Order #8 - dwqsav\",\"location\":\"india\",\"status\":\"Pending\",\"priority\":\"Normal\",\"missionType\":\"Delivery\",\"pickupLocation\":\"usa \",\"deliveryLocation\":\"india\"}', 'Delivery', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -709,6 +1007,33 @@ CREATE TABLE `notifications` (
   `isRead` tinyint(1) NOT NULL DEFAULT 0,
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `title`, `message`, `type`, `userId`, `isRead`, `createdAt`) VALUES
+(1, '👤 New Client Added', 'Client \"saXZcaxz\" (CLT-340923) has been registered.', 'info', 2, 0, '2026-06-08 07:39:01.163'),
+(2, '👤 New Client Added', 'Client \"saXZcaxz\" (CLT-340923) has been registered.', 'info', 10, 0, '2026-06-08 07:39:01.163'),
+(3, '👤 New Client Added', 'Client \"dsafd\" (CLT-730470) has been registered.', 'info', 2, 0, '2026-06-08 07:45:30.701'),
+(4, '👤 New Client Added', 'Client \"dsafd\" (CLT-730470) has been registered.', 'info', 10, 0, '2026-06-08 07:45:30.701'),
+(5, '🏭 New Warehouse Added', 'Warehouse \"3eqw\" (jbjnjkn) has been created.', 'info', 2, 0, '2026-06-08 12:55:24.605'),
+(6, '🏭 New Warehouse Added', 'Warehouse \"3eqw\" (jbjnjkn) has been created.', 'info', 10, 0, '2026-06-08 12:55:24.605'),
+(7, '🏭 New Warehouse Added', 'Warehouse \"bcvhfhgftyfd\" (fcvbvc) has been created.', 'info', 2, 0, '2026-06-09 12:36:45.387'),
+(8, '🏭 New Warehouse Added', 'Warehouse \"bcvhfhgftyfd\" (fcvbvc) has been created.', 'info', 10, 0, '2026-06-09 12:36:45.387'),
+(9, '🏭 New Warehouse Added', 'Warehouse \"bcvhfhgftyfd\" (fcvbvc) has been created.', 'info', 6, 0, '2026-06-09 12:36:45.387'),
+(10, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 2, 0, '2026-06-09 12:48:22.328'),
+(11, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 10, 0, '2026-06-09 12:48:22.328'),
+(12, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 1, 0, '2026-06-09 12:48:22.328'),
+(13, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 6, 0, '2026-06-09 12:48:22.328'),
+(14, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 2, 0, '2026-06-09 12:48:48.532'),
+(15, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 10, 0, '2026-06-09 12:48:48.532'),
+(16, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 1, 0, '2026-06-09 12:48:48.532'),
+(17, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 6, 0, '2026-06-09 12:48:48.532'),
+(18, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 2, 0, '2026-06-09 13:04:40.840'),
+(19, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 10, 0, '2026-06-09 13:04:40.840'),
+(20, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 1, 0, '2026-06-09 13:04:40.840'),
+(21, '✏️ Warehouse Updated', 'Warehouse \"bcvhfhgftyfd\" has been updated.', 'info', 6, 0, '2026-06-09 13:04:40.840');
 
 -- --------------------------------------------------------
 
@@ -730,6 +1055,20 @@ CREATE TABLE `orders` (
   `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
   `orderType` varchar(191) NOT NULL DEFAULT 'PRODUCT'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `tenantId`, `orderNumber`, `clientId`, `createdById`, `status`, `priority`, `totalAmount`, `createdAt`, `updatedAt`, `metadata`, `orderType`) VALUES
+(1, 1, 'ORD-2026-0001', 1, 1, 'draft', 'normal', 0, '2026-06-06 17:48:34.742', '2026-06-06 17:48:34.742', '{\"customItems\":[{\"name\":\"fftft\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-06\",\"request_date\":\"2026-06-06\",\"due_date\":\"2026-06-06\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 'PRODUCT'),
+(2, 1, 'PRJ-2026-0002', 1, 1, 'planned', 'normal', 0, '2026-06-06 18:08:46.312', '2026-06-06 18:08:46.312', '{\"name\":\"afdc\",\"description\":\"Tactical deployment for dzx\",\"startDate\":\"2026-06-10\",\"location\":\"india\",\"delivery_type\":\"Road\",\"client_name\":\"dzx\"}', 'Project'),
+(3, 1, 'ORD-2026-0003', 4, 1, 'draft', 'normal', 0, '2026-06-08 09:36:38.587', '2026-06-08 09:36:38.587', '{\"customItems\":[{\"name\":\"dsd\",\"qty\":1,\"price\":\"213\"}],\"companyId\":null,\"vendorId\":null,\"type\":\"Delivery\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"india\",\"order_date\":\"2026-06-08\",\"request_date\":\"2026-06-08\",\"due_date\":\"2026-06-08\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 'PRODUCT'),
+(4, 1, 'PRJ-2026-0004', 2, 1, 'completed', 'normal', 0, '2026-06-08 09:54:54.720', '2026-06-08 09:55:04.577', '{\"name\":\"hfhhf\",\"description\":\"Tactical deployment for da\",\"startDate\":\"2026-06-09\",\"location\":\"india\",\"delivery_type\":\"Road\",\"client_name\":\"da\"}', 'Project'),
+(5, 1, 'PRJ-2026-0005', 2, 1, 'planned', 'normal', 0, '2026-06-08 12:43:03.714', '2026-06-08 12:43:03.714', '{\"name\":\"dafdvf\",\"description\":\"Tactical deployment for da\",\"startDate\":\"2026-06-09\",\"location\":\"india\",\"delivery_type\":\"Road\",\"client_name\":\"da\"}', 'Project'),
+(6, 1, 'ORD-2026-0006', 3, 7, 'draft', 'normal', 0, '2026-06-10 05:21:37.458', '2026-06-10 05:21:37.458', '{\"customItems\":[{\"name\":\"acsds\",\"qty\":\"234\",\"price\":\"14\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Custom Order\",\"notes\":null,\"location\":\"usa\",\"delivery_address\":\"usa\",\"pickup_location\":\"canada\",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 'PRODUCT'),
+(7, 1, 'ORD-2026-0007', 3, 7, 'draft', 'normal', 0, '2026-06-10 05:40:48.243', '2026-06-10 05:40:48.243', '{\"customItems\":[{\"name\":\"eeeee\",\"qty\":\"2\",\"price\":\"12\"}],\"companyId\":null,\"vendorId\":4,\"vendor_name\":\"oooooooo\",\"type\":\"Delivery\",\"notes\":null,\"location\":\"pakistan\",\"delivery_address\":\"pakistan\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null}', 'PRODUCT'),
+(8, 1, 'ORD-2026-0008', 3, 7, 'draft', 'normal', 0, '2026-06-10 05:43:47.384', '2026-06-10 05:52:39.997', '{\"customItems\":[{\"name\":\"hhjjj\",\"qty\":1,\"price\":\"\"}],\"companyId\":null,\"vendorId\":3,\"vendor_name\":\"oooooooo\",\"type\":\"Delivery\",\"notes\":null,\"location\":\"india\",\"delivery_address\":\"india\",\"pickup_location\":\"usa \",\"order_date\":\"2026-06-10\",\"request_date\":\"2026-06-10\",\"due_date\":\"2026-06-10\",\"order_kind\":\"marketplace\",\"delivery_mode\":\"Road\",\"routed_department\":\"logistics\",\"route_department\":\"logistics\",\"total_amount\":0,\"subtotal\":0,\"estimated_total\":0,\"book_chauffeur\":false,\"custom_request_category\":null,\"concierge_member\":false,\"delivery_instructions\":null,\"client_id\":3,\"vendor_id\":\"4\",\"deliveryType\":\"Road\"}', 'PRODUCT');
 
 -- --------------------------------------------------------
 
@@ -834,7 +1173,7 @@ CREATE TABLE `plans` (
 --
 
 INSERT INTO `plans` (`id`, `name`, `description`, `price`, `billingCycle`, `maxUsers`, `maxStorage`, `features`, `isActive`, `createdAt`, `updatedAt`) VALUES
-(1, 'ddd', 'sffd', 123, 'MONTHLY', 100, 1024, '{\"tier\":\"ds\",\"yearlyPrice\":1234,\"commitment\":\"Monthly or Yearly subscription.\",\"list\":[\"fdsc\"]}', 1, '2026-06-06 07:31:11.204', '2026-06-06 07:31:11.204');
+(1, 'ddd', 'sffd', 1233, 'MONTHLY', 100, 1024, '{\"tier\":\"ds\",\"yearlyPrice\":1234,\"commitment\":\"Monthly or Yearly subscription.\",\"list\":[\"fdsc\"]}', 1, '2026-06-06 07:31:11.204', '2026-06-06 10:35:05.543');
 
 -- --------------------------------------------------------
 
@@ -873,13 +1212,6 @@ CREATE TABLE `purchase_orders` (
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `updatedAt` datetime(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `purchase_orders`
---
-
-INSERT INTO `purchase_orders` (`id`, `tenantId`, `poNumber`, `vendorId`, `purchaseRequestId`, `quotationId`, `totalAmount`, `status`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 'PO-2026-0001', 2, 16, 3, 4500, 'draft', '2026-06-05 13:14:58.373', '2026-06-05 13:14:58.373');
 
 -- --------------------------------------------------------
 
@@ -920,7 +1252,8 @@ INSERT INTO `purchase_requests` (`id`, `tenantId`, `prNumber`, `title`, `descrip
 (13, 1, 'PR-2026-0012', 'Stage B Test Asset', 'Testing RFQ Flow', 2, 1, 'approved', 'high', '2026-06-05 13:14:01.686', '2026-06-05 13:14:01.729'),
 (14, 1, 'PR-2026-0013', 'Stage B Test Asset', 'Testing RFQ Flow', 2, 1, 'rfq_created', 'high', '2026-06-05 13:14:19.480', '2026-06-05 13:14:19.603'),
 (15, 1, 'PR-2026-0014', 'Stage B Test Asset', 'Testing RFQ Flow', 2, 1, 'rfq_created', 'high', '2026-06-05 13:14:37.198', '2026-06-05 13:14:37.274'),
-(16, 1, 'PR-2026-0015', 'Stage B Test Asset', 'Testing RFQ Flow', 2, 1, 'rfq_created', 'high', '2026-06-05 13:14:58.117', '2026-06-05 13:14:58.216');
+(16, 1, 'PR-2026-0015', 'Stage B Test Asset', 'Testing RFQ Flow', 2, 1, 'rfq_created', 'high', '2026-06-05 13:14:58.117', '2026-06-05 13:14:58.216'),
+(17, 1, 'PR-TEST-1', 'Test', NULL, 1, 1, 'approved', 'medium', '2026-06-09 08:56:39.882', '2026-06-09 08:56:39.882');
 
 -- --------------------------------------------------------
 
@@ -970,23 +1303,15 @@ INSERT INTO `purchase_request_items` (`id`, `purchaseRequestId`, `itemName`, `de
 CREATE TABLE `quotations` (
   `id` int(11) NOT NULL,
   `tenantId` int(11) NOT NULL,
-  `rfqId` int(11) NOT NULL,
-  `vendorId` int(11) NOT NULL,
+  `rfqId` int(11) DEFAULT NULL,
+  `vendorId` int(11) DEFAULT NULL,
   `amount` double NOT NULL,
   `remarks` text DEFAULT NULL,
   `status` varchar(191) NOT NULL DEFAULT 'pending',
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
-  `updatedAt` datetime(3) NOT NULL
+  `updatedAt` datetime(3) NOT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `quotations`
---
-
-INSERT INTO `quotations` (`id`, `tenantId`, `rfqId`, `vendorId`, `amount`, `remarks`, `status`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 1, 2, 4500, 'Special Discount', 'pending', '2026-06-05 13:14:19.681', '2026-06-05 13:14:19.681'),
-(2, 1, 2, 2, 4500, 'Special Discount', 'pending', '2026-06-05 13:14:37.340', '2026-06-05 13:14:37.340'),
-(3, 1, 3, 2, 4500, 'Special Discount', 'approved', '2026-06-05 13:14:58.282', '2026-06-05 13:14:58.318');
 
 -- --------------------------------------------------------
 
@@ -1170,7 +1495,91 @@ INSERT INTO `refresh_tokens` (`id`, `token`, `userId`, `expiresAt`, `createdAt`)
 (154, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzMwNTIzLCJleHAiOjE3ODEzMzUzMjN9.r3yKBjYPPHij2nGVeyMyEOse29Xv2m9giLLo8BTejFY', 1, '2026-06-13 07:22:03.637', '2026-06-06 07:22:03.638'),
 (155, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzMxNDQ3LCJleHAiOjE3ODEzMzYyNDd9.d6o9zVCyUA29LVZ2f6CwNwG5Xw4IE8FzcBIiFh6jeTw', 1, '2026-06-13 07:37:27.879', '2026-06-06 07:37:27.888'),
 (156, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwNzMxODgxLCJleHAiOjE3ODEzMzY2ODF9.CVVTz1fZ487xoXbrzIEX39i_pRJMDq0ajngljcuHS2I', 2, '2026-06-13 07:44:41.388', '2026-06-06 07:44:41.393'),
-(157, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzM2Nzg4LCJleHAiOjE3ODEzNDE1ODh9.f6pSOh90cNNmsvmNt8IQ6U_pLt_tyBxBWmS6iWrPOi0', 1, '2026-06-13 09:06:28.334', '2026-06-06 09:06:28.338');
+(157, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzM2Nzg4LCJleHAiOjE3ODEzNDE1ODh9.f6pSOh90cNNmsvmNt8IQ6U_pLt_tyBxBWmS6iWrPOi0', 1, '2026-06-13 09:06:28.334', '2026-06-06 09:06:28.338'),
+(158, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzM5NDE1LCJleHAiOjE3ODEzNDQyMTV9.m_rKvwhqP0U_EsbyuD-pfxxPrvVVsNZXE31h1jhlOqI', 1, '2026-06-13 09:50:15.779', '2026-06-06 09:50:15.786'),
+(159, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzQwNDMxLCJleHAiOjE3ODEzNDUyMzF9.zujTbI3tQvVxPVQtNQGjym4wOb9HWeFWgryniktSfkw', 1, '2026-06-13 10:07:11.778', '2026-06-06 10:07:11.783'),
+(160, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwNzQxMDAxLCJleHAiOjE3ODEzNDU4MDF9.-0-2el91AILEXwSQA9b7eU8cLCWWLL3ARGMrQ_1N-Yk', 2, '2026-06-13 10:16:41.958', '2026-06-06 10:16:41.965'),
+(161, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzQxNzMzLCJleHAiOjE3ODEzNDY1MzN9.gVfJDu4wmi3soOiyE-f_WNcQ6PHmfVkePPhf8zn16uA', 1, '2026-06-13 10:28:53.222', '2026-06-06 10:28:53.236'),
+(162, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzQyMTU4LCJleHAiOjE3ODEzNDY5NTh9.-0AlWlYverGNik8WfaauQjwLjiOsVqMV6yMVzOGauww', 1, '2026-06-13 10:35:58.579', '2026-06-06 10:35:58.583'),
+(163, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwNzQyMTgxLCJleHAiOjE3ODEzNDY5ODF9.f3Qo2TozRMLuT8xjLCwvOV-nNaFWJkJA4mV5TXeHbds', 4, '2026-06-13 10:36:21.826', '2026-06-06 10:36:21.829'),
+(164, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwNzQyMTg2LCJleHAiOjE3ODEzNDY5ODZ9.oAevrHbsDjncpenoADcARRSDKr4_ffytEEELrXJSXzs', 3, '2026-06-13 10:36:26.202', '2026-06-06 10:36:26.205'),
+(165, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwNzQyMzk1LCJleHAiOjE3ODEzNDcxOTV9.yQgpwQ__rqRzLLKtiIgVD23E1RY91QzoyfLl2VtOTCs', 3, '2026-06-13 10:39:55.298', '2026-06-06 10:39:55.302'),
+(166, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzQyNDYwLCJleHAiOjE3ODEzNDcyNjB9.C0F_AivOxexQxH40vakraVcJmkL5Agbwhb6A77GDsvI', 1, '2026-06-13 10:41:00.600', '2026-06-06 10:41:00.602'),
+(167, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwNzQzNTg2LCJleHAiOjE3ODEzNDgzODZ9.UPUTQ2jC3oddh089e646xEy5XVmk99IJDSSqqHictSE', 1, '2026-06-13 10:59:46.068', '2026-06-06 10:59:46.071'),
+(168, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNzgwNzQzNjc0LCJleHAiOjE3ODEzNDg0NzR9.63lb7y2CTFYi7p5qwj4NIjOhYSMMW22ylRTdA3baPxg', 9, '2026-06-13 11:01:14.688', '2026-06-06 11:01:14.690'),
+(169, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNzgwNzQ0MjQyLCJleHAiOjE3ODEzNDkwNDJ9.TTOd7qOT22n4gvRiqPnfWIgLo2DX89YX6dhot_s1bWQ', 9, '2026-06-13 11:10:42.983', '2026-06-06 11:10:42.988'),
+(170, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwNzY3OTM4LCJleHAiOjE3ODEzNzI3Mzh9.U6l0X_m6f3LAKpqUDu9IcXKLsfGmnmmBrru_hoP6T7c', 2, '2026-06-13 17:45:38.840', '2026-06-06 17:45:38.851'),
+(171, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwNzY5MjgxLCJleHAiOjE3ODEzNzQwODF9.I3ZmBULP_Aa-z8DoPq2i0-YjKwXJCoct3UBZb2Fj7-4', 2, '2026-06-13 18:08:01.554', '2026-06-06 18:08:01.560'),
+(172, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwNzcwMjU1LCJleHAiOjE3ODEzNzUwNTV9.vMMcgTJTssdw_YnYXZbZsuOzzw8RQk5VzO9Uh9XVp0E', 2, '2026-06-13 18:24:15.495', '2026-06-06 18:24:15.514'),
+(173, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODE0MjIzLCJleHAiOjE3ODE0MTkwMjN9.6XiCYhAeNWCb1mtue36BH_hJzYULpjX9jZC-ATCUm9o', 2, '2026-06-14 06:37:03.082', '2026-06-07 06:37:03.100'),
+(174, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwODE1NTQzLCJleHAiOjE3ODE0MjAzNDN9.w9eYqPaMEpfk50ddK2PWZ7CAoaibGbPBDJJE4ZcVsqc', 1, '2026-06-14 06:59:03.496', '2026-06-07 06:59:03.502'),
+(175, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODE1Njc0LCJleHAiOjE3ODE0MjA0NzR9.DWBFIMWLLnkbH-YqTdrjxM-wv8tlnM55hZpaWkTGOXg', 2, '2026-06-14 07:01:14.422', '2026-06-07 07:01:14.424'),
+(176, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODE2NzAyLCJleHAiOjE3ODE0MjE1MDJ9.JL389EhOnXKpC8Zo-ghJ3xSwTE1_GbFq3N6om_AcV-4', 2, '2026-06-14 07:18:22.812', '2026-06-07 07:18:22.814'),
+(177, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwODE3NjAyLCJleHAiOjE3ODE0MjI0MDJ9.Sb1MtM4PROQmCxLIumnuqBP1nj0UIGfLTIP1ZpqN_Ww', 4, '2026-06-14 07:33:22.630', '2026-06-07 07:33:22.631'),
+(178, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODE5MDY1LCJleHAiOjE3ODE0MjM4NjV9.CRF0erfE7zvi1l-e_AExjdXlG94V29gdqpphf5t2W1I', 2, '2026-06-14 07:57:45.761', '2026-06-07 07:57:45.765'),
+(179, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwODE5MDc2LCJleHAiOjE3ODE0MjM4NzZ9.BPfUuQXwl8ZGEG6ERP5tNIQF8aWK5DjaGVttgclEI8A', 4, '2026-06-14 07:57:56.081', '2026-06-07 07:57:56.082'),
+(180, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODk1MDU0LCJleHAiOjE3ODE0OTk4NTR9.8cf2vm9jbdzOyo95-uveP2_G5s-mcW9f54EFtdkx5KI', 2, '2026-06-15 05:04:14.311', '2026-06-08 05:04:14.315'),
+(181, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODk2MDYyLCJleHAiOjE3ODE1MDA4NjJ9.nj_ngyqtQY5zNo9ApUanHGRjHE9jDVinCUS1p9EvyXw', 2, '2026-06-15 05:21:02.716', '2026-06-08 05:21:02.729'),
+(182, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODk3MDEyLCJleHAiOjE3ODE1MDE4MTJ9.x8KpGstDMEAu0BpqO0Q-N_QMILeJEYbThEKcfX1m3t4', 2, '2026-06-15 05:36:52.850', '2026-06-08 05:36:52.862'),
+(183, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODk4MDM1LCJleHAiOjE3ODE1MDI4MzV9.CMJal0TmQ-OsPb4p30PwFZ_5eF-Q8ZLTk_hwZc3f-_I', 2, '2026-06-15 05:53:55.316', '2026-06-08 05:53:55.321'),
+(184, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwODk5NzIwLCJleHAiOjE3ODE1MDQ1MjB9.TuxR8S0wNJuQ77w1GGGByIPr3Zp4OZiD25ShBzq9oEM', 2, '2026-06-15 06:22:00.897', '2026-06-08 06:22:00.904'),
+(185, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTAwNjgwLCJleHAiOjE3ODE1MDU0ODB9.Aye7-fIVki6RjnqbIncNjTQ72j6hNwxRfvznnxMzjt0', 2, '2026-06-15 06:38:00.061', '2026-06-08 06:38:00.068'),
+(186, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTAxNzMzLCJleHAiOjE3ODE1MDY1MzN9.6g6M_TPhdaFwU13zEhalbTx9V0Kc_oIfAvLPK2d-W_4', 2, '2026-06-15 06:55:33.258', '2026-06-08 06:55:33.262'),
+(187, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTAzMTUzLCJleHAiOjE3ODE1MDc5NTN9.eLpXWGiObtfZXB1SV8PtRFORvUwo3Y0DCPjzz2v03nA', 2, '2026-06-15 07:19:13.215', '2026-06-08 07:19:13.221'),
+(188, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTA0MTYyLCJleHAiOjE3ODE1MDg5NjJ9.d6enY6K5AEieKOkFr7GFElepEE36f61MvMfp8S_AnHs', 2, '2026-06-15 07:36:02.674', '2026-06-08 07:36:02.677'),
+(189, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTExMzYxLCJleHAiOjE3ODE1MTYxNjF9.hXyGg5aPJ2glU2hWCRkVVIZZCA1CV8dZEZeU96KPsoI', 2, '2026-06-15 09:36:01.822', '2026-06-08 09:36:01.827'),
+(190, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTEyNDU5LCJleHAiOjE3ODE1MTcyNTl9.WA1jZn_YVDzCr7eEMxH-XrRoIAZmcaVKOOkS7TdpUcY', 2, '2026-06-15 09:54:19.418', '2026-06-08 09:54:19.423'),
+(191, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTEzNDI1LCJleHAiOjE3ODE1MTgyMjV9.kirhfXQTzF8IeA_P-4QSKbaRNW0lsl52yxWFXsuMto8', 2, '2026-06-15 10:10:25.677', '2026-06-08 10:10:25.683'),
+(192, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTE0NDAyLCJleHAiOjE3ODE1MTkyMDJ9.Yd3JbR-YeCNsjPVEGk9sJrKnSpFZZHcXhREWgnvQrBQ', 2, '2026-06-15 10:26:42.442', '2026-06-08 10:26:42.449'),
+(193, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgwOTE0ODcyLCJleHAiOjE3ODE1MTk2NzJ9.nQ5-mNuZ8wyjDn9QnvSnlK16p6jQcB2P1uxk-Z4wJr0', 1, '2026-06-15 10:34:32.394', '2026-06-08 10:34:32.399'),
+(194, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTE1OTEyLCJleHAiOjE3ODE1MjA3MTJ9.B8rmXHY2YEX1j0-WY_bvAfcIoLshNRl_74G-t1WiYjE', 2, '2026-06-15 10:51:52.054', '2026-06-08 10:51:52.059'),
+(195, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTE1OTEzLCJleHAiOjE3ODE1MjA3MTN9.6OC7nL4GaMyy38EG-sp7PaIFyQnR5EG_J3Z6rUTg1DU', 2, '2026-06-15 10:51:53.115', '2026-06-08 10:51:53.118'),
+(196, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTIyNTM4LCJleHAiOjE3ODE1MjczMzh9.7XIeM1H9lKVPqr_Qhtjgw4CPKPPOkL0BmzpAtxlNwng', 3, '2026-06-15 12:42:18.684', '2026-06-08 12:42:18.688'),
+(197, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTIyNTY1LCJleHAiOjE3ODE1MjczNjV9.1gTuvqUyrAlsC1da03sHzZeq433sMOGG877uqfbTFGg', 2, '2026-06-15 12:42:45.297', '2026-06-08 12:42:45.300'),
+(198, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTg1NzY4LCJleHAiOjE3ODE1OTA1Njh9.nh9D0O3VKptihbBRxeQfDj3ep13srIQeW29btc1NTJk', 4, '2026-06-16 06:16:08.825', '2026-06-09 06:16:08.828'),
+(199, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTg3MDgxLCJleHAiOjE3ODE1OTE4ODF9.tYgMSMqz4qbBC4cvm-qfyZHf7g-0xKmEnJLkYs3Uh_o', 4, '2026-06-16 06:38:01.568', '2026-06-09 06:38:01.574'),
+(200, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTg4MjcyLCJleHAiOjE3ODE1OTMwNzJ9.QbpugYIsC5v6aKDewC2E-rR24flPP3A7nXYfkZtGjR4', 4, '2026-06-16 06:57:52.603', '2026-06-09 06:57:52.608'),
+(201, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTg5MDIyLCJleHAiOjE3ODE1OTM4MjJ9.8cTos6aL6g4xt14Wb-RUTGj7VQZdrD2n_83Cax8cSVE', 3, '2026-06-16 07:10:22.823', '2026-06-09 07:10:22.828'),
+(202, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgwOTg5MDQwLCJleHAiOjE3ODE1OTM4NDB9.rEhA4dYHxUpo-fpLh0wS4oLaoBFvX0GfsmVRgQqffYE', 5, '2026-06-16 07:10:40.441', '2026-06-09 07:10:40.442'),
+(203, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiaWF0IjoxNzgwOTg5MDc3LCJleHAiOjE3ODE1OTM4Nzd9.LBBa0KWIZRnRzxi_RzZn112uGXOMfADNKNioFl2co8w', 6, '2026-06-16 07:11:17.479', '2026-06-09 07:11:17.481'),
+(204, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgwOTg5MDk2LCJleHAiOjE3ODE1OTM4OTZ9.ixG_-tClls5k7b04APRsstcD3Sn9YXP3cJzmFIItzH8', 7, '2026-06-16 07:11:36.850', '2026-06-09 07:11:36.852'),
+(205, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTg5ODM4LCJleHAiOjE3ODE1OTQ2Mzh9.mKW6fcIzGAlOQWeLcMLrGlL89SGn7hX_d3RrQ4MuBPs', 4, '2026-06-16 07:23:58.147', '2026-06-09 07:23:58.150'),
+(206, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTkwNzQ3LCJleHAiOjE3ODE1OTU1NDd9.3TqVL-kaGh_b8-8FOu74Zr6DSe7AkbVPtdhCbEHPFL4', 3, '2026-06-16 07:39:07.368', '2026-06-09 07:39:07.371'),
+(207, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTk0Mzc3LCJleHAiOjE3ODE1OTkxNzd9.hHPBdQZRN4I4Bs64cbNoiNEuWx4GVk5rXc4m4CxuAnk', 4, '2026-06-16 08:39:37.098', '2026-06-09 08:39:37.103'),
+(208, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTk1NTY1LCJleHAiOjE3ODE2MDAzNjV9.kEtvyRfY8bEGgz4uc1c8dBc2iohq_rxf15hq7pmzvVo', 4, '2026-06-16 08:59:25.701', '2026-06-09 08:59:25.710'),
+(209, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTk3MTU2LCJleHAiOjE3ODE2MDE5NTZ9.g7ejvaNN8ZEUzI1qHq_WHNmiAeadBlhxdh5fp1VSUXc', 3, '2026-06-16 09:25:56.051', '2026-06-09 09:25:56.057'),
+(210, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTk4NDMzLCJleHAiOjE3ODE2MDMyMzN9.kjinRS6a7jAuKE2j7ZtgxSkGz-v60CHmcbnXVlMi8LE', 4, '2026-06-16 09:47:13.070', '2026-06-09 09:47:13.077'),
+(211, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgwOTk5NDU2LCJleHAiOjE3ODE2MDQyNTZ9.LZAbeUKrhQ38BMs8awRWFBMK4ZDFynTVhSWLG4xfaRQ', 4, '2026-06-16 10:04:16.269', '2026-06-09 10:04:16.275'),
+(212, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgxMDAwMjU4LCJleHAiOjE3ODE2MDUwNTh9.mASbAKDuSqCpsvdRi5CojU3gKbWbjVFCaWjLb8ahYwM', 2, '2026-06-16 10:17:38.633', '2026-06-09 10:17:38.648'),
+(213, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgxMDAwMjgzLCJleHAiOjE3ODE2MDUwODN9.N2hMDLSyKU1u5JLmnUiJwBaYdl0t6Uo3AJNUEGxWzl8', 4, '2026-06-16 10:18:03.112', '2026-06-09 10:18:03.115'),
+(214, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgxMDAwMzAyLCJleHAiOjE3ODE2MDUxMDJ9.nC4m4oXkXHa5HbwUclAAhaQxaAwYAUvn2hQgvSCk6rU', 3, '2026-06-16 10:18:22.698', '2026-06-09 10:18:22.703'),
+(215, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgxMDAwMzEzLCJleHAiOjE3ODE2MDUxMTN9.URRvtrYiztJuCmWczw5foHY-xwPmyTLrbvC_K9Syn7s', 3, '2026-06-16 10:18:33.287', '2026-06-09 10:18:33.294'),
+(216, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgxMDAwMzEzLCJleHAiOjE3ODE2MDUxMTN9.G6u_T-dHkcVxeV_0K79b6jL1HUc0X81UJDEJetsuZmg', 4, '2026-06-16 10:18:33.622', '2026-06-09 10:18:33.630'),
+(217, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiaWF0IjoxNzgxMDAxMjMzLCJleHAiOjE3ODE2MDYwMzN9.58wYKc87WouNfOvabDdS_RkAlDNsVpr6ZQNdsgSggKk', 4, '2026-06-16 10:33:53.012', '2026-06-09 10:33:53.017'),
+(218, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgxMDAxNjM4LCJleHAiOjE3ODE2MDY0Mzh9.rRqEo6s77inlYEjeLePjNj1oQVF85u3ahLwMeLWbbas', 5, '2026-06-16 10:40:38.474', '2026-06-09 10:40:38.482'),
+(219, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgxMDA0MDA2LCJleHAiOjE3ODE2MDg4MDZ9.oSNTLBJBVLhgF2aqk_0hiWz9I6yp-CMCnjeOQ_3ol1o', 5, '2026-06-16 11:20:06.083', '2026-06-09 11:20:06.087'),
+(220, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgxMDA2MDUxLCJleHAiOjE3ODE2MTA4NTF9.bv4H1S2ODYRxFTrE2_Br03RV86d8S4LrYtBEre4ggaM', 2, '2026-06-16 11:54:11.923', '2026-06-09 11:54:11.927'),
+(221, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgxMDA2MDU0LCJleHAiOjE3ODE2MTA4NTR9.l-kDVsAMd6T16DcLxOKdJAZMno-1pMaaI3QhmEDLIn4', 2, '2026-06-16 11:54:14.619', '2026-06-09 11:54:14.623'),
+(222, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgxMDA2MDk2LCJleHAiOjE3ODE2MTA4OTZ9.7yOerNo7LZ9Zk35mGpCniM13aeemUAK1ryVx-7FedQ4', 1, '2026-06-16 11:54:56.855', '2026-06-09 11:54:56.858'),
+(223, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgxMDA2OTc1LCJleHAiOjE3ODE2MTE3NzV9.4TgZWnqgjA0sNr2_pjfLWx81NmiIQb6W61SftCkaeDE', 3, '2026-06-16 12:09:35.338', '2026-06-09 12:09:35.350'),
+(225, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgxMDA3MDAzLCJleHAiOjE3ODE2MTE4MDN9.4EsBRz5NE8jJtHmjBBSXaFThbZxSSIJHtUQjDOf85ns', 5, '2026-06-16 12:10:03.734', '2026-06-09 12:10:03.737'),
+(226, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgxMDA3OTEwLCJleHAiOjE3ODE2MTI3MTB9.FPat6AcnpoEFB8j4zt3-lPg7E2l0eh7SQy9HBiWbpzk', 5, '2026-06-16 12:25:10.656', '2026-06-09 12:25:10.663'),
+(227, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzgxMDA4MTMxLCJleHAiOjE3ODE2MTI5MzF9.yIzCfXD7wDbRQeuDZEXN2ArpT-cKlVyOIPS9sZQZekU', 5, '2026-06-16 12:28:51.967', '2026-06-09 12:28:51.970'),
+(228, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiaWF0IjoxNzgxMDA4MzAwLCJleHAiOjE3ODE2MTMxMDB9.YYlT0E5k63IMELrd2n2z5UtmJnctNRDZoipuybbv1eA', 6, '2026-06-16 12:31:40.282', '2026-06-09 12:31:40.284'),
+(229, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiaWF0IjoxNzgxMDA5MjkxLCJleHAiOjE3ODE2MTQwOTF9.f_H_aMe3_bXslaJ85qzemi3lfVW8pT5HhdNPG8_rGgk', 6, '2026-06-16 12:48:11.792', '2026-06-09 12:48:11.798'),
+(230, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiaWF0IjoxNzgxMDEwMjY0LCJleHAiOjE3ODE2MTUwNjR9.i-bs42qy55mGgfONNapiM85nB4va6aBdpMdcnKm7I-c', 6, '2026-06-16 13:04:24.060', '2026-06-09 13:04:24.063'),
+(231, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDEwNTE3LCJleHAiOjE3ODE2MTUzMTd9.J--lljHhLrBxGA-n20riZExoZt-4cJDmgpg7d9skba0', 7, '2026-06-16 13:08:37.544', '2026-06-09 13:08:37.546'),
+(232, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDY4MTk1LCJleHAiOjE3ODE2NzI5OTV9.6pt5yCk_Ci6-muEQoK-bDmrzOru_SRO2X63MrjIuYeI', 7, '2026-06-17 05:09:55.417', '2026-06-10 05:09:55.435'),
+(233, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDY5MjcyLCJleHAiOjE3ODE2NzQwNzJ9.PagscJ4IpqbTFJTvlBQE5e8P5xbP_FfTYoFdL1tptXU', 7, '2026-06-17 05:27:52.683', '2026-06-10 05:27:52.705'),
+(234, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDcwMTkxLCJleHAiOjE3ODE2NzQ5OTF9.I8JzE9QuAacvGHgolb3jfeq9o8eUhttq6dsrfoNQIvk', 7, '2026-06-17 05:43:11.903', '2026-06-10 05:43:11.911'),
+(235, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDcxMTQ2LCJleHAiOjE3ODE2NzU5NDZ9.vMu9IV5BZBpitn807onFarvIIgKm_sATKs6K8aS6vWs', 7, '2026-06-17 05:59:06.275', '2026-06-10 05:59:06.283'),
+(236, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDcyMTM2LCJleHAiOjE3ODE2NzY5MzZ9.BVuEFg_ZNFEp60Yqyvuo_Q337dKXexwls0OGOynu2Ug', 7, '2026-06-17 06:15:36.396', '2026-06-10 06:15:36.400'),
+(237, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDczMDk0LCJleHAiOjE3ODE2Nzc4OTR9.SSCc_YB4358feY6dqtWAfUIt2uAGLvvuTistaVQTvok', 7, '2026-06-17 06:31:34.190', '2026-06-10 06:31:34.197'),
+(238, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzgxMDczMzQxLCJleHAiOjE3ODE2NzgxNDF9.YTaICdiIS6YyIcn4aNAA1nKrIAXSSMOhlEHMM5Hu0xg', 1, '2026-06-17 06:35:41.961', '2026-06-10 06:35:41.967'),
+(239, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDc0MDQ1LCJleHAiOjE3ODE2Nzg4NDV9.XaDc0z11QznsfcDpx8EQAJs_VCo4SS5CrA76sqaLOyA', 7, '2026-06-17 06:47:25.792', '2026-06-10 06:47:25.806'),
+(240, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgxMDc0MTUwLCJleHAiOjE3ODE2Nzg5NTB9.7z8WtYJeX2SayivReWuazUnInaUbaef0iZigCMRFRhQ', 2, '2026-06-17 06:49:10.414', '2026-06-10 06:49:10.418'),
+(241, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiaWF0IjoxNzgxMDc0OTExLCJleHAiOjE3ODE2Nzk3MTF9.gTqXj0TIJ82nHLtQE69sOan84WwtN90oFutzjlLDtHo', 7, '2026-06-17 07:01:51.800', '2026-06-10 07:01:51.806'),
+(242, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwiaWF0IjoxNzgxMDc0OTc1LCJleHAiOjE3ODE2Nzk3NzV9.UOsZEu_BDvlYYwbD1jeAhDsdqy6NYg5RcnYKqXDTFmQ', 8, '2026-06-17 07:02:55.878', '2026-06-10 07:02:55.879');
 
 -- --------------------------------------------------------
 
@@ -1188,15 +1597,6 @@ CREATE TABLE `rfqs` (
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `updatedAt` datetime(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `rfqs`
---
-
-INSERT INTO `rfqs` (`id`, `tenantId`, `rfqNumber`, `purchaseRequestId`, `vendorId`, `status`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 'RFQ-2026-0001', 14, 2, 'received', '2026-06-05 13:14:19.591', '2026-06-05 13:14:19.693'),
-(2, 1, 'RFQ-2026-0002', 15, 2, 'received', '2026-06-05 13:14:37.267', '2026-06-05 13:14:37.350'),
-(3, 1, 'RFQ-2026-0003', 16, 2, 'received', '2026-06-05 13:14:58.205', '2026-06-05 13:14:58.291');
 
 -- --------------------------------------------------------
 
@@ -1226,7 +1626,9 @@ INSERT INTO `roles` (`id`, `name`, `description`, `createdAt`, `updatedAt`) VALU
 (7, 'CONCIERGE', 'CONCIERGE Role', '2026-06-05 07:22:56.888', '2026-06-05 07:22:56.888'),
 (8, 'BUSINESS_CLIENT', 'BUSINESS_CLIENT Role', '2026-06-05 07:22:56.904', '2026-06-05 07:22:56.904'),
 (9, 'FIELD_STAFF', 'FIELD_STAFF Role', '2026-06-05 07:22:56.919', '2026-06-05 07:22:56.919'),
-(10, 'TEST_ROLE', NULL, '2026-06-05 09:30:01.395', '2026-06-05 09:30:01.395');
+(10, 'TEST_ROLE', NULL, '2026-06-05 09:30:01.395', '2026-06-05 09:30:01.395'),
+(11, 'STAFF', 'Staff', '2026-06-07 06:56:54.248', '2026-06-07 06:56:54.248'),
+(12, 'DRIVER', 'Driver', '2026-06-07 06:56:54.257', '2026-06-07 06:56:54.257');
 
 -- --------------------------------------------------------
 
@@ -1416,6 +1818,13 @@ CREATE TABLE `settings` (
   `updatedAt` datetime(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`id`, `key`, `value`, `group`, `createdAt`, `updatedAt`) VALUES
+(1, 'shipping_modes', '{\"Road\":11,\"Sea\":150,\"Air\":300}', 'GENERAL', '2026-06-06 10:29:10.856', '2026-06-06 10:29:10.856');
+
 -- --------------------------------------------------------
 
 --
@@ -1457,6 +1866,44 @@ CREATE TABLE `subscriptions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `supply_routes`
+--
+
+CREATE TABLE `supply_routes` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `routeId` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `type` varchar(191) NOT NULL DEFAULT 'Land',
+  `distance` varchar(191) DEFAULT NULL,
+  `avgTime` varchar(191) DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Active',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `support_tickets`
+--
+
+CREATE TABLE `support_tickets` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `ticketId` varchar(191) NOT NULL,
+  `title` varchar(191) NOT NULL,
+  `description` varchar(191) DEFAULT NULL,
+  `priority` varchar(191) NOT NULL DEFAULT 'Medium',
+  `status` varchar(191) NOT NULL DEFAULT 'Open',
+  `category` varchar(191) DEFAULT NULL,
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tenants`
 --
 
@@ -1476,6 +1923,52 @@ CREATE TABLE `tenants` (
 
 INSERT INTO `tenants` (`id`, `organizationId`, `subscriptionId`, `tenantCode`, `status`, `createdAt`, `updatedAt`) VALUES
 (1, 1, NULL, 'TEST-TN-1780659706407', 'active', '2026-06-05 11:41:46.408', '2026-06-05 11:41:46.408');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tracking`
+--
+
+CREATE TABLE `tracking` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `trackerId` varchar(191) NOT NULL,
+  `asset` varchar(191) NOT NULL,
+  `location` varchar(191) NOT NULL,
+  `signal` varchar(191) NOT NULL DEFAULT 'Strong',
+  `eta` varchar(191) DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Active',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `tracking`
+--
+
+INSERT INTO `tracking` (`id`, `tenantId`, `trackerId`, `asset`, `location`, `signal`, `eta`, `status`, `createdAt`, `updatedAt`) VALUES
+(1, 1, 'TRK-267', 'cddc', 'sads', 'Strong', 'Calculating...c', 'En Route', '2026-06-09 12:17:46.558', '2026-06-09 12:17:53.284');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `urgent_alerts`
+--
+
+CREATE TABLE `urgent_alerts` (
+  `id` int(11) NOT NULL,
+  `tenantId` int(11) NOT NULL,
+  `alertId` varchar(191) NOT NULL,
+  `task` varchar(191) NOT NULL,
+  `priority` varchar(191) NOT NULL DEFAULT 'Critical',
+  `time` varchar(191) DEFAULT NULL,
+  `location` varchar(191) DEFAULT NULL,
+  `assignee` varchar(191) DEFAULT 'Pending',
+  `status` varchar(191) NOT NULL DEFAULT 'Active',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1516,7 +2009,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `uuid`, `tenantId`, `name`, `email`, `phone`, `password`, `roleId`, `avatar`, `status`, `vacationBalance`, `lastLogin`, `resetToken`, `resetTokenExpiry`, `createdAt`, `updatedAt`, `deletedAt`, `bankingInfo`, `birthday`, `employmentStatus`, `hasLicense`, `hasNIB`, `hasPassport`, `hasResume`, `nibNumber`) VALUES
-(1, '365d799c-63d4-4c0a-b839-d9aa965b9e8e', NULL, 'SUPER_ADMIN User', 'superadmin@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 1, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.718', '2026-06-05 17:20:51.142', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
+(1, '365d799c-63d4-4c0a-b839-d9aa965b9e8e', NULL, 'SUPER_admin', 'superadmin@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 1, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.718', '2026-06-06 10:07:49.699', NULL, '{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}', NULL, 'Full Time', 0, 0, 0, 0, NULL),
 (2, 'ba55de57-dbf9-417d-bdce-78c2d359b352', 1, 'ADMIN User', 'admin@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 2, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.788', '2026-06-05 17:20:51.157', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
 (3, '476e2772-3596-4f87-974f-2c0bfa55c3be', NULL, 'OPERATIONS User', 'operations@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 3, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.817', '2026-06-05 17:20:51.166', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
 (4, 'bbf01e92-06af-4078-a5b2-3ac2070c2e9f', NULL, 'PROCUREMENT User', 'procurement@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 4, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.841', '2026-06-05 17:20:51.178', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
@@ -1525,7 +2018,10 @@ INSERT INTO `users` (`id`, `uuid`, `tenantId`, `name`, `email`, `phone`, `passwo
 (7, '9d712391-f124-404b-8155-016171757704', NULL, 'CONCIERGE User', 'concierge@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 7, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.896', '2026-06-05 17:20:51.206', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
 (8, '20db9f5e-a553-4250-bf02-39fbfd3c440e', NULL, 'BUSINESS_CLIENT User', 'businessclient@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 8, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.911', '2026-06-05 17:20:51.217', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
 (9, 'ada337d8-ad55-4cff-baaa-7a997f153022', NULL, 'FIELD_STAFF User', 'fieldstaff@zanezion.com', NULL, '$2b$10$jAfdMWP4paEcgH1gU8xgZO.FmPzUK90YLD5ApgwiVSycPuTYhTcPm', 9, NULL, 'active', 0, NULL, NULL, NULL, '2026-06-05 07:22:56.927', '2026-06-05 17:20:51.229', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL),
-(10, '9f9860f4-af17-4501-94b8-8fcb0e68f1b4', 1, 'qdw', 'asdfg@gmail.com', '1234566789', '$2b$10$JKCfJbq98d.bTnQPVDXRRuKOt0wZD1kz/lcKrINns1oSczLlqSQPG', 2, NULL, 'Active', 11, NULL, NULL, NULL, '2026-06-06 06:32:33.519', '2026-06-06 06:32:33.519', NULL, NULL, NULL, NULL, 0, 0, 0, 0, NULL);
+(10, '9f9860f4-af17-4501-94b8-8fcb0e68f1b4', 1, 'qdw', 'asdfg@gmail.com', '1234566789', '$2b$10$JKCfJbq98d.bTnQPVDXRRuKOt0wZD1kz/lcKrINns1oSczLlqSQPG', 2, NULL, 'Active', 109, NULL, NULL, NULL, '2026-06-06 06:32:33.519', '2026-06-06 11:00:53.503', NULL, '{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}', NULL, 'Full Time', 0, 0, 0, 0, NULL),
+(11, '81532875-49d7-43d4-a086-cefbb6681436', 1, 'SFD', 'dg@gmail.com', '43235323', '$2b$10$iCROm4Q4CscB28O.KJZi.eeoJEnMZgs08UF6nutA3omt0.Vkqz4BW', 4, NULL, 'Active', 2, NULL, NULL, NULL, '2026-06-07 07:13:45.069', '2026-06-07 07:13:45.069', NULL, '{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}', '2026-05-31 00:00:00.000', 'Full Time', 0, 0, 0, 0, '24532'),
+(12, 'e603a207-75a2-42c0-8e7e-26bb8196351c', 1, 'DSAFDG', 'taefvb@gmail.com', '78675645', '$2b$10$Ck.U1vcbrQ7uQiiDykVpNOTp/84gk5YM/O77x3LN0WYX4V4jxF1xi', 7, NULL, 'Active', 12, NULL, NULL, NULL, '2026-06-08 06:27:30.378', '2026-06-08 06:27:30.378', NULL, '{\"bank\":\"\",\"account\":\"\",\"routing\":\"\",\"method\":\"Direct Deposit\"}', '2026-05-31 00:00:00.000', 'Full Time', 0, 0, 0, 0, '4254'),
+(13, 'ea9d4ab7-a272-404e-9a07-27b8af294bd2', 1, 'abcdd', 'jbbdmnb@gmail.com', '1234532211', '$2b$10$T4H/6g7jiEos1uzoJsziVuEu1o9BM4BznGy9jukc71ktySkjuDxLq', 9, NULL, 'Active', 33, NULL, NULL, NULL, '2026-06-08 12:54:47.026', '2026-06-08 12:54:47.026', NULL, '{\"bank\":\"\",\"account\":\"vthry\",\"routing\":\"7655\",\"method\":\"Direct Deposit\"}', '2026-06-01 00:00:00.000', 'Full Time', 0, 0, 0, 0, '654');
 
 -- --------------------------------------------------------
 
@@ -1538,6 +2034,38 @@ CREATE TABLE `user_roles` (
   `userId` int(11) NOT NULL,
   `roleId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vehicles`
+--
+
+CREATE TABLE `vehicles` (
+  `id` int(11) NOT NULL,
+  `vehicleId` varchar(191) NOT NULL,
+  `type` varchar(191) NOT NULL DEFAULT 'Luxury Truck',
+  `model` varchar(191) NOT NULL,
+  `capacity` varchar(191) DEFAULT NULL,
+  `fuel` varchar(191) DEFAULT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Active',
+  `location` varchar(191) DEFAULT NULL,
+  `insurancePolicy` varchar(191) DEFAULT NULL,
+  `registrationExpiry` varchar(191) DEFAULT NULL,
+  `inspectionDate` varchar(191) DEFAULT NULL,
+  `diagnosticStatus` varchar(191) DEFAULT NULL,
+  `tenantId` int(11) DEFAULT NULL,
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updatedAt` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `vehicles`
+--
+
+INSERT INTO `vehicles` (`id`, `vehicleId`, `type`, `model`, `capacity`, `fuel`, `status`, `location`, `insurancePolicy`, `registrationExpiry`, `inspectionDate`, `diagnosticStatus`, `tenantId`, `createdAt`, `updatedAt`) VALUES
+(1, '2323', 'Luxury Truck', 'dsdssdds', '1234', '100%', 'Active', '', 'dfd', '2026-05-31', '2026-06-09', 'Healthy', 1, '2026-06-08 07:07:36.932', '2026-06-08 07:07:36.932'),
+(2, '230243', 'Speed Boat', 'saxd', '31', '100%', 'Active', '', 'sxc', '2026-06-12', '2026-07-07', 'Healthy', NULL, '2026-06-09 10:41:39.474', '2026-06-09 10:41:56.909');
 
 -- --------------------------------------------------------
 
@@ -1556,16 +2084,19 @@ CREATE TABLE `vendors` (
   `address` text DEFAULT NULL,
   `status` varchar(191) NOT NULL DEFAULT 'active',
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
-  `updatedAt` datetime(3) NOT NULL
+  `updatedAt` datetime(3) NOT NULL,
+  `category` varchar(191) DEFAULT NULL,
+  `delivery` int(11) DEFAULT 90,
+  `rating` int(11) DEFAULT 90
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `vendors`
 --
 
-INSERT INTO `vendors` (`id`, `tenantId`, `vendorCode`, `companyName`, `contactPerson`, `email`, `phone`, `address`, `status`, `createdAt`, `updatedAt`) VALUES
-(2, 1, 'VND-TEST-001', 'Test Company', NULL, 'test@example.com', '1234567890', NULL, 'approved', '2026-06-05 13:14:19.536', '2026-06-05 13:14:19.536'),
-(3, 1, 'VND-805557', 'wSA', 'AS', 'wSA@gmail.com', '1234567890', 'njdnn', 'active', '2026-06-06 06:03:25.730', '2026-06-06 06:03:25.730');
+INSERT INTO `vendors` (`id`, `tenantId`, `vendorCode`, `companyName`, `contactPerson`, `email`, `phone`, `address`, `status`, `createdAt`, `updatedAt`, `category`, `delivery`, `rating`) VALUES
+(3, 1, 'VND-805557', 'wSA', 'AS', 'wSA@gmail.com', '1234567890', 'njdnn', 'active', '2026-06-06 06:03:25.730', '2026-06-06 11:00:15.546', 'Jewelry', 90, 9),
+(4, 1, 'VND-380790', 'oooooooo', NULL, 'jdsjbjhu@gmail.com', '112324354', 'dasf', 'active', '2026-06-08 12:56:20.797', '2026-06-09 10:17:54.717', 'Jewelry', 89, 3);
 
 -- --------------------------------------------------------
 
@@ -1581,8 +2112,19 @@ CREATE TABLE `warehouses` (
   `managerId` int(11) DEFAULT NULL,
   `status` varchar(191) NOT NULL DEFAULT 'active',
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
-  `updatedAt` datetime(3) NOT NULL
+  `updatedAt` datetime(3) NOT NULL,
+  `capacity` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `warehouses`
+--
+
+INSERT INTO `warehouses` (`id`, `tenantId`, `name`, `location`, `managerId`, `status`, `createdAt`, `updatedAt`, `capacity`) VALUES
+(1, 1, '3q', 'd', NULL, 'active', '2026-06-08 05:25:02.940', '2026-06-08 05:25:02.940', 0),
+(2, 1, 'r3eqdsaew', 'dasf', NULL, 'active', '2026-06-08 05:38:28.576', '2026-06-08 05:38:28.576', 0),
+(3, 1, '3eqw', 'jbjnjkn', NULL, 'active', '2026-06-08 12:55:24.499', '2026-06-08 12:55:24.499', 0),
+(4, 1, 'bcvhfhgftyfd', 'fcvbvc', 9, 'active', '2026-06-09 12:36:45.319', '2026-06-09 13:04:40.760', 456);
 
 --
 -- Indexes for dumped tables
@@ -1675,6 +2217,16 @@ ALTER TABLE `employee_documents`
   ADD KEY `employee_documents_verificationStatus_idx` (`verificationStatus`);
 
 --
+-- Indexes for table `events`
+--
+ALTER TABLE `events`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `events_eventId_tenantId_key` (`eventId`,`tenantId`),
+  ADD KEY `events_tenantId_idx` (`tenantId`),
+  ADD KEY `events_clientId_fkey` (`clientId`),
+  ADD KEY `events_managerId_fkey` (`managerId`);
+
+--
 -- Indexes for table `grns`
 --
 ALTER TABLE `grns`
@@ -1694,6 +2246,14 @@ ALTER TABLE `grn_items`
   ADD PRIMARY KEY (`id`),
   ADD KEY `grn_items_grnId_idx` (`grnId`),
   ADD KEY `grn_items_itemId_idx` (`itemId`);
+
+--
+-- Indexes for table `guest_requests`
+--
+ALTER TABLE `guest_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `guest_requests_requestId_tenantId_key` (`requestId`,`tenantId`),
+  ADD KEY `guest_requests_tenantId_idx` (`tenantId`);
 
 --
 -- Indexes for table `inventory_stock`
@@ -1749,6 +2309,23 @@ ALTER TABLE `item_categories`
 ALTER TABLE `item_units`
   ADD PRIMARY KEY (`id`),
   ADD KEY `item_units_tenantId_idx` (`tenantId`);
+
+--
+-- Indexes for table `leave_requests`
+--
+ALTER TABLE `leave_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `leave_requests_tenantId_idx` (`tenantId`),
+  ADD KEY `leave_requests_userId_idx` (`userId`),
+  ADD KEY `leave_requests_status_idx` (`status`);
+
+--
+-- Indexes for table `luxury_items`
+--
+ALTER TABLE `luxury_items`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `luxury_items_itemId_tenantId_key` (`itemId`,`tenantId`),
+  ADD KEY `luxury_items_tenantId_idx` (`tenantId`);
 
 --
 -- Indexes for table `menus`
@@ -1954,6 +2531,23 @@ ALTER TABLE `subscriptions`
   ADD KEY `subscriptions_status_idx` (`status`);
 
 --
+-- Indexes for table `supply_routes`
+--
+ALTER TABLE `supply_routes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `supply_routes_routeId_tenantId_key` (`routeId`,`tenantId`),
+  ADD KEY `supply_routes_tenantId_idx` (`tenantId`),
+  ADD KEY `supply_routes_routeId_idx` (`routeId`);
+
+--
+-- Indexes for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `support_tickets_ticketId_tenantId_key` (`ticketId`,`tenantId`),
+  ADD KEY `support_tickets_tenantId_idx` (`tenantId`);
+
+--
 -- Indexes for table `tenants`
 --
 ALTER TABLE `tenants`
@@ -1964,6 +2558,23 @@ ALTER TABLE `tenants`
   ADD KEY `tenants_subscriptionId_idx` (`subscriptionId`),
   ADD KEY `tenants_tenantCode_idx` (`tenantCode`),
   ADD KEY `tenants_status_idx` (`status`);
+
+--
+-- Indexes for table `tracking`
+--
+ALTER TABLE `tracking`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tracking_trackerId_tenantId_key` (`trackerId`,`tenantId`),
+  ADD KEY `tracking_tenantId_idx` (`tenantId`),
+  ADD KEY `tracking_trackerId_idx` (`trackerId`);
+
+--
+-- Indexes for table `urgent_alerts`
+--
+ALTER TABLE `urgent_alerts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `urgent_alerts_alertId_tenantId_key` (`alertId`,`tenantId`),
+  ADD KEY `urgent_alerts_tenantId_idx` (`tenantId`);
 
 --
 -- Indexes for table `users`
@@ -1984,6 +2595,14 @@ ALTER TABLE `user_roles`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_roles_userId_fkey` (`userId`),
   ADD KEY `user_roles_roleId_fkey` (`roleId`);
+
+--
+-- Indexes for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `vehicles_vehicleId_tenantId_key` (`vehicleId`,`tenantId`),
+  ADD KEY `vehicles_tenantId_idx` (`tenantId`);
 
 --
 -- Indexes for table `vendors`
@@ -2010,13 +2629,13 @@ ALTER TABLE `warehouses`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=327;
 
 --
 -- AUTO_INCREMENT for table `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `client_contacts`
@@ -2052,13 +2671,19 @@ ALTER TABLE `designations`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `employee_documents`
 --
 ALTER TABLE `employee_documents`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `events`
+--
+ALTER TABLE `events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `grns`
@@ -2073,10 +2698,16 @@ ALTER TABLE `grn_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `guest_requests`
+--
+ALTER TABLE `guest_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `inventory_stock`
 --
 ALTER TABLE `inventory_stock`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -2094,7 +2725,7 @@ ALTER TABLE `invoice_items`
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `item_categories`
@@ -2109,6 +2740,18 @@ ALTER TABLE `item_units`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `leave_requests`
+--
+ALTER TABLE `leave_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `luxury_items`
+--
+ALTER TABLE `luxury_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `menus`
 --
 ALTER TABLE `menus`
@@ -2118,19 +2761,19 @@ ALTER TABLE `menus`
 -- AUTO_INCREMENT for table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `order_items`
@@ -2178,7 +2821,7 @@ ALTER TABLE `purchase_orders`
 -- AUTO_INCREMENT for table `purchase_requests`
 --
 ALTER TABLE `purchase_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `purchase_request_items`
@@ -2190,7 +2833,7 @@ ALTER TABLE `purchase_request_items`
 -- AUTO_INCREMENT for table `quotations`
 --
 ALTER TABLE `quotations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `receipts`
@@ -2202,19 +2845,19 @@ ALTER TABLE `receipts`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 
 --
 -- AUTO_INCREMENT for table `rfqs`
 --
 ALTER TABLE `rfqs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `role_menus`
@@ -2232,7 +2875,7 @@ ALTER TABLE `role_permissions`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `stock_movements`
@@ -2247,16 +2890,40 @@ ALTER TABLE `subscriptions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `supply_routes`
+--
+ALTER TABLE `supply_routes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `tenants`
 --
 ALTER TABLE `tenants`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `tracking`
+--
+ALTER TABLE `tracking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `urgent_alerts`
+--
+ALTER TABLE `urgent_alerts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `user_roles`
@@ -2265,16 +2932,22 @@ ALTER TABLE `user_roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `vendors`
 --
 ALTER TABLE `vendors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `warehouses`
 --
 ALTER TABLE `warehouses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
@@ -2348,13 +3021,21 @@ ALTER TABLE `employee_documents`
   ADD CONSTRAINT `employee_documents_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
 
 --
+-- Constraints for table `events`
+--
+ALTER TABLE `events`
+  ADD CONSTRAINT `events_clientId_fkey` FOREIGN KEY (`clientId`) REFERENCES `clients` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `events_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `events_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
+
+--
 -- Constraints for table `grns`
 --
 ALTER TABLE `grns`
   ADD CONSTRAINT `grns_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `purchase_orders` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `grns_receivedById_fkey` FOREIGN KEY (`receivedById`) REFERENCES `employees` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `grns_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `grns_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `grns_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `grns_warehouseId_fkey` FOREIGN KEY (`warehouseId`) REFERENCES `warehouses` (`id`) ON UPDATE CASCADE;
 
 --
@@ -2363,6 +3044,12 @@ ALTER TABLE `grns`
 ALTER TABLE `grn_items`
   ADD CONSTRAINT `grn_items_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `grns` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `grn_items_itemId_fkey` FOREIGN KEY (`itemId`) REFERENCES `items` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `guest_requests`
+--
+ALTER TABLE `guest_requests`
+  ADD CONSTRAINT `guest_requests_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `inventory_stock`
@@ -2408,6 +3095,19 @@ ALTER TABLE `item_categories`
 --
 ALTER TABLE `item_units`
   ADD CONSTRAINT `item_units_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `leave_requests`
+--
+ALTER TABLE `leave_requests`
+  ADD CONSTRAINT `leave_requests_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `leave_requests_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `luxury_items`
+--
+ALTER TABLE `luxury_items`
+  ADD CONSTRAINT `luxury_items_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `missions`
@@ -2461,7 +3161,7 @@ ALTER TABLE `purchase_orders`
   ADD CONSTRAINT `purchase_orders_purchaseRequestId_fkey` FOREIGN KEY (`purchaseRequestId`) REFERENCES `purchase_requests` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `purchase_orders_quotationId_fkey` FOREIGN KEY (`quotationId`) REFERENCES `quotations` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `purchase_orders_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `purchase_orders_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `purchase_orders_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `purchase_requests`
@@ -2483,7 +3183,7 @@ ALTER TABLE `purchase_request_items`
 ALTER TABLE `quotations`
   ADD CONSTRAINT `quotations_rfqId_fkey` FOREIGN KEY (`rfqId`) REFERENCES `rfqs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `quotations_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `quotations_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `quotations_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `receipts`
@@ -2504,7 +3204,7 @@ ALTER TABLE `refresh_tokens`
 ALTER TABLE `rfqs`
   ADD CONSTRAINT `rfqs_purchaseRequestId_fkey` FOREIGN KEY (`purchaseRequestId`) REFERENCES `purchase_requests` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `rfqs_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `rfqs_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `rfqs_vendorId_fkey` FOREIGN KEY (`vendorId`) REFERENCES `vendors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `role_menus`
@@ -2537,11 +3237,35 @@ ALTER TABLE `subscriptions`
   ADD CONSTRAINT `subscriptions_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
 
 --
+-- Constraints for table `supply_routes`
+--
+ALTER TABLE `supply_routes`
+  ADD CONSTRAINT `supply_routes_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  ADD CONSTRAINT `support_tickets_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
+
+--
 -- Constraints for table `tenants`
 --
 ALTER TABLE `tenants`
   ADD CONSTRAINT `tenants_organizationId_fkey` FOREIGN KEY (`organizationId`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `tenants_subscriptionId_fkey` FOREIGN KEY (`subscriptionId`) REFERENCES `subscriptions` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tracking`
+--
+ALTER TABLE `tracking`
+  ADD CONSTRAINT `tracking_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `urgent_alerts`
+--
+ALTER TABLE `urgent_alerts`
+  ADD CONSTRAINT `urgent_alerts_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `users`
@@ -2556,6 +3280,12 @@ ALTER TABLE `users`
 ALTER TABLE `user_roles`
   ADD CONSTRAINT `user_roles_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `roles` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `user_roles_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  ADD CONSTRAINT `vehicles_tenantId_fkey` FOREIGN KEY (`tenantId`) REFERENCES `tenants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `vendors`

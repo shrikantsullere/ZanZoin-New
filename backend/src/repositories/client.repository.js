@@ -15,7 +15,7 @@ export const findClientById = async (id) => {
 
 export const findClientByCode = async (clientCode, tenantId) => {
   return await prisma.client.findFirst({
-    where: { clientCode, tenantId }
+    where: { clientCode, ...(tenantId != null && { tenantId }) }
   });
 };
 

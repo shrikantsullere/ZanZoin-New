@@ -92,7 +92,7 @@ export const updateUser = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(req.user.role?.name);
+    const isCustomer = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT', 'client', 'saas_client', 'customer'].includes(req.user.role?.name);
 
     if (isCustomer && Number(req.params.id) !== req.user.id) {
       return sendResponse(res, 403, 'Forbidden: You can only update your own profile');

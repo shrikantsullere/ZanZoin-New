@@ -17,19 +17,19 @@ export const createDelivery = async (data, performerId, tenantId) => {
     // Auto-create an ad-hoc order to support "Deploy New Mission" standalone flow
     let clientIdToUse = data.clientId;
     if (!clientIdToUse) {
-      const defaultClient = await prisma.client.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+      const defaultClient = await prisma.client.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
       if (!defaultClient) throw new AppError('No clients available to assign to ad-hoc mission', 400);
       clientIdToUse = defaultClient.id;
     }
 
     let adHocWarehouseId = data.warehouseId;
     if (!adHocWarehouseId) {
-      const firstWarehouse = await prisma.warehouse.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+      const firstWarehouse = await prisma.warehouse.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
       if (firstWarehouse) adHocWarehouseId = firstWarehouse.id;
     }
     if (!adHocWarehouseId) throw new AppError('No warehouse available for ad-hoc mission', 400);
 
-    let defaultItem = await prisma.item.findFirst({ where: { ...(tenantId !== null && { tenantId }) } });
+    let defaultItem = await prisma.item.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
     if (!defaultItem) {
       defaultItem = await prisma.item.create({
         data: {
@@ -87,7 +87,7 @@ export const createDelivery = async (data, performerId, tenantId) => {
     // Find the first available warehouse for this tenant
     const firstWarehouse = await prisma.warehouse.findFirst({
       where: {
-        ...(tenantId !== null && { tenantId })
+        ...(tenantId != null && { tenantId })
       }
     });
     if (firstWarehouse) {

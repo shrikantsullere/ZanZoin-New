@@ -65,6 +65,7 @@ import deliveryRoutes from './routes/delivery.routes.js';
 import missionRoutes from './routes/mission.routes.js';
 
 // Finance, Invoices & Payments Layer (Phase 9)
+import financeRoutes from './routes/finance.routes.js';
 import invoiceRoutes from './routes/invoice.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 
@@ -125,6 +126,7 @@ import conciergeRoutes from './routes/concierge.routes.js';
 app.use('/api/v1/concierge', conciergeRoutes);
 
 // Register Phase 9 routes
+app.use('/api/v1/finance', financeRoutes);
 app.use('/api/v1/invoices', invoiceRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 

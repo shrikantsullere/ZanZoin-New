@@ -51,6 +51,7 @@ model User {
   tenant        Tenant?        @relation(fields: [tenantId], references: [id])
   employee      Employee?
   leaveRequests LeaveRequest[]
+  payrolls      Payroll[]
   Event         Event[]
 
   @@index([email])
@@ -281,6 +282,7 @@ model Tenant {
   guestRequests    GuestRequest[]
   luxuryItems      LuxuryItem[]
   leaveRequests    LeaveRequest[]
+  payrolls         Payroll[]
 
   @@index([organizationId])
   @@index([subscriptionId])
@@ -985,7 +987,7 @@ model ProofOfDelivery {
 
   @@index([tenantId])
   @@index([deliveryId])
-  @@map("proof_of_delivery")
+  @@map("proofs_of_delivery")
 }
 
 // ------------------------------------------------------
@@ -1317,3 +1319,29 @@ model SecurityEvent {
   @@map("security_events")
 }
 
+model Payroll {
+  id               Int       @id @default(autoincrement())
+  tenantId         Int
+  userId           Int
+  baseSalary       Float     @default(0)
+  bonus            Float     @default(0)
+  nibDeduction     Float     @default(0)
+  medicalDeduction Float     @default(0)
+  pensionDeduction Float     @default(0)
+  savingsDeduction Float     @default(0)
+  birthdayClub     Float     @default(0)
+  netAmount        Float     @default(0)
+  method           String    @default("Direct Deposit")
+  paymentDate      DateTime?
+  status           String    @default("Pending")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+  @@map("payrolls")
+}

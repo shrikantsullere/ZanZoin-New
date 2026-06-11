@@ -29,7 +29,7 @@ const CHAUFFEUR_BILLING_MODE = String(import.meta.env?.VITE_CHAUFFEUR_BILLING_MO
     : 'separate';
 
 const ClientStore = () => {
-    const { inventory, cart, addToCart, removeFromCart, clearCart, addOrder, currentUser, clients, vendors, marketplaceVendors, shippingModePricing, fetchInventory, fetchVendors, systemSettings, fetchSystemSettings } = useData();
+    const { inventory, cart, addToCart, removeFromCart, clearCart, addOrder, currentUser, clients, vendors, marketplaceVendors, shippingModePricing, fetchInventory, fetchVendors, systemSettings, fetchSystemSettings, deliveryPricing } = useData();
     const location = useLocation();
     const navigate = useNavigate();
     /** Simplified: primary marketplace + optional custom request for personal accounts */
@@ -327,6 +327,16 @@ const ClientStore = () => {
         return Number.isFinite(n) && n >= 0 ? n : 2.5;
     }, [systemSettings]);
 
+    /** Find the matching delivery tier for a given distance in km. Returns the price or null if no match. */
+    const getTierDeliveryFee = (km, tiers) => {
+        if (!Array.isArray(tiers) || tiers.length === 0) return null;
+        const match = tiers.find(t => km >= Number(t.min) && km <= Number(t.max));
+        if (match) return Number(parseFloat(match.price).toFixed(2));
+        // If km exceeds all tiers, use the last tier's price
+        const sorted = [...tiers].sort((a, b) => Number(a.max) - Number(b.max));
+        return Number(parseFloat(sorted[sorted.length - 1].price).toFixed(2));
+    };
+
     const isPersonalPickupDeliveryRequest =
         isRetailPersonal
         && activeTab === 'sheet'
@@ -337,6 +347,15 @@ const ClientStore = () => {
         const km = Math.max(0, parseFloat(String(customRequestDistanceKm).replace(',', '.')) || 0);
         return Number((adminDeliveryBaseUsd + adminPerKmUsd * km).toFixed(2));
     }, [isPersonalPickupDeliveryRequest, customRequestDistanceKm, adminDeliveryBaseUsd, adminPerKmUsd]);
+
+    /** Tiered delivery fee based on catalog route distance (only applies when distance is known) */
+    const tierDeliveryFee = useMemo(() => {
+        if (activeTab !== 'catalog') return 0;
+        const kmRaw = activeTab === 'catalog' ? catalogDistanceKm : customDistanceKm;
+        const km = parseFloat(String(kmRaw).replace(',', '.'));
+        if (!Number.isFinite(km) || km <= 0) return 0;
+        return getTierDeliveryFee(km, deliveryPricing) ?? 0;
+    }, [activeTab, catalogDistanceKm, customDistanceKm, deliveryPricing]);
 
     const cartSubtotal = activeTab === 'catalog'
         ? cart.reduce((acc, item) => acc + (item.price * item.qty), 0)
@@ -350,7 +369,7 @@ const ClientStore = () => {
     ) || 0;
     const chauffeurFee = bookChauffeur ? CHAUFFEUR_BASE_FEE_USD : 0;
     const chauffeurFeeIncludedInCheckout = CHAUFFEUR_BILLING_MODE === 'included';
-    const estimatedGrandTotal = cartSubtotal + transportExtraFee + (chauffeurFeeIncludedInCheckout ? chauffeurFee : 0);
+    const estimatedGrandTotal = cartSubtotal + tierDeliveryFee + transportExtraFee + (chauffeurFeeIncludedInCheckout ? chauffeurFee : 0);
 
     const myClient = (clients || []).find(c => {
         const cId = String(c.id).replace('CLT-', '');
@@ -458,6 +477,7 @@ const ClientStore = () => {
             island_location: islandLocation || null,
             delivery_instructions: deliveryInstructions?.trim() || null,
             transport_fee: transportExtraFee,
+            tier_delivery_fee: tierDeliveryFee,
             chauffeur_fee: chauffeurFee,
             chauffeur_fee_mode: chauffeurFeeIncludedInCheckout ? 'included' : 'separate',
             subtotal: Number(cartSubtotal.toFixed(2)),
@@ -1081,11 +1101,16 @@ const ClientStore = () => {
                             <div>
                                 <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1 italic">Grand Total (Estimated)</p>
                                 <div className="flex items-center gap-1.5 text-success font-bold text-[10px]">
-                                    <Zap size={10} className="fill-success" /> Base ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    <Zap size={10} className="fill-success" /> Items ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                 </div>
+                                {tierDeliveryFee > 0 && (
+                                    <div className="flex items-center gap-1.5 text-accent font-black text-[10px] mt-1 uppercase tracking-wide">
+                                        <Truck size={10} /> Delivery ({catalogDistanceKm || '?'} km) ${tierDeliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </div>
+                                )}
                                 {transportExtraFee > 0 && (
                                     <div className="text-[10px] text-warning font-black mt-1 uppercase tracking-wide">
-                                        + {deliveryMode} transport fee ${transportExtraFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        + {deliveryMode} transport ${transportExtraFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </div>
                                 )}
                             </div>
@@ -1457,14 +1482,18 @@ const ClientStore = () => {
                                         <div className="space-y-1">
                                             <span className="text-muted text-[9px] uppercase font-black tracking-[0.3em] ml-1">{isRetailPersonal ? 'Order total' : 'Manifest Valuation'}</span>
                                             <div className="flex items-center gap-1.5 text-success font-bold text-[10px] ml-1">
-                                                <Zap size={10} className="fill-success" /> Base ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                <Zap size={10} className="fill-success" /> Items ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </div>
+                                            {tierDeliveryFee > 0 && (
+                                                <div className="flex items-center gap-1.5 text-accent font-black text-[10px] mt-1 uppercase tracking-wide ml-1">
+                                                    <Truck size={10} /> Delivery ({catalogDistanceKm || '?'} km) ${tierDeliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                </div>
+                                            )}
                                             {transportExtraFee > 0 && (
-                                                <div className="text-[10px] text-warning font-black mt-1 uppercase tracking-wide">
+                                                <div className="text-[10px] text-warning font-black mt-1 uppercase tracking-wide ml-1">
                                                     + {deliveryMode} fee ${transportExtraFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                                 </div>
                                             )}
-
                                         </div>
                                         <span className="text-3xl font-black text-white tracking-tight">${estimatedGrandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                     </div>

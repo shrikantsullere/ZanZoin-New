@@ -38,6 +38,7 @@ const PurchaseOrders = () => {
     purchaseRequests,
     updatePurchaseRequest,
     approvePOReceipt,
+    hasMenuPermission,
   } = useData();
   const approvedVendors = marketplaceVendors || [];
   const [page, setPage] = useState(1);
@@ -315,27 +316,29 @@ const PurchaseOrders = () => {
               Sourcing management & goods receiving ledger
             </p>
           </div>
-          <button
-            onClick={() => {
-              setPoItems([
-                {
-                  id: Date.now(),
-                  name: "",
-                  quantity: 1,
-                  price: 0,
-                  category: "",
-                },
-              ]);
-              setShowCreateModal(true);
-            }}
-            className="btn-primary group flex items-center gap-3 px-8 shadow-xl shadow-accent/20"
-          >
-            <Plus
-              size={18}
-              className="group-hover:rotate-90 transition-transform duration-300"
-            />
-            <span>New Purchase Order</span>
-          </button>
+          {hasMenuPermission('Purchase Orders', 'can_add') && (
+            <button
+              onClick={() => {
+                setPoItems([
+                  {
+                    id: Date.now(),
+                    name: "",
+                    quantity: 1,
+                    price: 0,
+                    category: "",
+                  },
+                ]);
+                setShowCreateModal(true);
+              }}
+              className="btn-primary group flex items-center gap-3 px-8 shadow-xl shadow-accent/20"
+            >
+              <Plus
+                size={18}
+                className="group-hover:rotate-90 transition-transform duration-300"
+              />
+              <span>New Purchase Order</span>
+            </button>
+          )}
         </div>
 
         <div className="no-print-logic grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -488,7 +491,7 @@ const PurchaseOrders = () => {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center gap-2">
-                            {!isCustomer && (
+                             {!isCustomer && hasMenuPermission('Purchase Orders', 'can_edit') && (
                               <>
                                 <button
                                   onClick={() => {

@@ -5,11 +5,50 @@ import { logAudit } from '../utils/audit.js';
 import { notifyTenantAdmins } from '../utils/sendNotification.js';
 import prisma from '../config/db.js';
 
+const getOrCreateEmployeeForUser = async (userId, tenantId) => {
+  let employee = await prisma.employee.findFirst({ where: { userId: Number(userId) } });
+  if (!employee) {
+    const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
+    if (user && (tenantId === null || user.tenantId === tenantId || user.tenantId === null)) {
+      const effectiveTenantId = user.tenantId || tenantId || 1;
+      
+      let defaultDept = await prisma.department.findFirst({ where: { tenantId: effectiveTenantId, name: 'Operations' } });
+      if (!defaultDept) {
+        defaultDept = await prisma.department.create({
+          data: { tenantId: effectiveTenantId, name: 'Operations', code: 'OPS-01' }
+        });
+      }
+      
+      let defaultDesig = await prisma.designation.findFirst({ where: { tenantId: effectiveTenantId, name: 'Warehouse Staff' } });
+      if (!defaultDesig) {
+        defaultDesig = await prisma.designation.create({
+          data: { tenantId: effectiveTenantId, departmentId: defaultDept.id, name: 'Warehouse Staff' }
+        });
+      }
+
+      employee = await prisma.employee.create({
+        data: {
+          userId: user.id,
+          tenantId: effectiveTenantId,
+          firstName: user.name?.split(' ')[0] || 'Unknown',
+          lastName: user.name?.split(' ').slice(1).join(' ') || 'User',
+          employeeCode: `EMP-${user.id}-${Date.now().toString().slice(-4)}`,
+          departmentId: defaultDept.id,
+          designationId: defaultDesig.id,
+          joiningDate: new Date(),
+          status: 'active'
+        }
+      });
+    }
+  }
+  return employee;
+};
+
 export const createWarehouse = async (data, performerId, tenantId) => {
   // Soft-validate managerId (which comes in as User.id from frontend)
   if (data.managerId) {
-    const manager = await prisma.employee.findFirst({ where: { userId: Number(data.managerId) } });
-    if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
+    const manager = await getOrCreateEmployeeForUser(data.managerId, tenantId);
+    if (!manager) {
       data.managerId = null;
     } else {
       data.managerId = manager.id;
@@ -55,8 +94,8 @@ export const updateWarehouse = async (id, data, tenantId, performerId) => {
 
   // Soft-validate managerId (which comes in as User.id from frontend)
   if (data.managerId) {
-    const manager = await prisma.employee.findFirst({ where: { userId: Number(data.managerId) } });
-    if (!manager || (tenantId !== null && manager.tenantId !== tenantId)) {
+    const manager = await getOrCreateEmployeeForUser(data.managerId, tenantId);
+    if (!manager) {
       data.managerId = null;
     } else {
       data.managerId = manager.id;

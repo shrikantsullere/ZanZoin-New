@@ -234,7 +234,7 @@ const ROLE_DISPLAY = {
 };
 
 const Sidebar = ({ isOpen, toggleSidebar, role }) => {
-  const { currentUser, menuPermissions } = useData();
+  const { currentUser, menuPermissions, hasMenuPermission } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -277,18 +277,28 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
   };
 
   const currentMenu = (() => {
+    let baseMenu = [];
     if (userRole === 'client') {
-      return businessClientMenu;
-    }
-    // Customer role: filter by plan
-    if (userRole === 'customer') {
+      baseMenu = businessClientMenu;
+    } else if (userRole === 'customer') {
       let allowed = planMenuAccess[userPlan] || planMenuAccess.free;
       if (currentUser?.concierge_member || currentUser?.conciergeMembership) {
         allowed = [...allowed, 'Events', 'Guest Requests', 'Luxury Items'];
       }
-      return (menuItems.customer || []).filter(item => allowed.includes(item.label));
+      baseMenu = (menuItems.customer || []).filter(item => allowed.includes(item.label));
+    } else {
+      baseMenu = menuItems[userRole] || menuItems.superadmin;
     }
-    return menuItems[userRole] || menuItems.superadmin;
+
+    return baseMenu.filter(item => {
+      if (['Dashboard', 'Settings', 'Profile', 'Sign Out'].includes(item.label)) {
+        return true;
+      }
+      if (hasMenuPermission) {
+        return hasMenuPermission(item.label, 'can_view');
+      }
+      return true;
+    });
   })();
   // For SaaS tenant admins and business clients — show their company name as branding
   const tenantCompanyName = currentUser?.company_name || currentUser?.companyName || null;

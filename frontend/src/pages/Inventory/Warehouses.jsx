@@ -33,7 +33,7 @@ const Warehouses = () => {
         location: wh.location || '',
         capacity: wh.capacity ?? 0,
         status: wh.status || 'active',
-        manager_id: wh.managerId != null ? String(wh.managerId) : (wh.manager_id != null ? String(wh.manager_id) : '')
+        manager_id: wh.manager?.userId != null ? String(wh.manager.userId) : (wh.managerId != null ? String(wh.managerId) : (wh.manager_id != null ? String(wh.manager_id) : ''))
       });
     } else if (!wh) {
       setFormData(EMPTY_FORM);

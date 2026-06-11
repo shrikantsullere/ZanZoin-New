@@ -189,8 +189,7 @@ const Payroll = () => {
                         <History size={16} /> {showHistory ? 'View Pending' : 'View History'}
                     </button>
                     {(hasMenuPermission('Payroll', 'can_add') || 
-                      hasMenuPermission('Pay & Records', 'can_add') || 
-                      (localStorage.getItem('userRole') || '').toLowerCase().includes('admin')) && (
+                      hasMenuPermission('Pay & Records', 'can_add')) && (
                         <button className="btn-primary flex items-center gap-2" onClick={() => handleAction('add')}>
                             <Plus size={16} /> New Payout
                         </button>

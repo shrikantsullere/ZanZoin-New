@@ -40,11 +40,15 @@ const RolesPermissions = () => {
             const rolesData = rolesRes.data?.data;
             const rolesArray = Array.isArray(rolesData) ? rolesData : (rolesData?.roles || []);
 
-            if (rolesRes.data?.success) setRoles(rolesArray);
+            const filteredRoles = rolesArray.filter(role => 
+                !['superadmin', 'super_admin'].includes(String(role.name).toLowerCase().trim())
+            );
+
+            if (rolesRes.data?.success) setRoles(filteredRoles);
             if (menusRes.data?.success) setMenus(menusRes.data.data);
 
-            if (rolesArray.length > 0) {
-                handleSelectRole(rolesArray[0]);
+            if (filteredRoles.length > 0) {
+                handleSelectRole(filteredRoles[0]);
             }
         } catch (error) {
             console.error("Failed to fetch RBAC data", error);

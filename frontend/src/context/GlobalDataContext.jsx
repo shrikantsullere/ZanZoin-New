@@ -5,6 +5,7 @@ import {
   roleCanCreateInstitutionalOrder,
   roleCanUpdateOrderStatus,
   vendorVisibleInSharedLists,
+  menuPathGrantsAccess,
 } from "../utils/authUtils";
 import { swalInfo, swalSuccess, swalError } from "../utils/swal";
 import {
@@ -686,7 +687,7 @@ export const GlobalDataProvider = ({ children }) => {
     return null;
   });
 
-  // FETCH REAL PROFILE ON MOUNT (PHASE 11 INTEGRATION)
+  // FETCH REAL PROFILE ON MOUNT (PHASE 11 INTEGRATION) & POLL PERIODICALLY
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token');
@@ -700,18 +701,56 @@ export const GlobalDataProvider = ({ children }) => {
             if (realUser.role?.name) {
               localStorage.setItem('userRole', realUser.role.name.toLowerCase());
             }
+            if (realUser.menuPermissions) {
+              setMenuPermissions(realUser.menuPermissions);
+              localStorage.setItem('menuPermissions', JSON.stringify(realUser.menuPermissions));
+
+              // Auto-kick out if on a restricted page
+              const path = window.location.pathname;
+              const search = window.location.search;
+              
+              const isDashboardIndexWithoutTab = (path === '/dashboard' || path === '/dashboard/') && !search.includes('tab=');
+              
+              if (path.startsWith('/dashboard') && !isDashboardIndexWithoutTab && !['/dashboard/settings', '/dashboard/profile'].includes(path)) {
+                const hasPermission = realUser.menuPermissions.some(p =>
+                  p.can_view &&
+                  p.path &&
+                  menuPathGrantsAccess(path, search, p.path)
+                );
+                
+                const role = normalizeRole(realUser.role);
+                const isPrivileged = ['superadmin', 'admin', 'saas_client'].includes(role);
+                
+                if (!hasPermission && !isPrivileged) {
+                  window.location.href = '/dashboard';
+                }
+              }
+            }
           }
         } catch (error) {
           console.error('Failed to fetch real profile:', error);
           if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('menuPermissions');
             setCurrentUser(null);
           }
         }
       }
     };
+
     fetchProfile();
+
+    // Poll every 10 seconds to detect real-time permissions changes
+    const interval = setInterval(fetchProfile, 10000);
+
+    // Refresh when user returns to/focuses the window
+    window.addEventListener('focus', fetchProfile);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', fetchProfile);
+    };
   }, []);
 
   const [menuPermissions, setMenuPermissions] = useState(() => {
@@ -766,18 +805,6 @@ export const GlobalDataProvider = ({ children }) => {
     const key = String(menuName || "")
       .trim()
       .toLowerCase();
-    if (role === "procurement" && PROCUREMENT_FULL_CRUD_MENUS.has(key)) {
-      return ["can_view", "can_add", "can_edit", "can_delete"].includes(action);
-    }
-    if (role === "inventory" && INVENTORY_FULL_CRUD_MENUS.has(key)) {
-      return ["can_view", "can_add", "can_edit", "can_delete"].includes(action);
-    }
-    if (role === "logistics" && LOGISTICS_FULL_CRUD_MENUS.has(key)) {
-      return ["can_view", "can_add", "can_edit", "can_delete"].includes(action);
-    }
-    if (role === "concierge" && CONCIERGE_FULL_CRUD_MENUS.has(key)) {
-      return ["can_view", "can_add", "can_edit", "can_delete"].includes(action);
-    }
 
     // If no permissions loaded, deny by default (secure fallback)
     if (!menuPermissions || menuPermissions.length === 0) return false;
@@ -821,6 +848,7 @@ export const GlobalDataProvider = ({ children }) => {
   // Backend in some deployments doesn't expose tracking/urgent endpoints.
   const trackingApiUnavailableRef = React.useRef(false);
   const urgentApiUnavailableRef = React.useRef(false);
+  const lastFetchedUserIdRef = React.useRef(null);
   const [stockMovements, setStockMovements] = useState([]);
   const [cart, setCart] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -2396,7 +2424,12 @@ export const GlobalDataProvider = ({ children }) => {
   // Initial Data Fetch
   useEffect(() => {
     if (currentUser && localStorage.getItem("token")) {
-      fetchInitialData();
+      if (lastFetchedUserIdRef.current !== currentUser.id) {
+        lastFetchedUserIdRef.current = currentUser.id;
+        fetchInitialData();
+      }
+    } else {
+      lastFetchedUserIdRef.current = null;
     }
   }, [currentUser]);
 
@@ -5637,25 +5670,12 @@ export const GlobalDataProvider = ({ children }) => {
         route_id: data.routeId || null,
       });
 
-      // Re-fetch to sync
-      const [vRes, dRes] = await Promise.all([
-        api.get("/logistics/vehicles"),
-        api.get("/logistics/deliveries"),
-      ]);
+      // Update vehicle status to En Route in the real DB
+      await api.put(`/vehicles/${data.db_id}`, { status: "En Route" });
 
-      if (vRes.data.success) {
-        setFleet(
-          vRes.data.data.map((v) => ({
-            id: v.plate_number,
-            db_id: v.id,
-            type: v.type,
-            model: v.model,
-            fuel: `${v.fuel_level}%`,
-            status: v.status === "available" ? "Active" : v.status,
-            vehicle_type: v.vehicle_type,
-          })),
-        );
-      }
+      // Re-fetch to sync
+      await fetchFleet();
+      const dRes = await api.get("/logistics/deliveries");
 
       if (dRes.data.success) {
         const mappedDeliveries = dRes.data.data.map((d) => ({
@@ -5728,8 +5748,11 @@ export const GlobalDataProvider = ({ children }) => {
         detail: `Vehicle ${data.id} launched for ${data.mission}. Pilot: ${data.driver}`,
         type: "system",
       });
+
+      alert(`Asset "${data.id}" successfully dispatched and status updated to "En Route"!`);
     } catch (error) {
       console.error("Failed to dispatch vehicle:", error);
+      alert(error.message || "Failed to dispatch vehicle.");
     }
   };
 
@@ -6245,10 +6268,16 @@ export const GlobalDataProvider = ({ children }) => {
     setShippingModePricing(normalized);
     writeShippingModePricing(normalized); // Optional: keep for offline backup
     try {
-      await api.put("/settings/system", {
+      const res = await api.put("/settings/system", {
         type: 'shipping_modes',
         data: normalized
       });
+      if (res.data?.success) {
+        setSystemSettings(prev => ({
+          ...prev,
+          shipping_modes: normalized
+        }));
+      }
     } catch (e) {
       console.warn("Could not persist shipping pricing to backend:", e?.response?.data || e?.message);
     }
@@ -6258,10 +6287,16 @@ export const GlobalDataProvider = ({ children }) => {
   const updateDeliveryTiers = async (tiers) => {
     setDeliveryPricing(tiers);
     try {
-      await api.put("/settings/system", {
+      const res = await api.put("/settings/system", {
         type: 'delivery_tiers',
         data: tiers
       });
+      if (res.data?.success) {
+        setSystemSettings(prev => ({
+          ...prev,
+          delivery_tiers: tiers
+        }));
+      }
     } catch (e) {
       console.warn("Could not persist delivery tiers to backend:", e?.response?.data || e?.message);
     }
@@ -6833,6 +6868,7 @@ export const GlobalDataProvider = ({ children }) => {
         updateUrgentTask,
         deleteUrgentTask,
         deliveryPricing,
+        setDeliveryPricing,
         updateDeliveryPricing: updateDeliveryPricingTier,
         shippingModePricing,
         updateShippingModePricing,
@@ -6919,6 +6955,7 @@ export const GlobalDataProvider = ({ children }) => {
         fetchDashboardStats,
         systemSettings,
         fetchSystemSettings,
+        setSystemSettings,
 
         // Utility
         refreshData: fetchInitialData,

@@ -32,11 +32,12 @@ export const createMission = async (data, tenantId) => {
 };
 
 export const findMissionById = async (id) => {
-  return await prisma.mission.findUnique({
-    where: { id },
+  const isNumeric = !isNaN(id) && !isNaN(parseInt(id, 10));
+  return await prisma.mission.findFirst({
+    where: isNumeric ? { id: parseInt(id, 10) } : { missionNumber: id },
     include: {
       delivery: { include: { items: true, client: true } },
-        assignee: { select: { firstName: true, lastName: true, vehiclePlate: true, vehicleModel: true, vehicleType: true } }
+      assignee: { select: { firstName: true, lastName: true, vehiclePlate: true, vehicleModel: true, vehicleType: true } }
     }
   });
 };

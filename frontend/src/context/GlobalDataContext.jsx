@@ -3453,7 +3453,7 @@ export const GlobalDataProvider = ({ children }) => {
 
       // If mission is dispatched, ensure a delivery row exists for operations tracking.
       if (String(status).toLowerCase() === "en_route") {
-        const mission = missions.find((m) => String(m.id) === String(id));
+        const mission = missions.find((m) => String(m.id) === String(id) || String(m.missionNumber) === String(id) || String(m.db_id) === String(id) || String(m.mission_number) === String(id));
         if (mission) {
           const hasLinkedDelivery = deliveries.some((d) => {
             const dOrderRaw =
@@ -3935,37 +3935,33 @@ export const GlobalDataProvider = ({ children }) => {
       const apiCreateStatus = createStatusMap[rawStatus] || rawStatus;
 
       const reqData = {
-        order_id: sanitizedOrderId,
-        company_id: del.companyId || del.company_id || null,
-        assigned_driver:
-          del.assigned_driver || del.driverId || del.driver_id || null,
-        client_id: del.customerId || del.customer_id || del.client_id || null,
-        customer_id: del.customerId || del.customer_id || del.client_id || null,
-        mission_type: ["Delivery", "Pickup", "Transfer", "Chauffeur"].includes(
+        orderId: sanitizedOrderId,
+        companyId: del.companyId || del.company_id || null,
+        clientId: del.customerId || del.customer_id || del.client_id || null,
+        missionType: ["Delivery", "Pickup", "Transfer", "Chauffeur"].includes(
           del.missionType || del.mission_type,
         )
           ? del.missionType || del.mission_type
           : "Delivery",
-        route: del.location || del.route || "",
-        driver_name: del.driver || del.driver_name || "",
-        plate_number: del.vehicleId || del.plate_number || "",
-        package_details:
-          typeof del.items === "string"
-            ? del.items
-            : JSON.stringify(del.items || []),
-        pickup_location: del.pickupLocation || del.pickup_location || "",
-        drop_location: del.dropLocation || del.drop_location || "",
-        passenger_info: del.passengerInfo || del.passenger_info || null,
-        delivery_date: del.dueDate || del.delivery_date || null,
-        pickup_time: del.pickup_time || null,
-        delivery_instructions: del.delivery_instructions || null,
-        delivery_fee: del.delivery_fee || 0,
-        route_distance: del.route_distance !== '' && del.route_distance !== undefined ? del.route_distance : null,
-        staff_pay_rate: del.staff_pay_rate !== '' && del.staff_pay_rate !== undefined ? del.staff_pay_rate : null,
-        mode: del.mode || 'Road',
+        remarks: JSON.stringify({
+          route: del.location || del.route || "",
+          driver: del.driver_name || del.driver || "",
+          assigned_driver: del.assigned_driver || del.driverId || del.driver_id || null,
+          package_details: typeof del.items === "string" ? del.items : JSON.stringify(del.items || []),
+        }),
+        pickupLocation: del.pickupLocation || del.pickup_location || "",
+        dropLocation: del.dropLocation || del.drop_location || "",
+        dueDate: del.dueDate || del.due_date || null,
         status: apiCreateStatus,
+        items: Array.isArray(del.items) ? del.items.map(i => ({
+          quantity: Number(i.qty || i.quantity || 1),
+          itemId: i.itemId || i.id || 1
+        })) : [{ quantity: 1, itemId: 1 }],
+        routeDistance: del.route_distance !== '' && del.route_distance !== undefined ? del.route_distance : null,
+        staffPayRate: del.staff_pay_rate !== '' && del.staff_pay_rate !== undefined ? del.staff_pay_rate : null,
+        transportMode: del.mode || 'Road'
       };
-      const res = await api.post("/logistics/deliveries", reqData);
+      const res = await api.post("/deliveries", reqData);
       if (res.data.success) {
         // Re-fetch to sync
         await fetchDeliveries();

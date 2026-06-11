@@ -28,8 +28,8 @@ const PurchaseRequests = () => {
   
   const { data: prData, isLoading, error } = usePurchaseRequests(page, 10, searchTerm);
   
-  const purchaseRequests = prData?.data?.length > 0 ? prData.data : (mockRequests || []);
-  const meta = prData?.meta || { totalPages: 1, totalItems: purchaseRequests.length };
+  const purchaseRequests = prData?.purchaseRequests || (mockRequests || []);
+  const meta = prData ? { totalPages: prData.totalPages, totalItems: prData.total } : { totalPages: 1, totalItems: purchaseRequests.length };
   
   const createPRMutation = useCreatePR();
   const updatePRMutation = useUpdatePR();
@@ -45,7 +45,7 @@ const PurchaseRequests = () => {
   React.useEffect(() => {
     fetchProcurement();
     // Only fetch users/clients if the role has the required menu permissions
-    if (hasMenuPermission('Personnel', 'can_view')) {
+    if (hasMenuPermission('Personnel', 'can_view') || ['procurement', 'procurement_staff', 'admin', 'super_admin', 'superadmin'].includes(userRole)) {
       fetchStaff();
       fetchCustomerUsers({ include_all: 1 });
     }
@@ -96,18 +96,32 @@ const PurchaseRequests = () => {
   };
 
   const columns = [
-    { header: "Request ID", accessor: "requestId" },
+    {
+      header: "Request ID",
+      accessor: "requestId",
+      render: (item) => item.prNumber || item.requestId || `REQ-${item.id}`
+    },
     {
       header: "Items",
       accessor: "items",
       render: (item) => {
         const items = Array.isArray(item.items) ? item.items : [];
         if (items.length === 0) return item.item || "No Items";
-        if (items.length === 1) return items[0].name;
-        return `${items[0].name} (+${items.length - 1} more)`;
+        const firstItemName = items[0].name || items[0].itemName || "Unknown Item";
+        if (items.length === 1) return firstItemName;
+        return `${firstItemName} (+${items.length - 1} more)`;
       },
     },
-    { header: "Requester", accessor: "requester" },
+    {
+      header: "Requester",
+      accessor: "requester",
+      render: (item) => {
+        if (item.requester && typeof item.requester === 'object') {
+          return `${item.requester.firstName || ''} ${item.requester.lastName || ''}`.trim() || 'Unknown';
+        }
+        return item.requester || "Unknown";
+      }
+    },
     {
       header: "Total Est.",
       accessor: "total",
@@ -117,7 +131,16 @@ const PurchaseRequests = () => {
         return `$${parseFloat(total || 0).toLocaleString()}`;
       },
     },
-    { header: "Department", accessor: "department" },
+    {
+      header: "Department",
+      accessor: "department",
+      render: (item) => {
+        if (item.department && typeof item.department === 'object') {
+          return item.department.name || 'Unknown';
+        }
+        return item.department || "Unknown";
+      }
+    },
     { header: "Status", accessor: "status" },
     {
       header: "Date / Time (EST)",

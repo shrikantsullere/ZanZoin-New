@@ -4,10 +4,12 @@ import { sendResponse } from '../utils/response.js';
 export const getPayrolls = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const isAdmin = req.user.role?.name === 'ADMIN';
     const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null : (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
     
-    // For now we just use the user's tenantId if they aren't super admin
-    const payrolls = await financeService.getPayrolls(tenantIdToFilter || 1);
+    // Non-admins can only see their own payroll records
+    const filterUserId = (isSuperAdmin || isAdmin) ? null : req.user.id;
+    const payrolls = await financeService.getPayrolls(tenantIdToFilter || 1, filterUserId);
     
     // Transform to match frontend expectations
     const formattedData = payrolls.map(p => ({
@@ -34,6 +36,10 @@ export const getPayrolls = async (req, res, next) => {
 export const createPayroll = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const isAdmin = req.user.role?.name === 'ADMIN';
+    if (!isSuperAdmin && !isAdmin) {
+      throw new AppError('Access denied. Admin permissions required.', 403);
+    }
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
     
     const payroll = await financeService.createPayroll(tenantIdToUse, req.user.id, req.body);
@@ -46,6 +52,10 @@ export const createPayroll = async (req, res, next) => {
 export const updatePayroll = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const isAdmin = req.user.role?.name === 'ADMIN';
+    if (!isSuperAdmin && !isAdmin) {
+      throw new AppError('Access denied. Admin permissions required.', 403);
+    }
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
     
     const payroll = await financeService.updatePayroll(tenantIdToUse, req.user.id, req.params.id, req.body);
@@ -58,6 +68,10 @@ export const updatePayroll = async (req, res, next) => {
 export const deletePayroll = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const isAdmin = req.user.role?.name === 'ADMIN';
+    if (!isSuperAdmin && !isAdmin) {
+      throw new AppError('Access denied. Admin permissions required.', 403);
+    }
     const tenantIdToUse = isSuperAdmin ? (req.query.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
     
     await financeService.deletePayroll(tenantIdToUse, req.user.id, req.params.id);

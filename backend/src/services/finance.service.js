@@ -1,9 +1,12 @@
 import prisma from '../config/db.js';
 import AppError from '../utils/AppError.js';
 
-export const getPayrolls = async (tenantId) => {
+export const getPayrolls = async (tenantId, userId = null) => {
   return await prisma.payroll.findMany({
-    where: { tenantId },
+    where: { 
+      tenantId,
+      ...(userId && { userId: Number(userId) })
+    },
     include: {
       user: {
         select: {

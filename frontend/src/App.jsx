@@ -135,17 +135,6 @@ const DashboardSelector = ({ role }) => {
 
   // Shared staff features (Leave & Pay) for all personnel roles
   if (['operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'].includes(role) && (tab === 'leave' || tab === 'pay')) {
-    try {
-      const perms = JSON.parse(localStorage.getItem('menuPermissions') || '[]');
-      const hasPermission = perms.some(p =>
-        p.can_view &&
-        p.path &&
-        menuPathGrantsAccess('/dashboard', `?tab=${tab}`, p.path)
-      );
-      if (perms.length > 0 && !hasPermission) {
-        return <Navigate to="/dashboard" replace />;
-      }
-    } catch (e) { /* ignore */ }
     return <EmployeePortal />;
   }
 

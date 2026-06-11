@@ -485,6 +485,8 @@ model PurchaseRequestItem {
   itemName          String
   description       String?  @db.Text
   quantity          Float
+  receivedQty       Float    @default(0)
+  pendingReceiveQty Float    @default(0)
   unit              String // e.g., kg, pieces, boxes
   estimatedCost     Float?
   createdAt         DateTime @default(now())
@@ -551,6 +553,9 @@ model PurchaseOrder {
   purchaseRequestId Int
   quotationId       Int?
   totalAmount       Float
+  paymentTerms      String?  @default("Net 30")
+  packingSlip       String?
+  adminApproved     Boolean  @default(false)
   status            String   @default("draft") // draft, approved, rejected, cancelled, waiting_for_delivery
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

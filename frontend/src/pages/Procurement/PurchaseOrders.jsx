@@ -23,10 +23,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useData } from "../../context/GlobalDataContext";
 import StatusBadge from "../../components/StatusBadge";
 import Pagination from "../../components/Common/Pagination";
-import { usePurchaseOrders, useCreatePurchaseOrder, useUpdatePurchaseOrder } from "../../hooks/api/useProcurement";
+import { usePurchaseOrders, useCreatePurchaseOrder, useUpdatePurchaseOrder, usePurchaseRequests } from "../../hooks/api/useProcurement";
+import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCcw } from "lucide-react";
 
 const PurchaseOrders = () => {
+  const queryClient = useQueryClient();
   const {
     marketplaceVendors,
     addPurchaseOrder,
@@ -35,18 +37,19 @@ const PurchaseOrders = () => {
     reverseGoodsReceipt,
     fetchVendors,
     currentUser,
-    purchaseRequests,
     updatePurchaseRequest,
     approvePOReceipt,
     hasMenuPermission,
   } = useData();
   const approvedVendors = marketplaceVendors || [];
+  const { data: prData } = usePurchaseRequests(1, 100);
+  const purchaseRequests = prData?.purchaseRequests || [];
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: poData, isLoading, error } = usePurchaseOrders(page, 10, searchTerm);
-  const purchaseOrders = poData?.data || [];
-  const meta = poData?.meta || { totalPages: 1, totalItems: 0 };
+  const purchaseOrders = poData?.purchaseOrders || [];
+  const meta = poData ? { totalPages: poData.totalPages, totalItems: poData.total } : { totalPages: 1, totalItems: 0 };
 
   const userRole = String(currentUser?.role?.name || currentUser?.role || "").toLowerCase().replace(/\s+/g, "_");
   const isCustomer = ["customer", "saas_client", "client"].includes(userRole);
@@ -187,6 +190,7 @@ const PurchaseOrders = () => {
         vendorId: parseInt(vendorId, 10),
         purchaseRequestId: parseInt(purchaseRequestId, 10),
         totalAmount: total,
+        paymentTerms: formData.get("paymentTerms"),
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Created');
     } catch (err) {
@@ -204,7 +208,9 @@ const PurchaseOrders = () => {
     }
 
     if (purchaseRequestId) {
-      updatePurchaseRequest({ id: purchaseRequestId, status: "Ordered" });
+      await updatePurchaseRequest({ id: purchaseRequestId, status: "Ordered" });
+      queryClient.invalidateQueries(["purchaseRequests"]);
+      queryClient.invalidateQueries(["purchaseOrders"]);
     }
 
     setShowCreateModal(false);
@@ -238,7 +244,11 @@ const PurchaseOrders = () => {
     try {
       await updatePOMutation.mutateAsync({
         id: selectedPO.id,
-        data: { status: selectedPO.status.toLowerCase() }
+        data: {
+          status: selectedPO.status.toLowerCase(),
+          paymentTerms: formData.get("paymentTerms"),
+          totalAmount: total
+        }
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Updated');
     } catch (err) {
@@ -247,6 +257,7 @@ const PurchaseOrders = () => {
       updatePurchaseOrder({
         ...selectedPO,
         paymentTerms: formData.get("paymentTerms"),
+        payment_terms: formData.get("paymentTerms"),
         items,
         total,
       });
@@ -466,23 +477,23 @@ const PurchaseOrders = () => {
                         <td className="p-6">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs">
-                              {(po.vendor_name || po.vendorName || "?")[0]}
+                              {(po.vendor?.companyName || po.vendor_name || po.vendorName || "?")[0]}
                             </div>
                             <span className="text-sm font-bold text-white uppercase">
-                              {po.vendor_name || po.vendorName || "Unknown Vendor"}
+                              {po.vendor?.companyName || po.vendor_name || po.vendorName || "Unknown Vendor"}
                             </span>
                           </div>
                         </td>
                         <td className="p-6">
                           <span className="text-sm text-secondary font-medium">
-                            {(po.created_at || po.date)?.split("T")[0] || "N/A"}
+                            {(po.createdAt || po.created_at || po.date)?.split("T")[0] || "N/A"}
                           </span>
                         </td>
                         <td className="p-6">
                           <span className="text-sm font-black text-white">
                             $
                             {Number(
-                              po.total_amount || po.total || 0,
+                              po.totalAmount || po.total_amount || po.total || 0,
                             ).toLocaleString()}
                           </span>
                         </td>
@@ -708,13 +719,31 @@ const PurchaseOrders = () => {
                           name="purchaseRequestId"
                           className="w-full bg-background border border-accent/30 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent appearance-none font-bold italic uppercase tracking-wider cursor-pointer"
                           required
+                          onChange={(e) => {
+                            const prId = e.target.value;
+                            if (prId) {
+                              const selectedPR = purchaseRequests.find(r => String(r.id) === String(prId));
+                              if (selectedPR && Array.isArray(selectedPR.items)) {
+                                setPoItems(selectedPR.items.map(item => ({
+                                  id: item.id || Date.now() + Math.random(),
+                                  name: item.name || item.itemName || "",
+                                  quantity: item.qty || item.quantity || 1,
+                                  price: item.price || item.estimatedCost || 0,
+                                  category: item.category || "General"
+                                })));
+                              }
+                            }
+                          }}
                         >
                           <option value="">Select an approved Purchase Request...</option>
                           {purchaseRequests
-                            .filter((r) => r.status === "Pending" || r.status === "Approved")
+                            .filter((r) => {
+                              const status = String(r.status || "").toLowerCase();
+                              return status === "pending" || status === "approved";
+                            })
                             .map((r) => (
                               <option key={r.id} value={r.id}>
-                                PR-{r.id} ({r.item}) - {r.status}
+                                PR-{r.prNumber || r.id} ({r.title || (Array.isArray(r.items) && r.items[0]?.name) || "Untitled"}) - {r.status}
                               </option>
                             ))}
                         </select>
@@ -1155,7 +1184,8 @@ const PurchaseOrders = () => {
                         Vendor
                       </p>
                       <p className="text-sm font-black text-white">
-                        {selectedPO.vendor_name ||
+                        {selectedPO.vendor?.companyName ||
+                          selectedPO.vendor_name ||
                           selectedPO.vendorName ||
                           "Unknown Vendor"}
                       </p>
@@ -1165,7 +1195,7 @@ const PurchaseOrders = () => {
                         Issue Date
                       </p>
                       <p className="text-sm font-black text-white">
-                        {(selectedPO.created_at || selectedPO.date)?.split(
+                        {(selectedPO.createdAt || selectedPO.created_at || selectedPO.date)?.split(
                           "T",
                         )[0] || "N/A"}
                       </p>
@@ -1187,7 +1217,7 @@ const PurchaseOrders = () => {
                       <p className="text-sm font-black text-white">
                         $
                         {Number(
-                          selectedPO.total_amount || selectedPO.total || 0,
+                          selectedPO.totalAmount || selectedPO.total_amount || selectedPO.total || 0,
                         ).toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -1444,7 +1474,8 @@ const PurchaseOrders = () => {
                   Sourcing Vendor:
                 </p>
                 <p className="text-base font-black italic tracking-tight uppercase leading-tight">
-                  {selectedPO.vendor_name ||
+                  {selectedPO.vendor?.companyName ||
+                    selectedPO.vendor_name ||
                     selectedPO.vendorName ||
                     "Unknown Vendor"}
                 </p>
@@ -1536,7 +1567,7 @@ const PurchaseOrders = () => {
                   <span className="text-sm font-bold italic">
                     $
                     {Number(
-                      selectedPO.total_amount || selectedPO.total || 0,
+                      selectedPO.totalAmount || selectedPO.total_amount || selectedPO.total || 0,
                     ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -1552,7 +1583,7 @@ const PurchaseOrders = () => {
                   <h3 className="text-xl font-black italic tracking-tighter">
                     $
                     {Number(
-                      selectedPO.total_amount || selectedPO.total || 0,
+                      selectedPO.totalAmount || selectedPO.total_amount || selectedPO.total || 0,
                     ).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}{" "}

@@ -1330,10 +1330,10 @@ export const GlobalDataProvider = ({ children }) => {
 
   const marketplaceVendors = React.useMemo(
     () =>
-      (vendors || []).filter((v) =>
-        vendorVisibleInSharedLists(v, currentUser?.role),
+      (vendors || []).filter(
+        (v) => String(v?.status || "").trim().toLowerCase() === "active",
       ),
-    [vendors, currentUser?.role],
+    [vendors],
   );
 
   const fetchInventory = React.useCallback(async () => {
@@ -1801,9 +1801,11 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchPurchaseRequests = React.useCallback(async (params = {}) => {
     try {
-      const res = await api.get("/procurement/requests", { params });
+      const res = await api.get("/purchase-requests", { params });
       if (res.data?.success) {
-        setPurchaseRequests(res.data.data.map(mapPurchaseRequest));
+        const data = res.data.data;
+        const list = Array.isArray(data) ? data : (data?.purchaseRequests || []);
+        setPurchaseRequests(list.map(mapPurchaseRequest));
       }
     } catch (e) {
       console.error("Fetch purchase requests failed", e);
@@ -1812,21 +1814,23 @@ export const GlobalDataProvider = ({ children }) => {
 
   const fetchPurchaseOrders = React.useCallback(async (params = {}) => {
     try {
-      const res = await api.get("/procurement/po", { params });
+      const res = await api.get("/purchase-orders", { params });
       if (res.data?.success) {
+        const data = res.data.data;
+        const list = Array.isArray(data) ? data : (data?.purchaseOrders || []);
         setPurchaseOrders(
-          res.data.data.map((po) => ({
+          list.map((po) => ({
             ...po,
-            vendorName: po.vendor_name || po.vendorName,
-            date: po.created_at || po.date,
-            total: parseFloat(po.total_amount || po.total || 0),
+            vendorName: po.vendor?.companyName || po.vendor_name || po.vendorName,
+            date: po.createdAt || po.created_at || po.date,
+            total: parseFloat(po.totalAmount || po.total_amount || po.total || 0),
             paymentTerms: po.payment_terms || po.paymentTerms,
             items: parsePOItems(po.items),
           })),
         );
       }
     } catch (e) {
-      console.error("Fetch POs failed", e);
+      console.error("Fetch purchase orders failed", e);
     }
   }, []);
 
@@ -5100,7 +5104,7 @@ export const GlobalDataProvider = ({ children }) => {
       // Send estimated_cost to backend since backend reads estimated_cost on creation
       body.estimated_cost = req.total ?? req.estimated_cost ?? 0;
 
-      const res = await api.post("/procurement/requests", body);
+      const res = await api.post("/purchase-requests", body);
       if (res.data?.success) {
         // Fetch the fresh requests from the backend to get the actual auto-incremented ID and keep state correct!
         await fetchPurchaseRequests();
@@ -5130,7 +5134,7 @@ export const GlobalDataProvider = ({ children }) => {
         })
       );
 
-      await api.put(`/procurement/requests/${identifier}`, updated);
+      await api.put(`/purchase-requests/${identifier}`, updated);
       await fetchPurchaseRequests();
       addLog({
         action: "Request Updated",
@@ -5146,7 +5150,7 @@ export const GlobalDataProvider = ({ children }) => {
 
   const deletePurchaseRequest = async (id) => {
     try {
-      await api.delete(`/procurement/requests/${id}`);
+      await api.delete(`/purchase-requests/${id}`);
       setPurchaseRequests((prev) => prev.filter((r) => r.id !== id && r.requestId !== id));
       addLog({
         action: "Request Purged",
@@ -5178,7 +5182,7 @@ export const GlobalDataProvider = ({ children }) => {
           unit_price: item.price,
         })),
       };
-      const res = await api.post("/procurement/po", reqData);
+      const res = await api.post("/purchase-orders", reqData);
       if (res.data?.success) {
         await fetchPurchaseOrders();
         // Refresh purchase requests to reflect status/total changes automatically
@@ -5211,7 +5215,7 @@ export const GlobalDataProvider = ({ children }) => {
         })),
         vendor_name: updated.vendorName ?? updated.vendor_name,
       };
-      await api.put(`/procurement/po/${pid}`, payload);
+      await api.put(`/purchase-orders/${pid}`, payload);
       const merged = {
         ...updated,
         payment_terms: payload.payment_terms,
@@ -5254,20 +5258,11 @@ export const GlobalDataProvider = ({ children }) => {
       if (options.adminApproved) reqData.adminApproved = true;
 
       const res = await api.put(
-        `/procurement/po/${numericId}/receive`,
+        `/purchase-orders/${numericId}/receive`,
         reqData,
       );
       if (res.data?.success) {
-        // Re-fetch POs or update locally
-        const poRes = await api.get("/procurement/po");
-        if (poRes.data?.success)
-          setPurchaseOrders(
-            poRes.data.data.map((po) => ({
-              ...po,
-              paymentTerms: po.payment_terms || po.paymentTerms,
-              items: parsePOItems(po.items),
-            })),
-          );
+        await fetchPurchaseOrders();
 
         addLog({
           action: "Goods Receiving",
@@ -5283,17 +5278,9 @@ export const GlobalDataProvider = ({ children }) => {
   const approvePOReceipt = async (poId) => {
     try {
       const numericId = typeof poId === "string" && poId.includes("-") ? poId.split("-")[1] : poId;
-      const res = await api.put(`/procurement/po/${numericId}/approve-receipt`);
+      const res = await api.put(`/purchase-orders/${numericId}/approve-receipt`);
       if (res.data?.success) {
-        const poRes = await api.get("/procurement/po");
-        if (poRes.data?.success)
-          setPurchaseOrders(
-            poRes.data.data.map((po) => ({
-              ...po,
-              paymentTerms: po.payment_terms || po.paymentTerms,
-              items: parsePOItems(po.items),
-            })),
-          );
+        await fetchPurchaseOrders();
           
         addLog({
           action: "Receipt Approved",
@@ -5310,17 +5297,10 @@ export const GlobalDataProvider = ({ children }) => {
   const reverseGoodsReceipt = async (poId, lineAdjustments) => {
     const pid = poNumericId(poId);
     try {
-      await api.post(`/procurement/po/${pid}/reverse-receipt`, {
+      await api.post(`/purchase-orders/${pid}/reverse-receipt`, {
         lines: lineAdjustments,
       });
-      const poRes = await api.get("/procurement/po");
-      if (poRes.data?.success)
-        setPurchaseOrders(
-          poRes.data.data.map((po) => ({
-            ...po,
-            items: parsePOItems(po.items),
-          })),
-        );
+      await fetchPurchaseOrders();
     } catch (error) {
       console.warn("reverse-receipt API fallback local", error);
       setPurchaseOrders((prev) =>

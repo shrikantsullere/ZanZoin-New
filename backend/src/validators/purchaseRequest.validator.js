@@ -9,7 +9,7 @@ const itemSchema = z.object({
 });
 
 export const createPurchaseRequestSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(150),
+  title: z.string().min(1, 'Title must be at least 1 character').max(150),
   description: z.string().optional(),
   departmentId: z.number().int().positive('Department ID is required'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
@@ -17,12 +17,16 @@ export const createPurchaseRequestSchema = z.object({
 });
 
 export const updatePurchaseRequestSchema = z.object({
-  title: z.string().min(5).max(150).optional(),
+  title: z.string().min(1).max(150).optional(),
   description: z.string().optional(),
+  departmentId: z.number().int().positive().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  status: z.string().optional(),
+  requester_id: z.number().int().positive().nullable().optional(),
+  requestedBy: z.number().int().positive().nullable().optional(),
   items: z.array(itemSchema).optional() // Full replacement of items
 });
 
 export const changeStatusSchema = z.object({
-  status: z.enum(['submitted', 'department_approved', 'procurement_review', 'approved', 'rejected', 'cancelled'], { required_error: 'Valid status is required' })
+  status: z.enum(['draft', 'submitted', 'pending', 'department_approved', 'procurement_review', 'approved', 'rejected', 'cancelled', 'ordered', 'completed'], { required_error: 'Valid status is required' })
 });

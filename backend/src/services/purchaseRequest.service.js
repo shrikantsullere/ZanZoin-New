@@ -63,7 +63,8 @@ export const getPurchaseRequestById = async (id, tenantId) => {
 export const updatePurchaseRequest = async (id, data, tenantId, performerId) => {
   const pr = await getPurchaseRequestById(id, tenantId);
 
-  if (pr.status !== 'draft') {
+  const unupdatableStatuses = ['completed', 'cancelled', 'ordered'];
+  if (unupdatableStatuses.includes(String(pr.status).toLowerCase())) {
     throw new AppError(`Cannot update PR in ${pr.status} status`, 400);
   }
 
@@ -72,6 +73,14 @@ export const updatePurchaseRequest = async (id, data, tenantId, performerId) => 
   if (data.description !== undefined) safePrData.description = data.description;
   if (data.departmentId) safePrData.departmentId = Number(data.departmentId);
   if (data.priority) safePrData.priority = data.priority;
+  if (data.status) safePrData.status = String(data.status).toLowerCase();
+  
+  if (data.requester_id) {
+    const employeeId = await getEmployeeIdByUserId(Number(data.requester_id));
+    safePrData.requestedBy = employeeId;
+  } else if (data.requestedBy) {
+    safePrData.requestedBy = Number(data.requestedBy);
+  }
 
   const safeItems = Array.isArray(data.items) ? data.items.map(item => ({
     itemName: item.itemName || item.name || 'Unknown Item',
@@ -100,20 +109,28 @@ export const updatePurchaseRequestStatus = async (id, status, tenantId, performe
 
   // Status transitions
   const validTransitions = {
-    'draft': ['submitted', 'cancelled'],
-    'submitted': ['department_approved', 'rejected', 'cancelled'],
-    'department_approved': ['procurement_review', 'rejected'],
-    'procurement_review': ['approved', 'rejected'],
-    'approved': ['rfq_created'], // automatically updated when RFQ is made
-    'rejected': [],
+    'draft': ['submitted', 'cancelled', 'pending'],
+    'pending': ['approved', 'rejected', 'ordered', 'submitted'],
+    'submitted': ['department_approved', 'rejected', 'cancelled', 'ordered', 'pending'],
+    'department_approved': ['procurement_review', 'rejected', 'ordered', 'pending'],
+    'procurement_review': ['approved', 'rejected', 'ordered', 'pending'],
+    'approved': ['rfq_created', 'ordered', 'pending'],
+    'rfq_created': ['ordered', 'pending'],
+    'ordered': ['completed', 'pending'],
+    'completed': [],
+    'rejected': ['pending'],
     'cancelled': []
   };
 
-  if (!validTransitions[pr.status].includes(status)) {
+  const currentStatusClean = String(pr.status || 'draft').toLowerCase();
+  const targetStatusClean = String(status || 'pending').toLowerCase();
+
+  const allowed = validTransitions[currentStatusClean] || [];
+  if (!allowed.includes(targetStatusClean) && currentStatusClean !== targetStatusClean) {
     throw new AppError(`Invalid status transition from ${pr.status} to ${status}`, 400);
   }
 
-  const updatedPr = await prRepository.updatePurchaseRequestStatus(id, status);
+  const updatedPr = await prRepository.updatePurchaseRequestStatus(id, targetStatusClean);
 
   await logAudit({
     module: 'PURCHASE_REQUESTS',

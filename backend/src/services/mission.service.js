@@ -156,33 +156,42 @@ export const startMission = async (id, tenantId, performerId) => {
 };
 
 export const submitPOD = async (id, podData, tenantId, performerId) => {
-  let mission = await missionRepo.findMissionById(id);
+  // First, see if the ID corresponds to a Delivery ID with an active mission
+  let mission = await prisma.mission.findFirst({
+      where: { deliveryId: Number(id), status: { notIn: ['completed', 'cancelled'] } }
+  });
+
+  // If not, fall back to checking if it's an actual Mission ID
+  if (!mission) {
+      mission = await missionRepo.findMissionById(id);
+      // Prevent overlaps if findMissionById matched a completed mission randomly sharing the ID
+      if (mission && ['completed', 'cancelled'].includes(mission.status)) {
+          mission = null;
+      }
+  }
 
   if (!mission) {
-     // The ID might be a Delivery ID instead of Mission ID. Let's look it up.
-     mission = await prisma.mission.findFirst({
-         where: { deliveryId: Number(id), status: { notIn: ['completed', 'cancelled'] } }
+     // If STILL no active mission, it means this delivery was never "dispatched" officially through a mission.
+     // We can just complete the delivery directly!
+     const delivery = await deliveryRepo.findDeliveryById(Number(id));
+     if (!delivery) throw new AppError('Delivery/Mission not found', 404);
+     
+     if (['delivered', 'cancelled'].includes(delivery.status)) {
+         throw new AppError(`Cannot complete a delivery in ${delivery.status} status`, 400);
+     }
+     
+     await prisma.$transaction(async (tx) => {
+         await deliveryRepo.updateDeliveryStatus(tx, Number(id), 'delivered', { deliveryDate: new Date() });
+         await missionRepo.createPOD(tx, Number(id), tenantId || delivery.tenantId, podData);
      });
      
-     // If STILL no mission, it means this delivery was never "dispatched" officially through a mission.
-     // We can just complete the delivery directly!
-     if (!mission) {
-         const delivery = await deliveryRepo.findDeliveryById(Number(id));
-         if (!delivery) throw new AppError('Delivery/Mission not found', 404);
-         
-         await prisma.$transaction(async (tx) => {
-             await deliveryRepo.updateDeliveryStatus(tx, Number(id), 'delivered', { deliveryDate: new Date() });
-             await missionRepo.createPOD(tx, Number(id), tenantId || delivery.tenantId, podData);
-         });
-         
-         await logAudit({
-            module: 'DELIVERIES',
-            action: 'COMPLETE',
-            description: `Delivery ${delivery.deliveryNumber} completed via direct POD.`,
-            performedBy: performerId
-         });
-         return true;
-     }
+     await logAudit({
+        module: 'DELIVERIES',
+        action: 'COMPLETE',
+        description: `Delivery ${delivery.deliveryNumber} completed via direct POD.`,
+        performedBy: performerId
+     });
+     return true;
   }
 
   if (!mission || (tenantId !== null && mission.tenantId !== tenantId)) throw new AppError('Mission not found', 404);

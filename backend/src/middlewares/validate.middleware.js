@@ -3,13 +3,16 @@ import { sendResponse } from '../utils/response.js';
 export const validate = (schema) => (req, res, next) => {
   try {
     if (schema.shape && (schema.shape.body || schema.shape.query || schema.shape.params)) {
-      schema.parse({
+      const parsed = schema.parse({
         body: req.body,
         query: req.query,
         params: req.params,
       });
+      if (parsed.body) req.body = parsed.body;
+      if (parsed.query) req.query = parsed.query;
+      if (parsed.params) req.params = parsed.params;
     } else {
-      schema.parse(req.body);
+      req.body = schema.parse(req.body);
     }
     next();
   } catch (err) {

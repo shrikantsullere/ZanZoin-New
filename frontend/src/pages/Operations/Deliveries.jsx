@@ -32,7 +32,7 @@ function displayDeliveryStatus(raw) {
 }
 
 const Deliveries = () => {
-  const { users, fleet, fetchStaff, hasMenuPermission, warehouses, fetchWarehouses, currentUser, clients = [], fetchClients, customerUsers = [], fetchCustomerUsers } = useData();
+  const { users, fleet, fetchFleet, fetchStaff, hasMenuPermission, warehouses, fetchWarehouses, currentUser, clients = [], fetchClients, customerUsers = [], fetchCustomerUsers } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debounceSearch, setDebounceSearch] = useState('');
@@ -66,7 +66,8 @@ const Deliveries = () => {
     fetchStaff();
     fetchClients();
     fetchCustomerUsers({ include_all: true, include_client_role: true });
-  }, [fetchWarehouses, fetchStaff, fetchClients, fetchCustomerUsers]);
+    if (fetchFleet) fetchFleet();
+  }, [fetchWarehouses, fetchStaff, fetchClients, fetchCustomerUsers, fetchFleet]);
 
   const clientOptions = React.useMemo(() => {
     const out = [];
@@ -246,6 +247,19 @@ const Deliveries = () => {
       : (del?.items && del.items.length > 0)
         ? del.items.map(it => ({ name: it.item?.name || 'Asset', qty: it.quantity, weight: '', length: '', width: '', height: '' }))
         : [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }];
+    
+    const podData = del?.pod || (del?.proofsOfDelivery?.[0] ? {
+        signature: del.proofsOfDelivery[0].receiverSignature,
+        image: del.proofsOfDelivery[0].deliveryPhoto,
+        notes: del.proofsOfDelivery[0].remarks,
+        actualTime: del.proofsOfDelivery[0].createdAt
+      } : (del?.proofs?.[0] ? {
+        signature: del.proofs[0].receiverSignature,
+        image: del.proofs[0].deliveryPhoto,
+        notes: del.proofs[0].remarks,
+        actualTime: del.proofs[0].createdAt
+      } : {}));
+
     const nextFormData = del && del.id ? {
       ...del,
       orderId: del.order?.orderNumber || del.deliveryNumber || del.orderId || '',
@@ -270,7 +284,7 @@ const Deliveries = () => {
       pickupLocation: del.pickupLocation || '',
       dropLocation: del.dropLocation || '',
       route: parsedRemarks.route || del.route || '',
-      pod: del.pod || { signature: null, image: null, actualTime: null }
+      pod: Object.keys(podData).length > 0 ? podData : { signature: null, image: null, actualTime: null }
     } : {
       items: [{ name: '', qty: 1, weight: '', length: '', width: '', height: '' }],
       missionType: 'Delivery',
@@ -402,9 +416,11 @@ const Deliveries = () => {
          submitPODMutation.mutateAsync({
            id: finalData.id,
            podData: {
-             podSignature: finalData.pod?.signature || '',
-             podNotes: 'Delivered',
-             actualDeliveryDate: new Date()
+             receiverName: typeof finalData.client === 'object' 
+               ? (finalData.client?.name || finalData.client?.companyName || 'Authorized Receiver') 
+               : (finalData.client || finalData.passengerInfo?.name || 'Authorized Receiver'),
+             receiverSignature: finalData.pod?.signature || '',
+             remarks: finalData.pod?.notes || 'Delivered'
            }
          }).catch(() => swalError("Error", "Could not submit POD"));
       } else {
@@ -547,34 +563,45 @@ const Deliveries = () => {
               onDelete={(item) => handleAction('delete', item)}
               canEdit={canAssignDriverUi}
               canDelete={hasMenuPermission('Deliveries', 'can_delete')}
-              customAction={(item) => (
-                <div className="flex items-center gap-1 flex-wrap justify-end">
-                  {canAssignDriverUi && (
+              customAction={(item) => {
+                const statusLower = String(item.status || '').toLowerCase();
+                const isDelivered = statusLower === 'completed' || statusLower === 'delivered';
+                
+                return (
+                  <div className="flex items-center gap-1 flex-wrap justify-end">
+                    {canAssignDriverUi && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction('edit', item);
+                        }}
+                        className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-accent border border-accent/35 bg-accent/10 hover:bg-accent/20 transition-all flex items-center gap-1"
+                        title="Assign driver / vehicle and save"
+                      >
+                        <UserPlus size={12} /> Assign
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => {
+                        if (isDelivered) return;
                         e.stopPropagation();
-                        handleAction('edit', item);
+                        handleAction('delivered', item);
                       }}
-                      className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-accent border border-accent/35 bg-accent/10 hover:bg-accent/20 transition-all flex items-center gap-1"
-                      title="Assign driver / vehicle and save"
+                      className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide transition-all ${
+                        isDelivered
+                          ? 'text-success/30 border border-success/10 bg-success/5 cursor-not-allowed opacity-50'
+                          : 'text-success border border-success/30 bg-success/10 hover:bg-success/20'
+                      }`}
+                      title={isDelivered ? "Already Delivered" : "Complete Delivery (POD)"}
+                      disabled={isDelivered}
                     >
-                      <UserPlus size={12} /> Assign
+                      {isDelivered ? 'Delivered' : 'Deliver'}
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAction('delivered', item);
-                    }}
-                    className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide text-success border border-success/30 bg-success/10 hover:bg-success/20 transition-all"
-                    title="Complete Delivery (POD)"
-                  >
-                    Delivered
-                  </button>
-                </div>
-              )}
+                  </div>
+                );
+              }}
             />
             {currentItems.length === 0 && (
               <div className="mt-4 text-center text-[10px] font-black uppercase tracking-widest text-muted">
@@ -909,7 +936,11 @@ const Deliveries = () => {
                     <label className="text-[10px] font-bold text-muted uppercase">Linked Client</label>
                     <select
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:border-accent outline-none font-bold appearance-none cursor-pointer"
-                      value={formData.clientId || ''}
+                      value={
+                        clientOptions.some(c => c.value === formData.clientId) 
+                          ? formData.clientId 
+                          : clientOptions.find(c => String(c.id) === String(formData.clientId))?.value || formData.clientId || ''
+                      }
                       onChange={(e) => {
                         const selected = clientOptions.find(c => c.value === e.target.value);
                         setFormData({

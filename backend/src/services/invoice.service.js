@@ -6,45 +6,63 @@ import { logAudit } from '../utils/audit.js';
 export const generateInvoice = async (data, performerId, tenantId) => {
   const { items, deliveryId, dueDate } = data;
 
+  let invoiceData = {};
+  let referenceNumber = '';
+
   const delivery = await deliveryRepo.findDeliveryById(deliveryId);
-  if (!delivery || (tenantId !== null && delivery.tenantId !== tenantId)) {
-    throw new AppError('Delivery not found', 404);
-  }
-
-  if (delivery.status !== 'delivered') {
-    throw new AppError(`Flow Dependency Error: Cannot generate invoice. Delivery ${delivery.deliveryNumber || deliveryId} is currently '${delivery.status}'. Required Next Step: Complete the delivery and update its status to 'delivered'.`, 400);
-  }
-
-  const pod = await invoiceRepo.checkPODExists(deliveryId);
-  if (!pod) {
-    throw new AppError(`Flow Dependency Error: Missing Proof of Delivery (POD). Required Next Step: Upload and submit the POD document for Delivery ${delivery.deliveryNumber || deliveryId} before generating an invoice.`, 400);
-  }
-
-  // Validate quantities against what was actually delivered
-  for (const item of items) {
-    const deliveredItem = delivery.items.find(di => di.itemId === item.itemId);
-    if (!deliveredItem) {
-      throw new AppError(`Item ${item.itemId} was not part of this delivery`, 400);
+  if (delivery) {
+    if (tenantId !== null && delivery.tenantId !== tenantId) {
+      throw new AppError('Delivery not found', 404);
     }
-    if (item.quantity !== deliveredItem.quantity) {
-      throw new AppError(`Invoice quantity for item ${item.itemId} (${item.quantity}) does not match delivered quantity (${deliveredItem.quantity})`, 400);
+    if (delivery.status !== 'delivered') {
+      throw new AppError(`Flow Dependency Error: Cannot generate invoice. Delivery ${delivery.deliveryNumber || deliveryId} is currently '${delivery.status}'. Required Next Step: Complete the delivery and update its status to 'delivered'.`, 400);
     }
-  }
+    const pod = await invoiceRepo.checkPODExists(deliveryId);
+    if (!pod) {
+      throw new AppError(`Flow Dependency Error: Missing Proof of Delivery (POD). Required Next Step: Upload and submit the POD document for Delivery ${delivery.deliveryNumber || deliveryId} before generating an invoice.`, 400);
+    }
 
-  const invoiceData = {
-    clientId: delivery.clientId,
-    orderId: delivery.orderId,
-    deliveryId: delivery.id,
-    invoiceDate: new Date(),
-    dueDate: new Date(dueDate)
-  };
+    // Validate quantities against what was actually delivered
+    for (const item of items) {
+      const deliveredItem = delivery.items.find(di => di.itemId === item.itemId);
+      if (!deliveredItem) {
+        throw new AppError(`Item ${item.itemId} was not part of this delivery`, 400);
+      }
+    }
+
+    invoiceData = {
+      clientId: delivery.clientId,
+      orderId: delivery.orderId,
+      deliveryId: delivery.id,
+      invoiceDate: new Date(),
+      dueDate: new Date(dueDate)
+    };
+    referenceNumber = delivery.deliveryNumber;
+  } else {
+    // Fallback: If no delivery is found, check if it's a direct Order/Mission.
+    // The frontend passes orderId as deliveryId for Missions.
+    const orderRepo = await import('../repositories/order.repository.js');
+    const order = await orderRepo.findOrderById(deliveryId);
+    if (!order || (tenantId !== null && order.tenantId !== tenantId)) {
+      throw new AppError('Delivery or Order not found', 404);
+    }
+
+    invoiceData = {
+      clientId: order.clientId,
+      orderId: order.id,
+      deliveryId: null,
+      invoiceDate: new Date(),
+      dueDate: new Date(dueDate)
+    };
+    referenceNumber = order.orderNumber || order.id;
+  }
 
   const newInvoice = await invoiceRepo.createInvoice(invoiceData, items, tenantId);
 
   await logAudit({
     module: 'INVOICES',
     action: 'CREATE',
-    description: `Generated Invoice ${newInvoice.invoiceNumber} for Delivery ${delivery.deliveryNumber}`,
+    description: `Generated Invoice ${newInvoice.invoiceNumber} for Delivery/Order ${referenceNumber}`,
     newValue: newInvoice,
     performedBy: performerId
   });

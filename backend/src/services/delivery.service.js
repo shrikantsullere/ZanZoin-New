@@ -72,7 +72,7 @@ export const createDelivery = async (data, performerId, tenantId) => {
     deliveryData.clientId = clientIdToUse;
   }
 
-  if (!['draft', 'pending', 'approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress'].includes(order.status)) {
+  if (!['draft', 'pending', 'approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress', 'operation', 'procurement', 'inventory', 'logistics', 'concierge', 'created', 'admin_review', 'pending_review'].includes(order.status)) {
     throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
   }
 
@@ -110,18 +110,29 @@ export const createDelivery = async (data, performerId, tenantId) => {
 
   deliveryData.clientId = order.clientId;
 
+  const validDeliveryItems = [];
+
   // Validate quantities: Delivery quantity cannot exceed (Order Quantity - Already Delivered Quantity)
-  for (const item of items) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
     const orderItemId = item.orderItemId;
     let orderItem;
+
     if (orderItemId) {
-      orderItem = order.items.find(oi => oi.id == orderItemId);
+      orderItem = order.items?.find(oi => oi.id == orderItemId);
     } else {
-      orderItem = order.items.find(oi => oi.itemId == item.itemId);
+      orderItem = order.items?.find(oi => oi.itemId == item.itemId);
+      if (!orderItem && order.items && order.items[i]) {
+        orderItem = order.items[i];
+        item.itemId = orderItem.itemId;
+      }
     }
 
     if (!orderItem) {
-      throw new AppError(`Item ${item.itemId} does not belong to this order`, 400);
+      // Bespoke/custom item without a corresponding order item in the DB.
+      // We skip adding it to validDeliveryItems to avoid foreign key constraints.
+      // The manifest data is already safely stored in the JSON remarks string.
+      continue;
     }
 
     // Set the resolved orderItemId on the item
@@ -131,7 +142,6 @@ export const createDelivery = async (data, performerId, tenantId) => {
     
     if (orderItem.warehouseId && orderItem.warehouseId !== data.warehouseId) {
       // Optional: Log mismatch but don't strictly block unless required
-      // throw new AppError(`Item ${item.itemId} was not reserved in warehouse ${data.warehouseId}`, 400);
     }
 
     const alreadyDelivered = await deliveryRepo.getDeliveredQuantityForOrderItem(item.orderItemId);
@@ -140,9 +150,11 @@ export const createDelivery = async (data, performerId, tenantId) => {
     if (item.quantity > remainingToDeliver) {
       throw new AppError(`Cannot deliver ${item.quantity} for item ${item.itemId}. Only ${remainingToDeliver} remaining.`, 400);
     }
+    
+    validDeliveryItems.push(item);
   }
 
-  const newDelivery = await deliveryRepo.createDelivery(deliveryData, items, tenantId);
+  const newDelivery = await deliveryRepo.createDelivery(deliveryData, validDeliveryItems, tenantId);
 
   // If order was approved, draft or pending, mark it as ready_for_delivery automatically
   if (['draft', 'pending', 'Pending', 'approved'].includes(order.status)) {

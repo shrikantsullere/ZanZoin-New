@@ -73,7 +73,8 @@ export const findAllDeliveries = async (tenantId, query) => {
         client: { select: { companyName: true } },
         order: { select: { orderNumber: true } },
         assignee: { select: { firstName: true, lastName: true } },
-        items: { include: { item: true } }
+        items: { include: { item: true } },
+        proofs: true
       }
     }),
     prisma.delivery.count({ where })

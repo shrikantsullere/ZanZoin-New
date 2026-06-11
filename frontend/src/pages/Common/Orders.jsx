@@ -13,11 +13,17 @@ import InvoiceGenerationModal from '../../components/InvoiceGenerationModal';
 import { normalizeRole, roleCanCreateInstitutionalOrder } from '../../utils/authUtils';
 
 /** Bespoke / concierge-path orders (store custom request or any row with a custom_request_category). */
-function isCustomRequestFlowOrder(row) {
-  const k = String(row?.order_kind || row?.orderKind || '').toLowerCase();
-  if (k === 'custom_request') return true;
-  const cat = row?.custom_request_category ?? row?.customRequestCategory;
-  return cat != null && String(cat).trim() !== '';
+function isCustomRequestFlowOrder(order) {
+  const typeStr = String(order?.type || '').toLowerCase();
+  const kindStr = String(order?.order_kind || order?.orderKind || '').toLowerCase();
+  
+  if (
+    typeStr.includes('custom') || typeStr.includes('bespoke') || typeStr.includes('custom_request') ||
+    kindStr.includes('custom') || kindStr.includes('bespoke') || kindStr.includes('custom_request')
+  ) {
+    return true;
+  }
+  return false;
 }
 
 const Orders = () => {
@@ -437,7 +443,7 @@ const Orders = () => {
                       className="p-1 px-2 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-all flex items-center justify-center font-bold text-[9px] gap-1.5 border border-accent/20 bg-accent/5 shadow-lg shadow-accent/5"
                       title="Route to Project"
                     >
-                      <ArrowRightCircle size={13} /> <span>Project</span>
+                      <ArrowRightCircle size={13} /> <span>Route to Project</span>
                     </button>
                   </>
                 )}

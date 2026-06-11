@@ -1000,7 +1000,7 @@ model Invoice {
   invoiceNumber  String
   clientId       Int
   orderId        Int
-  deliveryId     Int
+  deliveryId     Int?
   invoiceDate    DateTime
   dueDate        DateTime
   subtotal       Float    @default(0)
@@ -1014,7 +1014,7 @@ model Invoice {
   tenant   Tenant        @relation(fields: [tenantId], references: [id])
   client   Client        @relation(fields: [clientId], references: [id])
   order    Order         @relation(fields: [orderId], references: [id])
-  delivery Delivery      @relation(fields: [deliveryId], references: [id])
+  delivery Delivery?     @relation(fields: [deliveryId], references: [id])
   items    InvoiceItem[]
   payments Payment[]
 

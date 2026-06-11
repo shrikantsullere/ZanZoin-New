@@ -61,8 +61,8 @@ export const findAllPurchaseRequests = async (tenantId, query) => {
       orderBy: { createdAt: 'desc' },
       include: {
         department: { select: { name: true } },
-        requester: { select: { firstName: true, lastName: true } },
-        _count: { select: { items: true } }
+        requester: { select: { id: true, firstName: true, lastName: true } },
+        items: true
       }
     }),
     prisma.purchaseRequest.count({ where })

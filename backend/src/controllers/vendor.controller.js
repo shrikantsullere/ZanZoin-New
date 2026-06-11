@@ -19,7 +19,7 @@ export const createVendor = async (req, res, next) => {
       email: payload.email,
       phone: payload.phone || null,
       address: payload.address || null,
-      status: payload.status || "active",
+      status: payload.status || "inactive",
       category: payload.category || null,
       rating: payload.rating !== undefined ? Number(payload.rating) : 90,
       delivery: payload.delivery !== undefined ? Number(payload.delivery) : 90

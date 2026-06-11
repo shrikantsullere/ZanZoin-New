@@ -6,6 +6,9 @@ export const createPurchaseOrder = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
+    if (req.body.payment_terms && !req.body.paymentTerms) req.body.paymentTerms = req.body.payment_terms;
+    if (req.body.total_amount && !req.body.totalAmount) req.body.totalAmount = req.body.total_amount;
+
     const po = await poService.createPurchaseOrder(req.body, req.user.id, tenantIdToUse);
     sendResponse(res, 201, 'Purchase Order created successfully', po);
   } catch (error) {
@@ -50,6 +53,21 @@ export const updatePurchaseOrderStatus = async (req, res, next) => {
   }
 };
 
+export const updatePurchaseOrder = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    if (req.body.payment_terms && !req.body.paymentTerms) req.body.paymentTerms = req.body.payment_terms;
+    if (req.body.total_amount && !req.body.totalAmount) req.body.totalAmount = req.body.total_amount;
+
+    const updatedPO = await poService.updatePurchaseOrder(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    sendResponse(res, 200, 'Purchase Order updated successfully', updatedPO);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deletePurchaseOrder = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
@@ -57,6 +75,39 @@ export const deletePurchaseOrder = async (req, res, next) => {
 
     await poService.deletePurchaseOrder(Number(req.params.id), tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Purchase Order deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const receivePurchaseOrderGoods = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    const result = await poService.receivePurchaseOrderGoods(
+      Number(req.params.id),
+      req.body,
+      tenantIdToFilter,
+      req.user.id
+    );
+    sendResponse(res, 200, 'Purchase Order goods received successfully', result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const approvePurchaseOrderReceipt = async (req, res, next) => {
+  try {
+    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+
+    const result = await poService.approvePurchaseOrderReceipt(
+      Number(req.params.id),
+      tenantIdToFilter,
+      req.user.id
+    );
+    sendResponse(res, 200, 'Purchase Order receipt approved successfully', result);
   } catch (error) {
     next(error);
   }

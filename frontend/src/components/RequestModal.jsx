@@ -15,7 +15,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
   const rawRole = currentUser?.role;
   const roleStr = typeof rawRole === 'object' ? (rawRole?.name || '') : String(rawRole || '');
   const userRole = roleStr.toLowerCase().replace(/\s+/g, '_');
-  const isAdmin = ['admin', 'super_admin', 'procurement', 'operations'].includes(userRole);
+  const isAdmin = ['admin', 'super_admin', 'procurement', 'procurement_staff', 'operations'].includes(userRole);
 
   const [formData, setFormData] = useState({
     requestId: 'REQ-' + Math.floor(100 + Math.random() * 900),
@@ -40,29 +40,45 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
       if (selectedRequest && (modalType === 'edit' || modalType === 'view')) {
         let normalizedItems = [];
         if (selectedRequest.items && Array.isArray(selectedRequest.items)) {
-          // Deep clone each item to avoid mutating the original request object
-          normalizedItems = selectedRequest.items.map(item => ({ ...item }));
+          // Deep clone each item and map database properties (itemName, quantity, estimatedCost)
+          normalizedItems = selectedRequest.items.map(item => ({
+            ...item,
+            name: item.name || item.itemName || '',
+            qty: item.qty ?? item.quantity ?? 1,
+            price: item.price ?? item.estimatedCost ?? 0
+          }));
         } else if (selectedRequest.item) {
           normalizedItems = [{ name: selectedRequest.item, qty: selectedRequest.qty || 1, price: selectedRequest.price || 0 }];
         } else {
           normalizedItems = [{ name: '', qty: 1, price: 0 }];
         }
 
+        let requesterName = '';
+        if (selectedRequest.requester) {
+          if (typeof selectedRequest.requester === 'object') {
+            requesterName = `${selectedRequest.requester.firstName || ''} ${selectedRequest.requester.lastName || ''}`.trim();
+          } else {
+            requesterName = selectedRequest.requester;
+          }
+        }
+
+        const requesterIdVal = selectedRequest.requester_id || selectedRequest.requestedBy || (selectedRequest.requester && typeof selectedRequest.requester === 'object' ? selectedRequest.requester.id : null);
+
         setFormData({
           requestId: selectedRequest.id || ('REQ-' + Math.floor(100 + Math.random() * 900)),
           items: normalizedItems,
-          requester: selectedRequest.requester || '',
-          requester_id: selectedRequest.requester_id || null,
+          requester: requesterName,
+          requester_id: requesterIdVal,
           requestDate: selectedRequest.date || new Date().toISOString().split('T')[0],
           todayDate: selectedRequest.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
           timestamp: selectedRequest.created_at?.split('T')[1]?.split('.')[0] || new Date().toLocaleTimeString(),
           status: selectedRequest.status || 'Pending',
-          department: selectedRequest.department || 'Operations',
+          department: typeof selectedRequest.department === 'object' ? (selectedRequest.department?.name || 'Operations') : (selectedRequest.department || 'Operations'),
           departmentId: selectedRequest.departmentId || 1,
           connectedEntity: selectedRequest.connectedEntity || '',
           requestType: selectedRequest.requestType || 'Individual'
         });
-        setUserSearch(selectedRequest.requester || '');
+        setUserSearch(requesterName);
       } else {
         const initialRequester = isAdmin ? '' : (currentUser?.name || '');
         const initialRequesterId = isAdmin ? null : (currentUser?.id || null);

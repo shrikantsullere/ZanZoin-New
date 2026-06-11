@@ -47,13 +47,31 @@ export const findAllPurchaseOrders = async (tenantId, query) => {
       orderBy: { createdAt: 'desc' },
       include: {
         vendor: { select: { companyName: true, vendorCode: true } },
-        purchaseRequest: { select: { prNumber: true, title: true } }
+        purchaseRequest: {
+          select: {
+            prNumber: true,
+            title: true,
+            items: true
+          }
+        }
       }
     }),
     prisma.purchaseOrder.count({ where })
   ]);
 
   return { purchaseOrders, total, page: Number(page), totalPages: Math.ceil(total / limit) };
+};
+
+export const updatePurchaseOrder = async (id, data) => {
+  return await prisma.purchaseOrder.update({
+    where: { id },
+    data,
+    include: {
+      vendor: true,
+      purchaseRequest: { include: { items: true, department: true } },
+      quotation: true
+    }
+  });
 };
 
 export const updatePurchaseOrderStatus = async (id, status) => {

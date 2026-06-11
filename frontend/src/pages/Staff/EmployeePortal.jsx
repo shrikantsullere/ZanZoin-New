@@ -928,7 +928,7 @@ const EmployeePortal = () => {
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-2xl font-bold">Leave & Absence Records</h3>
-                            {hasMenuPermission('Leave & Absence', 'can_add') && (
+                            {(hasMenuPermission('Leave & Absence', 'can_add') || ['operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'].includes(userRole)) && (
                                 <button
                                     onClick={() => setIsLeaveModalOpen(true)}
                                     className="btn-primary flex items-center gap-2"

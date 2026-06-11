@@ -280,7 +280,7 @@ const Vendors = () => {
               <Search className="text-muted block" size={16} strokeWidth={2} />
             </div>
           </div>
-          {(hasMenuPermission('Vendors', 'can_add') || normalizeRole(currentUser?.role) === 'procurement') && (
+          {hasMenuPermission('Vendors', 'can_add') && (
             <button className="btn-primary flex items-center gap-2" onClick={() => handleAction('add', {})}>
               <Plus size={16} /> Add Vendor
             </button>

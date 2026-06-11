@@ -146,7 +146,7 @@ const PurchaseRequests = () => {
           <h1 className="text-3xl font-bold tracking-tight text-white italic uppercase tracking-tighter">Purchase Requests</h1>
           <p className="text-secondary mt-1 text-sm font-medium opacity-80 italic uppercase tracking-widest">Review and approve procurement requests from departments.</p>
         </div>
-        {(hasMenuPermission('Purchase Requests', 'can_add') || isCustomer || normalizeRole(currentUser?.role) === 'procurement') && (
+        {(hasMenuPermission('Purchase Requests', 'can_add') || isCustomer) && (
           <button className="btn-primary flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg shadow-accent/20" onClick={handleNewRequest}>
             <Plus size={16} /> New Request
           </button>

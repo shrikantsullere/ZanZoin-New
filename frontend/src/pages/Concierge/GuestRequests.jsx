@@ -98,7 +98,7 @@ const GuestRequests = () => {
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
                     </div>
-                    {(isCustomer || isConciergeOrAdmin || hasMenuPermission('Guest Requests', 'can_add')) && (
+                    {(isCustomer || hasMenuPermission('Guest Requests', 'can_add')) && (
                         <button className="btn-primary flex items-center gap-2" onClick={() => handleAction('add', {})}>
                             <Plus size={16} /> Log Request
                         </button>

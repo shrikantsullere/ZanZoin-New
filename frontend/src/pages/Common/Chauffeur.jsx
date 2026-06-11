@@ -346,7 +346,7 @@ const Chauffeur = () => {
                         {isAdmin ? 'Elite Fleet Management & Logistic Control' : 'Elite transport & chauffeur protocol'}
                     </p>
                 </div>
-                {(isAdmin || isCustomer || hasMenuPermission('Chauffeur', 'can_add')) && (
+                {(isCustomer || hasMenuPermission('Chauffeur', 'can_add')) && (
                     <button
                         onClick={() => openModal('create')}
                         className="btn-primary group flex items-center gap-3 px-8 shadow-xl shadow-accent/20"

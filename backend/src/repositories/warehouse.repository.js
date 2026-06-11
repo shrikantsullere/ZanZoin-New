@@ -3,14 +3,14 @@ import prisma from '../config/db.js';
 export const createWarehouse = async (data) => {
   return await prisma.warehouse.create({
     data,
-    include: { manager: { select: { firstName: true, lastName: true } } }
+    include: { manager: { select: { id: true, firstName: true, lastName: true, userId: true } } }
   });
 };
 
 export const findWarehouseById = async (id) => {
   return await prisma.warehouse.findUnique({
     where: { id },
-    include: { manager: { select: { id: true, firstName: true, lastName: true, employeeCode: true } } }
+    include: { manager: { select: { id: true, firstName: true, lastName: true, employeeCode: true, userId: true } } }
   });
 };
 
@@ -32,7 +32,7 @@ export const findAllWarehouses = async (tenantId, query) => {
       take: Number(limit),
       orderBy: { createdAt: 'desc' },
       include: {
-        manager: { select: { firstName: true, lastName: true } },
+        manager: { select: { id: true, firstName: true, lastName: true, userId: true } },
         _count: { select: { inventoryStock: true } }
       }
     }),
@@ -46,7 +46,7 @@ export const updateWarehouse = async (id, data) => {
   return await prisma.warehouse.update({
     where: { id },
     data,
-    include: { manager: { select: { firstName: true, lastName: true } } }
+    include: { manager: { select: { id: true, firstName: true, lastName: true, userId: true } } }
   });
 };
 

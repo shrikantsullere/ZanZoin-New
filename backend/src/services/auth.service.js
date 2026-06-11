@@ -148,6 +148,23 @@ export const getProfile = async (userId) => {
     }
   }
 
+  const roleMenus = await prisma.roleMenu.findMany({
+    where: { roleId: user.roleId },
+    include: { menu: true }
+  });
+
+  const menuPermissions = roleMenus.map(rm => ({
+    name: rm.menu.name,
+    path: rm.menu.path,
+    icon: rm.menu.icon,
+    module: rm.menu.module,
+    can_view: rm.can_view,
+    can_add: rm.can_add,
+    can_edit: rm.can_edit,
+    can_delete: rm.can_delete
+  }));
+
+  user.menuPermissions = menuPermissions;
   return user;
 };
 

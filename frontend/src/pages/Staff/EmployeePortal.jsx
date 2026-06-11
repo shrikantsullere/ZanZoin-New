@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../../context/GlobalDataContext';
 import StatusBadge from '../../components/StatusBadge';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import { normalizeRole } from '../../utils/authUtils';
 
 const EmployeePortal = () => {
     const {
@@ -24,13 +25,17 @@ const EmployeePortal = () => {
         leaveRequests, addLeaveRequest, fetchLeaveRequests,
         getVacationBalance, toggleAvailability,
         deliveries, updateDelivery, fetchDeliveries, reportSecurityEvent,
-        securityEvents, fetchSecurityEvents
+        securityEvents, fetchSecurityEvents,
+        hasMenuPermission
     } = useData();
 
     const location = useLocation();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
     const activeTab = queryParams.get('tab') || (location.pathname.includes('/leave') ? 'leave' : location.pathname.includes('/payroll') ? 'pay' : 'dashboard');
+
+    const userRole = normalizeRole(currentUser?.role);
+    const hasStaffTerminal = ['superadmin', 'staff', 'operations', 'logistics', 'inventory'].includes(userRole);
 
     useEffect(() => {
         console.log('[StaffPortal] Synchronizing operational data for tab:', activeTab);
@@ -286,13 +291,14 @@ const EmployeePortal = () => {
                     { id: 'leave', label: 'Leave & Absence', icon: Calendar },
                     { id: 'pay', label: 'Pay & Records', icon: History },
                     { id: 'security', label: 'Security Logs', icon: Shield }
-                ].map((tab) => (
+                ].filter(tab => hasStaffTerminal || ['leave', 'pay'].includes(tab.id))
+                .map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => {
                             const newParams = new URLSearchParams(location.search);
                             newParams.set('tab', tab.id);
-                            navigate(`/dashboard/staff-terminal?${newParams.toString()}`);
+                            navigate(`${location.pathname}?${newParams.toString()}`);
                         }}
                         className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${
                             activeTab === tab.id
@@ -922,12 +928,14 @@ const EmployeePortal = () => {
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-2xl font-bold">Leave & Absence Records</h3>
-                            <button
-                                onClick={() => setIsLeaveModalOpen(true)}
-                                className="btn-primary flex items-center gap-2"
-                            >
-                                <Plus size={16} /> Request Absence
-                            </button>
+                            {hasMenuPermission('Leave & Absence', 'can_add') && (
+                                <button
+                                    onClick={() => setIsLeaveModalOpen(true)}
+                                    className="btn-primary flex items-center gap-2"
+                                >
+                                    <Plus size={16} /> Request Absence
+                                </button>
+                            )}
                         </div>
 
                         <div className="glass-card p-6">

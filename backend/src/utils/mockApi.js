@@ -97,7 +97,9 @@ const defaultMissions = [
 
 const defaultDeliveries = [
   { id: "DEL-001", orderId: "ORD-001", vehicleId: "Van-01", driver: "Jaheem Brown", status: "Delivered", eta: "09:15 AM" },
-  { id: "DEL-002", orderId: "ORD-002", vehicleId: "Vessel-02", driver: "Devon Williams", status: "In Transit", eta: "11:30 AM" }
+  { id: "DEL-002", orderId: "ORD-002", vehicleId: "Vessel-02", driver: "Devon Williams", status: "In Transit", eta: "11:30 AM" },
+  { id: "DEL-003", orderId: "ORD-003", vehicleId: null, driver: null, status: "Pending", eta: "02:00 PM" },
+  { id: "DEL-004", orderId: "ORD-003", vehicleId: null, driver: null, status: "Pending Pickup", eta: "03:30 PM" }
 ];
 
 const defaultPurchaseRequests = [
@@ -189,6 +191,7 @@ if (true) {
 // ==========================================
 const handleRequest = async (method, url, data) => {
   let path = url.replace(API_BASE_URL, '').split('?')[0];
+  path = path.replace(/^\/api\/v1/, '');
   if (!path.startsWith('/')) path = '/' + path;
 
   const getDB = (key) => JSON.parse(global.__mockDB__[String(DB_PREFIX + key)] || '[]');

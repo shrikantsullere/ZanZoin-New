@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { swalSuccess, swalError, swalWarning } from '../../utils/swal';
-import { User, Shield, Bell, Globe, CreditCard, Save, Lock, RotateCcw, Truck, DollarSign, Camera } from 'lucide-react';
+import { User, Shield, Bell, Globe, CreditCard, Save, Lock, RotateCcw, Truck, DollarSign, Camera, Plus, Trash2 } from 'lucide-react';
 
 import { useData } from '../../context/GlobalDataContext';
 import { normalizeRole } from '../../utils/authUtils';
@@ -34,7 +34,7 @@ const SETTINGS_TABS = [
 ];
 
 const Settings = () => {
-  const { currentUser, setCurrentUser, updateUser, deliveryPricing, setDeliveryPricing, updateDeliveryTiers, shippingModePricing, updateShippingModePricing, clients, updateClientBranding } = useData();
+  const { currentUser, setCurrentUser, updateUser, deliveryPricing, setDeliveryPricing, updateDeliveryTiers, shippingModePricing, updateShippingModePricing, clients, updateClientBranding, systemSettings, fetchSystemSettings, setSystemSettings } = useData();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState(() => ({
@@ -53,14 +53,24 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    if (clientData) {
+    const role = normalizeRole(currentUser?.role);
+    if (['superadmin', 'admin'].includes(role) && systemSettings?.branding) {
+      // Admin/superadmin: load branding from system settings (DB)
+      const b = systemSettings.branding;
       setBranding({
-        businessName: clientData.business_name || 'ZaneZion',
-        tagline: clientData.tagline || 'Institutional management and luxury asset tracking.',
-        logo: clientData.logo_url || '/logo.png'
+        businessName: b.businessName || '',
+        tagline: b.tagline || '',
+        logo: b.logo || ''
+      });
+    } else if (clientData) {
+      // Client: load from client record
+      setBranding({
+        businessName: clientData.business_name || '',
+        tagline: clientData.tagline || '',
+        logo: clientData.logo_url || ''
       });
     }
-  }, [clientData]);
+  }, [clientData, systemSettings?.branding, currentUser?.role]);
 
   const avatarKey = pickAvatarUrl(currentUser || {});
 
@@ -489,12 +499,49 @@ const Settings = () => {
                       <div key={tier.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-3 min-w-0">
                         <div className="flex justify-between items-center text-[9px] font-black text-muted uppercase tracking-wider">
                           <span>Min / Max (km)</span>
-                          <span className="text-accent text-[8px] px-2 py-0.5 bg-accent/10 rounded-full border border-accent/20">Active</span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const updated = deliveryPricing.filter(p => p.id !== tier.id);
+                              const validatedTiers = updated.map(t => ({
+                                id: Number(t.id),
+                                min: Number(t.min) || 0,
+                                max: Number(t.max) || 0,
+                                price: String(t.price || '0')
+                              }));
+                              await updateDeliveryTiers(validatedTiers);
+                            }}
+                            className="text-danger hover:underline text-[10px] uppercase font-black tracking-widest"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <div className="flex justify-between gap-2 text-white font-bold text-sm">
-                          <span>{tier.min} km</span>
+                        <div className="flex items-center gap-2 text-white font-bold text-sm">
+                          <div className="relative flex-1">
+                            <input
+                              type="number"
+                              value={tier.min}
+                              onChange={(e) => {
+                                const newMin = e.target.value;
+                                setDeliveryPricing(deliveryPricing.map(p => p.id === tier.id ? { ...p, min: newMin } : p));
+                              }}
+                              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 w-full text-sm font-black text-white focus:border-accent outline-none"
+                              placeholder="Min"
+                            />
+                          </div>
                           <span className="text-secondary font-medium">→</span>
-                          <span>{tier.max} km</span>
+                          <div className="relative flex-1">
+                            <input
+                              type="number"
+                              value={tier.max}
+                              onChange={(e) => {
+                                const newMax = e.target.value;
+                                setDeliveryPricing(deliveryPricing.map(p => p.id === tier.id ? { ...p, max: newMax } : p));
+                              }}
+                              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 w-full text-sm font-black text-white focus:border-accent outline-none"
+                              placeholder="Max"
+                            />
+                          </div>
                         </div>
                         <div>
                           <label className="text-[9px] font-black text-muted uppercase tracking-widest block mb-1.5">Price rate</label>
@@ -520,13 +567,39 @@ const Settings = () => {
                       <div className="col-span-3">Min Radius</div>
                       <div className="col-span-3">Max Radius</div>
                       <div className="col-span-4 text-center">Price Rate</div>
-                      <div className="col-span-2 text-right">Tier</div>
+                      <div className="col-span-2 text-right">Actions</div>
                     </div>
 
                     {deliveryPricing.map((tier) => (
                       <div key={tier.id} className="grid grid-cols-12 gap-4 items-center min-w-[560px] p-4 md:p-5 bg-white/[0.02] border border-white/5 rounded-xl group hover:border-accent/30 transition-all duration-300">
-                        <div className="col-span-3 font-bold text-white text-base">{tier.min} km</div>
-                        <div className="col-span-3 font-bold text-white text-base">{tier.max} km</div>
+                        <div className="col-span-3">
+                          <div className="relative w-full max-w-[120px] min-w-0 flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              value={tier.min}
+                              onChange={(e) => {
+                                const newMin = e.target.value;
+                                setDeliveryPricing(deliveryPricing.map(p => p.id === tier.id ? { ...p, min: newMin } : p));
+                              }}
+                              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 w-full min-w-0 text-sm font-black text-white focus:border-accent outline-none transition-all"
+                            />
+                            <span className="text-secondary text-xs">km</span>
+                          </div>
+                        </div>
+                        <div className="col-span-3">
+                          <div className="relative w-full max-w-[120px] min-w-0 flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              value={tier.max}
+                              onChange={(e) => {
+                                const newMax = e.target.value;
+                                setDeliveryPricing(deliveryPricing.map(p => p.id === tier.id ? { ...p, max: newMax } : p));
+                              }}
+                              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 w-full min-w-0 text-sm font-black text-white focus:border-accent outline-none transition-all"
+                            />
+                            <span className="text-secondary text-xs">km</span>
+                          </div>
+                        </div>
                         <div className="col-span-4 flex justify-center min-w-0">
                           <div className="relative w-full max-w-[120px] min-w-0">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-accent font-black text-sm">$</span>
@@ -542,19 +615,63 @@ const Settings = () => {
                           </div>
                         </div>
                         <div className="col-span-2 text-right shrink-0">
-                          <span className="px-2 py-0.5 bg-accent/10 text-accent text-[8px] font-black uppercase tracking-widest rounded-full border border-accent/20">
-                            Active
-                          </span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const updated = deliveryPricing.filter(p => p.id !== tier.id);
+                              const validatedTiers = updated.map(t => ({
+                                id: Number(t.id),
+                                min: Number(t.min) || 0,
+                                max: Number(t.max) || 0,
+                                price: String(t.price || '0')
+                              }));
+                              await updateDeliveryTiers(validatedTiers);
+                              swalSuccess('Tier Deleted', 'Delivery tier removed successfully.');
+                            }}
+                            className="p-2 bg-danger/10 hover:bg-danger/20 text-danger rounded-lg transition-all"
+                            title="Delete Tier"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-6 flex justify-between items-center gap-4">
                     <button
                       type="button"
                       onClick={async () => {
-                        await updateDeliveryTiers(deliveryPricing);
+                        const newId = deliveryPricing.length > 0 ? Math.max(...deliveryPricing.map(p => Number(p.id) || 0)) + 1 : 1;
+                        const lastTierMax = deliveryPricing.length > 0 ? Number(deliveryPricing[deliveryPricing.length - 1].max) || 0 : 0;
+                        const newTier = { id: newId, min: lastTierMax + 1, max: lastTierMax + 50, price: '10' };
+                        const updatedTiers = [
+                          ...deliveryPricing,
+                          newTier
+                        ];
+                        const validatedTiers = updatedTiers.map(t => ({
+                          id: Number(t.id),
+                          min: Number(t.min) || 0,
+                          max: Number(t.max) || 0,
+                          price: String(t.price || '0')
+                        }));
+                        await updateDeliveryTiers(validatedTiers);
+                      }}
+                      className="btn-secondary px-6 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                    >
+                      <Plus size={14} /> Add Tier
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const validatedTiers = deliveryPricing.map(t => ({
+                          id: Number(t.id),
+                          min: Number(t.min) || 0,
+                          max: Number(t.max) || 0,
+                          price: String(t.price || '0')
+                        }));
+                        await updateDeliveryTiers(validatedTiers);
                         swalSuccess('Tiered Pricing Updated', 'Delivery distance tiers have been saved.');
                       }}
                       className="btn-primary px-6 py-2.5 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-accent/20"
@@ -855,11 +972,11 @@ const Settings = () => {
                   <button
                     onClick={async () => {
                       if (['client', 'saas_client'].includes(normalizeRole(currentUser?.role))) {
-                        updateClientBranding(currentUser.clientId || currentUser.company_id, branding);
+                        await updateClientBranding(currentUser.clientId || currentUser.company_id, branding);
                         swalSuccess('Success', 'Branding updated.');
                       } else if (['superadmin', 'admin'].includes(normalizeRole(currentUser?.role))) {
                         try {
-                          await fetch(`${API_BASE_URL}/settings/system`, {
+                          const resp = await fetch(`${API_BASE_URL}/settings/system`, {
                             method: 'PUT',
                             headers: { 
                               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -867,7 +984,14 @@ const Settings = () => {
                             },
                             body: JSON.stringify({ type: 'branding', data: branding })
                           });
-                          swalSuccess('Success', 'System branding updated globally.');
+                          const result = await resp.json();
+                          if (result.success) {
+                            // Keep systemSettings in sync so branding fields don't reset
+                            setSystemSettings(prev => ({ ...prev, branding }));
+                            swalSuccess('Saved', 'System branding updated successfully.');
+                          } else {
+                            swalError('Error', result.message || 'Failed to update branding.');
+                          }
                         } catch (e) {
                           swalError('Error', 'Failed to update system branding.');
                         }

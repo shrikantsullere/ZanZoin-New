@@ -104,7 +104,7 @@ export const startMission = async (id, tenantId, performerId) => {
 
   await prisma.$transaction(async (tx) => {
     // 1. Update Mission
-    await missionRepo.updateMissionStatus(tx, id, 'in_progress', { startDate: new Date() });
+    await missionRepo.updateMissionStatus(tx, mission.id, 'in_progress', { startDate: new Date() });
     
     // 2. Update Delivery and Inventory ONLY if this is a Delivery Mission
     if (delivery) {
@@ -196,7 +196,7 @@ export const submitPOD = async (id, podData, tenantId, performerId) => {
     }
 
     // 2. Update Mission
-    await missionRepo.updateMissionStatus(tx, id, 'completed', { endDate: new Date() });
+    await missionRepo.updateMissionStatus(tx, mission.id, 'completed', { endDate: new Date() });
     
     // 3. Update Delivery
     if (mission.deliveryId) {
@@ -353,7 +353,7 @@ export const assignMission = async (id, assignData, tenantId, performerId) => {
 
   // Update mission
   const updatedMission = await prisma.mission.update({
-    where: { id: Number(id) },
+    where: { id: mission.id },
     data: {
       status: 'assigned',
       assignedEmployeeId: employee ? employee.id : mission.assignedEmployeeId,
@@ -383,7 +383,7 @@ export const updateMissionStatus = async (id, status, tenantId, performerId) => 
   if (newStatus === 'in_progress') {
     // If it's not assigned, forcefully assign it to proceed
     if (mission.status === 'pending') {
-      await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'assigned' } });
+      await prisma.mission.update({ where: { id: mission.id }, data: { status: 'assigned' } });
     }
     if (mission.status !== 'in_progress') {
       await startMission(id, tenantId, performerId);
@@ -393,7 +393,7 @@ export const updateMissionStatus = async (id, status, tenantId, performerId) => 
     if (mission.status === 'assigned') {
       await startMission(id, tenantId, performerId);
     }
-    await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'en_route' } });
+    await prisma.mission.update({ where: { id: mission.id }, data: { status: 'en_route' } });
     if (mission.deliveryId) {
       await prisma.delivery.update({ where: { id: mission.deliveryId }, data: { status: 'en_route' } });
     }
@@ -401,14 +401,14 @@ export const updateMissionStatus = async (id, status, tenantId, performerId) => 
   } else if (newStatus === 'completed' || newStatus === 'delivered') {
     // If not in progress, forcefully put it in progress
     if (mission.status === 'assigned' || mission.status === 'pending') {
-      await prisma.mission.update({ where: { id: Number(id) }, data: { status: 'in_progress' } });
+      await prisma.mission.update({ where: { id: mission.id }, data: { status: 'in_progress' } });
     }
     await submitPOD(id, { signature: 'System Verified' }, tenantId, performerId);
     return await missionRepo.findMissionById(id);
   } else {
     // Just a basic status update for failed/cancelled
     const updated = await prisma.mission.update({
-      where: { id: Number(id) },
+      where: { id: mission.id },
       data: { status: newStatus }
     });
     return updated;

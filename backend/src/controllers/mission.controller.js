@@ -45,7 +45,7 @@ export const getMissionById = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    const mission = await missionService.getMissionById(Number(req.params.id), tenantIdToFilter);
+    const mission = await missionService.getMissionById(req.params.id, tenantIdToFilter);
     sendResponse(res, 200, 'Mission fetched successfully', mission);
   } catch (error) {
     next(error);
@@ -57,7 +57,7 @@ export const startMission = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    await missionService.startMission(Number(req.params.id), tenantIdToFilter, req.user.id);
+    await missionService.startMission(req.params.id, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Mission started and delivery dispatched successfully');
   } catch (error) {
     next(error);
@@ -69,7 +69,7 @@ export const submitPOD = async (req, res, next) => {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
 
-    await missionService.submitPOD(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
+    await missionService.submitPOD(req.params.id, req.body, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Proof of Delivery submitted and mission completed successfully');
   } catch (error) {
     next(error);
@@ -106,7 +106,7 @@ export const assignMission = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
-    const missionId = Number(req.params.id);
+    const missionId = req.params.id;
 
     const mission = await missionService.assignMission(missionId, req.body, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Mission assigned successfully', mission);
@@ -117,12 +117,12 @@ export const assignMission = async (req, res, next) => {
 
 export const updateMissionStatus = async (req, res, next) => {
   try {
-    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
-    const missionId = Number(req.params.id);
+    const isSuperAdmin = req.user?.role?.name === 'SUPER_ADMIN';
+    const tenantIdToFilter = isSuperAdmin ? null : req.user?.tenantId || null;
+    const missionId = req.params.id;
     const { status } = req.body;
 
-    const mission = await missionService.updateMissionStatus(missionId, status, tenantIdToFilter, req.user.id);
+    const mission = await missionService.updateMissionStatus(missionId, status, tenantIdToFilter, req.user?.id || 1);
     sendResponse(res, 200, 'Mission status updated successfully', mission);
   } catch (error) {
     next(error);

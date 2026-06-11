@@ -1234,7 +1234,7 @@ const ClientStore = () => {
                             </div>
 
                             {/* Single scroll region: cart lines + checkout controls (footer was stealing flex space and clipping items) */}
-                            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-8 pb-8 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(200,169,106,0.03),transparent)] border-t border-transparent">
+                            <div className="flex-1 min-h-0 max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain p-5 sm:p-8 pb-36 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(200,169,106,0.03),transparent)] border-t border-transparent">
                                 {cart.length > 0 && checkoutVendorOptions.length > 0 && (
                                     <div className="p-4 rounded-2xl border border-accent/25 bg-accent/[0.06] space-y-3 shrink-0">
                                         <div className="flex items-center gap-2">
@@ -1477,36 +1477,39 @@ const ClientStore = () => {
                                             className="w-full bg-background border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:border-accent/50 outline-none font-bold transition-all placeholder:text-muted/40 resize-none"
                                         />
                                     </div>
-
-                                    <div className="flex justify-between items-center bg-white/[0.03] p-5 rounded-3xl border border-white/5 shadow-inner">
-                                        <div className="space-y-1">
-                                            <span className="text-muted text-[9px] uppercase font-black tracking-[0.3em] ml-1">{isRetailPersonal ? 'Order total' : 'Manifest Valuation'}</span>
-                                            <div className="flex items-center gap-1.5 text-success font-bold text-[10px] ml-1">
-                                                <Zap size={10} className="fill-success" /> Items ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                            </div>
-                                            {tierDeliveryFee > 0 && (
-                                                <div className="flex items-center gap-1.5 text-accent font-black text-[10px] mt-1 uppercase tracking-wide ml-1">
-                                                    <Truck size={10} /> Delivery ({catalogDistanceKm || '?'} km) ${tierDeliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                </div>
-                                            )}
-                                            {transportExtraFee > 0 && (
-                                                <div className="text-[10px] text-warning font-black mt-1 uppercase tracking-wide ml-1">
-                                                    + {deliveryMode} fee ${transportExtraFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span className="text-3xl font-black text-white tracking-tight">${estimatedGrandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleCheckout}
-                                        disabled={cart.length === 0 || !String(catalogDeliveryAddress || '').trim() || (isRetailPersonal && !authorizeCharge)}
-                                        className="w-full py-5 bg-accent text-black rounded-[1.8rem] font-black uppercase tracking-[0.3em] text-[11px] hover:shadow-[0_20px_40px_-10px_rgba(200,169,106,0.4)] transition-all disabled:opacity-20 active:scale-[0.98] flex items-center justify-center gap-4 group"
-                                    >
-                                        {isRetailPersonal ? 'Place order & pay' : 'Confirm dispatch'} <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </button>
                                 </div>
+                            </div>
+
+                            {/* Sticky Drawer Footer */}
+                            <div className="p-6 border-t border-white/5 bg-sidebar shrink-0 space-y-4">
+                                <div className="flex justify-between items-center bg-white/[0.03] p-5 rounded-3xl border border-white/5 shadow-inner">
+                                    <div className="space-y-1">
+                                        <span className="text-muted text-[9px] uppercase font-black tracking-[0.3em] ml-1">{isRetailPersonal ? 'Order total' : 'Manifest Valuation'}</span>
+                                        <div className="flex items-center gap-1.5 text-success font-bold text-[10px] ml-1">
+                                            <Zap size={10} className="fill-success" /> Items ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </div>
+                                        {tierDeliveryFee > 0 && (
+                                            <div className="flex items-center gap-1.5 text-accent font-black text-[10px] mt-1 uppercase tracking-wide ml-1">
+                                                <Truck size={10} /> Delivery ({catalogDistanceKm || '?'} km) ${tierDeliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </div>
+                                        )}
+                                        {transportExtraFee > 0 && (
+                                            <div className="text-[10px] text-warning font-black mt-1 uppercase tracking-wide ml-1">
+                                                + {deliveryMode} fee ${transportExtraFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="text-3xl font-black text-white tracking-tight">${estimatedGrandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleCheckout}
+                                    disabled={cart.length === 0 || !String(catalogDeliveryAddress || '').trim() || (isRetailPersonal && !authorizeCharge)}
+                                    className="w-full py-5 bg-accent text-black rounded-[1.8rem] font-black uppercase tracking-[0.3em] text-[11px] hover:shadow-[0_20px_40px_-10px_rgba(200,169,106,0.4)] transition-all disabled:opacity-20 active:scale-[0.98] flex items-center justify-center gap-4 group"
+                                >
+                                    {isRetailPersonal ? 'Place order & pay' : 'Confirm dispatch'} <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
                             </div>
                         </motion.div>
                     </>

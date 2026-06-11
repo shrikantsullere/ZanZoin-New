@@ -2,7 +2,7 @@ import * as clientService from '../services/client.service.js';
 import * as userService from '../services/user.service.js';
 import { sendResponse } from '../utils/response.js';
 import prisma from '../config/db.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 export const createClient = async (req, res, next) => {
   try {

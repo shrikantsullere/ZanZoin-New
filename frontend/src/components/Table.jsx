@@ -24,22 +24,22 @@ const Table = ({ columns, data, actions, onView, onEdit, onDelete, canEdit = tru
     }
   };
 
-  if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-border flex items-center justify-center">
-          <PackageOpen size={28} className="text-muted opacity-40" />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-secondary">No records found</p>
-          <p className="text-[11px] text-muted mt-1">Try adjusting your search or add a new entry.</p>
-        </div>
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-border flex items-center justify-center">
+        <PackageOpen size={28} className="text-muted opacity-40" />
       </div>
-    );
-  }
+      <div>
+        <p className="text-sm font-bold text-secondary">No records found</p>
+        <p className="text-[11px] text-muted mt-1">Try adjusting your search or go back to previous page.</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="w-full overflow-hidden">
+      {data.length === 0 ? renderEmptyState() : (
+        <>
       {/* ── Desktop Table ─────────────────────────── */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full border-collapse">
@@ -122,21 +122,14 @@ const Table = ({ columns, data, actions, onView, onEdit, onDelete, canEdit = tru
         </table>
 
         {/* Footer row count */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-1 border-t border-border/40 mt-1">
-          <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
-            {totalItems} {totalItems === 1 ? 'Record' : 'Records'}
-          </p>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <BootstrapPagination
-            activePage={currentPage}
-            itemsCountPerPage={perPage}
-            totalItemsCount={totalItems}
-            onChange={handlePage}
-          />
+        {data.length > 0 && (
+          <div className="flex items-center justify-between px-4 pt-4 pb-1 border-t border-border/40 mt-1">
+            <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
+              {totalItems} {totalItems === 1 ? 'Record' : 'Records'}
+            </p>
+          </div>
         )}
+
       </div>
 
       {/* ── Mobile Card View ──────────────────────── */}
@@ -215,17 +208,22 @@ const Table = ({ columns, data, actions, onView, onEdit, onDelete, canEdit = tru
           </div>
         ))}
 
-        {/* Mobile Pagination */}
-        {totalPages > 1 && (
+      </div>
+
+        </>
+      )}
+
+      {/* Shared Pagination */}
+      {(totalPages > 1 || currentPage > 1) && (
+        <div className="mt-6 mb-2">
           <BootstrapPagination
             activePage={currentPage}
             itemsCountPerPage={perPage}
-            totalItemsCount={totalItems}
+            totalItemsCount={Math.max(totalItems, currentPage * perPage)}
             onChange={handlePage}
           />
-        )}
-      </div>
-
+        </div>
+      )}
     </div>
   );
 };

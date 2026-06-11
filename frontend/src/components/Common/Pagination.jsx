@@ -15,7 +15,7 @@ const BootstrapPagination = (props) => {
     const totalPages = totalPagesProp || pagination?.totalPages || (total ? Math.ceil(total / perPage) : 1);
     const handleChange = onChange || onPageChange;
 
-    if (totalPages <= 1 || !handleChange) return null;
+    if ((totalPages <= 1 && page <= 1) || !handleChange) return null;
 
     const pageRangeDisplayed = 5;
     const getPageNumbers = () => {

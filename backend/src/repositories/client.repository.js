@@ -20,7 +20,7 @@ export const findClientByCode = async (clientCode, tenantId) => {
 };
 
 export const findAllClients = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status } = query;
+  const { page = 1, limit = 10, search = '', status, clientType } = query;
   const skip = (page - 1) * limit;
 
   const where = {
@@ -32,7 +32,8 @@ export const findAllClients = async (tenantId, query) => {
         { email: { contains: search } }
       ]
     }),
-    ...(status && { status })
+    ...(status && { status }),
+    ...(clientType && { clientType })
   };
 
   const [clients, total] = await Promise.all([
@@ -56,6 +57,9 @@ export const updateClient = async (id, data) => {
 };
 
 export const deleteClient = async (id) => {
+  // First, get the client so we know the email
+  const client = await prisma.client.findUnique({ where: { id } });
+
   return await prisma.$transaction(async (tx) => {
     // 1. Get all invoices for the client to delete payments and receipts
     const invoices = await tx.invoice.findMany({
@@ -153,10 +157,15 @@ export const deleteClient = async (id) => {
       where: { clientId: id }
     });
 
-    // 5. Finally, delete the client
-    return await tx.client.delete({
-      where: { id }
-    });
+    // 5. Delete the client itself
+    await tx.client.delete({ where: { id } });
+
+    // 6. Delete the associated user so they cannot login
+    if (client && client.email) {
+      await tx.user.deleteMany({ where: { email: client.email } });
+    }
+
+    return true;
   });
 };
 

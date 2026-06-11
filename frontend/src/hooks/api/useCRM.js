@@ -54,12 +54,12 @@ export const useDeleteClient = () => {
 };
 
 // --- Users ---
-export const useUsers = (page = 1, limit = 10, search = '') => {
+export const useUsers = (page = 1, limit = 10, search = '', status = '') => {
   return useQuery({
-    queryKey: ['users', page, limit, search],
+    queryKey: ['users', page, limit, search, status],
     queryFn: async () => {
       const response = await api.get('/users', {
-        params: { page, limit, search }
+        params: { page, limit, search, status }
       });
       return response.data;
     }

@@ -41,6 +41,7 @@ import vendorRoutes from './routes/vendor.routes.js';
 import employeeRoutes from './routes/employee.routes.js';
 import employeeDocumentRoutes from './routes/employeeDocument.routes.js';
 import leaveRoutes from './routes/leave.routes.js';
+import saasRoutes from './routes/saas.routes.js';
 
 // Procurement Layer (Phase 5)
 import purchaseRequestRoutes from './routes/purchaseRequest.routes.js';
@@ -91,6 +92,7 @@ app.use('/api/v1/vendors', vendorRoutes);
 app.use('/api/v1/employees', employeeRoutes);
 app.use('/api/v1/employee-documents', employeeDocumentRoutes);
 app.use('/api/v1/staff/leave', leaveRoutes);
+app.use('/api/v1/saas', saasRoutes);
 
 // Register Phase 5 routes
 app.use('/api/v1/purchase-requests', purchaseRequestRoutes);

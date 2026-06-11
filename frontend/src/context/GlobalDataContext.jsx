@@ -1142,9 +1142,10 @@ export const GlobalDataProvider = ({ children }) => {
                   : "Personal");
             const base = mapClientFromApi({
               id: u?.client_id ?? u?.company_id ?? u?.id,
-              name: u?.name || u?.business_name || u?.company_name || "",
+              name: u?.name || u?.business_name || u?.company_name || u?.companyName || "",
               business_name:
-                u?.business_name || u?.company_name || u?.companyName || "",
+                u?.business_name || u?.company_name || u?.companyName || u?.name || "",
+              companyName: u?.companyName || u?.business_name || u?.company_name || u?.name || "",
               email: u?.email || "",
               phone: u?.phone || "",
               address: u?.address || u?.location || "",

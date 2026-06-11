@@ -4,13 +4,15 @@ import Table from '../../components/Table';
 import Modal from '../../components/Modal';
 import { useData } from '../../context/GlobalDataContext';
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '../../hooks/api/useCRM';
-import { Search, Plus, Shield, ShieldCheck, Calendar, Check, X as CloseIcon, Radio, Clock, CheckCircle2, XCircle, Briefcase, Truck, MapPin, Car, FileText } from 'lucide-react';
-import { swalConfirm, swalSuccess, swalWarning } from '../../utils/swal';
+import { Search, Plus, Shield, ShieldCheck, Calendar, Check, X as CloseIcon, Radio, Clock, CheckCircle2, XCircle, Briefcase, Truck, MapPin, Car, FileText, Eye, Edit, Trash2 } from 'lucide-react';
+import { swalConfirm, swalSuccess, swalWarning, swalInfo } from '../../utils/swal';
 import Pagination from '../../components/Common/Pagination';
 import { normalizeRole, resolvePortalRole } from '../../utils/authUtils';
+import api from '../../services/api/setupAxios.js';
+import Swal from 'sweetalert2';
 
 const Users = () => {
-  const { leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, hasMenuPermission, cancelPersonalMembership, roles } = useData();
+  const { leaveRequests, updateLeaveRequest, staffAssignments, addStaffAssignment, updateAssignment, fetchStaff, reviewStaff, currentUser, payHistory, fetchPayHistory, clients, fetchClients, subscriptionRequests, updateSubscriptionRequest, hasMenuPermission, cancelPersonalMembership, roles } = useData();
   const roleNormalized = normalizeRole(currentUser?.role);
   const isSuperAdmin = roleNormalized === 'superadmin';
   const isAdminOrSuper = isSuperAdmin || roleNormalized === 'admin' || roleNormalized === 'client' || roleNormalized === 'saas_client' || hasMenuPermission('Staff Management', 'can_edit') || hasMenuPermission('Staff Management', 'can_add');
@@ -29,12 +31,18 @@ const Users = () => {
     assigneeId: '', assignee: '', task: '', location: '', priority: 'Medium', missionType: 'General',
     passengerName: '', pickupTime: '', dropLocation: '', luggage: '', goodsDetails: '', weight: '', pickupLocation: '', deliveryLocation: ''
   });
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [clientFormData, setClientFormData] = useState({
+    companyName: '', contactPerson: '', phone: '', plan: '',
+    propertyType: '', throughput: '', addOn: '', requirements: '', password: ''
+  });
   const itemsPerPage = 10;
 
   const { data: usersData, isLoading: isUsersLoading } = useUsers(currentPage, 100, debounceSearch);
   const rawUsersData = usersData?.data || [];
   const users = Array.isArray(rawUsersData) ? rawUsersData : (rawUsersData.users || []);
-  
+
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
@@ -57,7 +65,7 @@ const Users = () => {
         await fetchClients({ search: debounceSearch });
       } else {
         if (['availability', 'leave', 'documents', 'missions', 'timeLogs'].includes(activeTab)) {
-           await fetchStaff();
+          await fetchStaff();
         }
       }
       if (fetchPayHistory) fetchPayHistory();
@@ -81,15 +89,15 @@ const Users = () => {
   const allPossibleClients = [
     ...clients.map(c => ({ ...c, isRequest: false })),
     ...(subscriptionRequests || [])
-        .filter(r => !clients.some(c => c.email === r.email))
-        .map(r => ({
-          ...r,
-          id: `REQ-${r.id}`,
-          name: r.clientName || r.name,
-          client_type: 'SaaS',
-          isRequest: true,
-          status: 'Pending'
-        }))
+      .filter(r => !clients.some(c => c.email === r.email))
+      .map(r => ({
+        ...r,
+        id: `REQ-${r.id}`,
+        name: r.clientName || r.name,
+        client_type: 'SaaS',
+        isRequest: true,
+        status: 'Pending'
+      }))
   ];
 
   const filteredClients = allPossibleClients
@@ -131,10 +139,10 @@ const Users = () => {
         employmentStatus: user.employment_status || user.employmentStatus || 'Full Time',
         // Flatten bank fields into bankingInfo object for the form
         bankingInfo: {
-          bank:    user.bank_name      || user.bankingInfo?.bank    || '',
+          bank: user.bank_name || user.bankingInfo?.bank || '',
           account: user.account_number || user.bankingInfo?.account || '',
           routing: user.routing_number || user.bankingInfo?.routing || '',
-          method:  user.bankingInfo?.method || 'Direct Deposit',
+          method: user.bankingInfo?.method || 'Direct Deposit',
         },
       });
     } else {
@@ -273,13 +281,13 @@ const Users = () => {
             <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">HQ Personnel</h1>
             <p className="text-secondary text-[10px] font-black uppercase tracking-[0.2em] mt-1 opacity-70">Institutional Control</p>
           </div>
-            <div className="text-right">
-              <span className="text-[10px] text-muted">Role: {roleNormalized || '—'}</span>
-            </div>
-          
+          <div className="text-right">
+            <span className="text-[10px] text-muted">Role: {roleNormalized || '—'}</span>
+          </div>
+
           <div className="flex items-center gap-2">
-            <button 
-              className="p-3 bg-white/5 border border-white/10 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center group shadow-lg" 
+            <button
+              className="p-3 bg-white/5 border border-white/10 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-all flex items-center justify-center group shadow-lg"
               onClick={() => setIsDelegateModalOpen(true)}
               title="Delegate Task"
             >
@@ -299,13 +307,14 @@ const Users = () => {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-1 flex overflow-x-auto no-scrollbar">
           {[
             { id: 'users', label: 'Personnel' },
-            { id: 'pending', label: 'Pending' },
+            { id: 'pending', label: 'Pending Staff' },
+            isSuperAdmin ? { id: 'clients', label: 'SaaS Requests' } : null,
             { id: 'availability', label: 'Live Status' },
             { id: 'leave', label: 'Absence' },
             { id: 'timeLogs', label: 'Time Logs' },
             { id: 'documents', label: 'Vault' },
             { id: 'missions', label: 'Missions' }
-          ].map(tab => (
+          ].filter(Boolean).map(tab => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
@@ -348,29 +357,124 @@ const Users = () => {
                   <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted">Type</th>
                   <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted">Plan</th>
                   <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted">Status</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentClients.map(client => (
-                    <tr key={client.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                      <td className="p-4 font-bold text-white">{client.name || client.business_name || '—'}</td>
-                      <td className="p-4 text-secondary text-xs">{client.email}</td>
-                      <td className="p-4 text-secondary text-xs">{client.phone || '—'}</td>
-                      <td className="p-4">
-                        <span className="px-2 py-1 bg-white/10 text-white rounded text-[9px] font-black uppercase">
-                          {client.client_type === 'Business' ? 'Business Client' :
-                           client.client_type === 'SaaS' ? 'SaaS Client' :
-                           client.client_type || 'Personal Client'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-accent font-bold text-xs">{client.plan || '—'}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-[9px] font-black uppercase ${client.status === 'active' || client.status === 'Active' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}`}>
-                          {client.status || 'Active'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr key={client.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                    <td className="p-4 font-bold text-white">{client.companyName || client.name || client.business_name || '—'}</td>
+                    <td className="p-4 text-secondary text-xs">{client.email}</td>
+                    <td className="p-4 text-secondary text-xs">{client.phone || '—'}</td>
+                    <td className="p-4">
+                      <span className="px-2 py-1 bg-white/10 text-white rounded text-[9px] font-black uppercase">
+                        {client.client_type === 'Business' ? 'Business Client' :
+                          client.client_type === 'SaaS' ? 'SaaS Client' :
+                            client.client_type || 'Personal Client'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-accent font-bold text-xs">{client.plan || '—'}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded text-[9px] font-black uppercase ${client.status === 'active' || client.status === 'Active' || client.status === 'Provisioned' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}`}>
+                        {client.status || 'Active'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        {client.status === 'Pending' && client.client_type === 'SaaS' && isSuperAdmin && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const { value: password } = await Swal.fire({
+                                title: 'Set Client Password',
+                                input: 'text',
+                                inputLabel: `Set a login password for ${client.email}`,
+                                inputValue: 'ZaneZion' + Math.floor(Math.random() * 1000) + '!',
+                                showCancelButton: true,
+                                confirmButtonText: 'Provision',
+                                background: '#1a1a2e',
+                                color: '#fff',
+                                confirmButtonColor: '#C8A96A'
+                              });
+                              if (!password) return;
+                              try {
+                                await api.post(`/saas/requests/${String(client.id).replace('REQ-', '')}/provision`, { password });
+                                Swal.fire({ icon: 'success', title: 'Provisioned!', html: `<div style="text-align:left;font-size:14px;color:#ccc;"><p><strong style="color:#C8A96A;">Login:</strong> ${client.email}</p><p><strong style="color:#C8A96A;">Password:</strong> ${password}</p><p style="margin-top:8px;color:#888;">Send these credentials to the client.</p></div>`, background: '#1a1a2e', color: '#fff' });
+                                fetchClients();
+                              } catch (err) {
+                                swalWarning('Error', 'Failed to provision client');
+                              }
+                            }}
+                            className="p-2 rounded-lg text-success hover:bg-success/10 transition-all flex items-center justify-center gap-1.5 px-3 border border-success/20 group whitespace-nowrap"
+                            title="Provision Protocol"
+                          >
+                            <CheckCircle2 size={16} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Approve</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const html = `
+                                <div style="text-align: left; font-size: 14px; color: #ccc;">
+                                  <p><strong style="color: #C8A96A;">Company/Name:</strong> ${client.companyName || client.name || client.business_name || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Contact Person:</strong> ${client.contactPerson || client.contact || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Email:</strong> ${client.email}</p>
+                                  <p><strong style="color: #C8A96A;">Phone:</strong> ${client.phone || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Country:</strong> ${client.country || client.location || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Plan:</strong> ${client.plan || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Type:</strong> ${client.clientType || client.client_type || '—'}</p>
+                                  <p><strong style="color: #C8A96A;">Status:</strong> <span class="uppercase font-bold ${client.status === 'active' || client.status === 'Active' || client.status === 'Provisioned' ? 'text-success' : 'text-warning'}">${client.status}</span></p>
+                                </div>
+                              `;
+                            Swal.fire({ title: 'Client Details', html, background: '#1a1a2e', color: '#fff', confirmButtonColor: '#C8A96A' });
+                          }}
+                          className="p-2 text-secondary hover:text-accent transition-colors" title="View"><Eye size={16} />
+                        </button>
+                        {isSuperAdmin && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                let extra = {};
+                                try { if (client.address && client.address.startsWith('{')) extra = JSON.parse(client.address); } catch(err){}
+                                setSelectedClient(client);
+                                setClientFormData({
+                                  companyName: client.companyName || client.name || client.business_name || '',
+                                  contactPerson: client.contactPerson || client.contact || '',
+                                  phone: client.phone || '',
+                                  plan: client.plan || '',
+                                  propertyType: extra.propertyType || '',
+                                  throughput: extra.throughput || '',
+                                  addOn: extra.addOn || '',
+                                  requirements: extra.requirements || '',
+                                  password: ''
+                                });
+                                setIsClientModalOpen(true);
+                              }}
+                              className="p-2 text-secondary hover:text-accent transition-colors" title="Edit"><Edit size={16} />
+                            </button>
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const ok = await swalConfirm('Delete Client', 'Are you sure? This will permanently delete the client and disable their login.');
+                                if (ok) {
+                                  try {
+                                    await api.delete('/clients/' + String(client.id).replace('REQ-', ''));
+                                    swalSuccess('Deleted', 'Client has been permanently deleted.');
+                                    fetchClients();
+                                  } catch (err) {
+                                    swalWarning('Error', 'Failed to delete client');
+                                  }
+                                }
+                              }}
+                              className="p-2 text-secondary hover:text-danger transition-colors" title="Delete"><Trash2 size={16} /></button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             {filteredClients.length === 0 && (
@@ -418,7 +522,7 @@ const Users = () => {
                   )}
 
                   {/* Cancel membership for admins / super_admin */}
-                  {( (row.concierge_member || row.conciergeMembership || row.is_upgraded || (row.plan && String(row.plan).toLowerCase() !== 'free')) ) && isAdminOrSuper && (
+                  {((row.concierge_member || row.conciergeMembership || row.is_upgraded || (row.plan && String(row.plan).toLowerCase() !== 'free'))) && isAdminOrSuper && (
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
@@ -468,7 +572,7 @@ const Users = () => {
           </div>
 
           {/* Field Staff Cards */}
-            <div className="glass-card p-6">
+          <div className="glass-card p-6">
             <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
               <Truck size={18} className="text-accent" /> Field Staff — Live Availability
             </h3>
@@ -611,7 +715,7 @@ const Users = () => {
                         <input
                           type="file"
                           className="hidden"
-                          onChange={() => updateUser({ ...user, [doc.key]: true })}
+                          onChange={() => updateMutation.mutate({ id: user.id, data: { [doc.key]: true } })}
                         />
                         {user[doc.key] ? <CheckCircle2 size={11} /> : <Plus size={11} />}
                         {user[doc.key] ? 'Verified' : 'Upload'}
@@ -977,10 +1081,10 @@ const Users = () => {
                         return ['OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'INVENTORY', 'CONCIERGE', 'FIELD_STAFF', 'STAFF', 'DRIVER'].includes(r.name.toUpperCase());
                       })
                       .map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ')}
-                      </option>
-                    ))}
+                        <option key={r.id} value={r.id}>
+                          {r.name === 'ADMIN' ? 'Admin (Internal Manager)' : r.name.replace(/_/g, ' ')}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -1017,15 +1121,15 @@ const Users = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase">Vacation Balance (Tenure Adjusted)</label>
-                    <input
-                      type="number"
-                      value={formData.vacationBalance || 0}
-                      onChange={(e) => setFormData({ ...formData, vacationBalance: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-mono text-accent"
-                      disabled={modalType === 'view'}
-                    />
-                  </div>
+                  <label className="text-[10px] font-bold text-muted uppercase">Vacation Balance (Tenure Adjusted)</label>
+                  <input
+                    type="number"
+                    value={formData.vacationBalance || 0}
+                    onChange={(e) => setFormData({ ...formData, vacationBalance: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-mono text-accent"
+                    disabled={modalType === 'view'}
+                  />
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Birthday</label>
                   <input
@@ -1154,13 +1258,13 @@ const Users = () => {
                 <div className="mt-6 p-4 bg-white/5 rounded-xl border border-border space-y-3">
                   <p className="text-[10px] font-black text-accent uppercase tracking-widest mb-2">Stored Details</p>
                   {[
-                    { label: 'Birthday',         val: formData.birthday || '—' },
-                    { label: 'NIB Number',        val: formData.nibNumber || '—' },
-                    { label: 'Vacation Balance',  val: `${formData.vacationBalance ?? 0} days` },
-                    { label: 'Bank',              val: formData.bankingInfo?.bank || '—' },
-                    { label: 'Account No.',       val: formData.bankingInfo?.account || '—' },
-                    { label: 'Routing No.',       val: formData.bankingInfo?.routing || '—' },
-                    { label: 'Pay Method',        val: formData.bankingInfo?.method || '—' },
+                    { label: 'Birthday', val: formData.birthday || '—' },
+                    { label: 'NIB Number', val: formData.nibNumber || '—' },
+                    { label: 'Vacation Balance', val: `${formData.vacationBalance ?? 0} days` },
+                    { label: 'Bank', val: formData.bankingInfo?.bank || '—' },
+                    { label: 'Account No.', val: formData.bankingInfo?.account || '—' },
+                    { label: 'Routing No.', val: formData.bankingInfo?.routing || '—' },
+                    { label: 'Pay Method', val: formData.bankingInfo?.method || '—' },
                   ].map(({ label, val }) => (
                     <div key={label} className="flex items-center gap-3 text-sm">
                       <ShieldCheck size={14} className="text-accent shrink-0" />
@@ -1361,7 +1465,88 @@ const Users = () => {
           </div>
         </form>
       </Modal>
-    </div >
+    
+      <Modal isOpen={isClientModalOpen} onClose={() => setIsClientModalOpen(false)} title="Edit Client Protocol">
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            const extra = {
+              propertyType: clientFormData.propertyType,
+              throughput: clientFormData.throughput,
+              addOn: clientFormData.addOn,
+              requirements: clientFormData.requirements
+            };
+            const payload = {
+              companyName: clientFormData.companyName,
+              contactPerson: clientFormData.contactPerson,
+              phone: clientFormData.phone,
+              plan: clientFormData.plan,
+              password: clientFormData.password,
+              address: JSON.stringify(extra)
+            };
+            await api.put('/clients/' + String(selectedClient.id).replace('REQ-', ''), payload);
+            swalSuccess('Protocol Executed', 'Client updated successfully.');
+            setIsClientModalOpen(false);
+            if (typeof fetchClients === 'function') fetchClients();
+          } catch(err) {
+            console.error(err);
+            swalWarning('Error', 'Failed to execute protocol.');
+          }
+        }} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-muted uppercase">Company / Name</label>
+              <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.companyName} onChange={e => setClientFormData({...clientFormData, companyName: e.target.value})} required />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-muted uppercase">Contact Person</label>
+              <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.contactPerson} onChange={e => setClientFormData({...clientFormData, contactPerson: e.target.value})} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-muted uppercase">Phone</label>
+              <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.phone} onChange={e => setClientFormData({...clientFormData, phone: e.target.value})} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-muted uppercase">Plan</label>
+              <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.plan} onChange={e => setClientFormData({...clientFormData, plan: e.target.value})} />
+            </div>
+          </div>
+          
+          <div className="p-4 bg-accent/5 border border-accent/20 rounded-2xl space-y-4">
+            <p className="text-[10px] font-black text-accent uppercase tracking-widest flex items-center gap-2"><Shield size={12} /> SaaS Requirements</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase">Property Type</label>
+                <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.propertyType} onChange={e => setClientFormData({...clientFormData, propertyType: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase">Throughput</label>
+                <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.throughput} onChange={e => setClientFormData({...clientFormData, throughput: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase">Add-On</label>
+                <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.addOn} onChange={e => setClientFormData({...clientFormData, addOn: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase">Requirements</label>
+                <input type="text" className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white" value={clientFormData.requirements} onChange={e => setClientFormData({...clientFormData, requirements: e.target.value})} />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1 mt-4">
+            <label className="text-[10px] font-bold text-success uppercase tracking-widest flex items-center gap-2"><ShieldCheck size={12} /> Account Provisioning (Password)</label>
+            <input type="text" placeholder="Enter password to provision login access..." className="w-full bg-background border border-success/30 rounded-lg px-4 py-3 text-sm focus:border-success outline-none font-bold text-white" value={clientFormData.password} onChange={e => setClientFormData({...clientFormData, password: e.target.value})} />
+            <p className="text-[9px] text-muted">If provided, this will create or update the user account for this client.</p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-6 border-t border-white/5 mt-4">
+            <button type="button" onClick={() => setIsClientModalOpen(false)} className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-secondary hover:text-white transition-all">Abort</button>
+            <button type="submit" className="btn-primary py-3 px-8 shadow-xl shadow-accent/20">Update Details</button>
+          </div>
+        </form>
+      </Modal>
+</div >
   );
 };
 

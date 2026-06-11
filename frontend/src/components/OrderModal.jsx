@@ -687,6 +687,7 @@ const OrderModal = ({ isOpen, onClose, modalType, selectedOrder, onSave, onDelet
                         <div className="border-l-2 border-black pl-4">
                             <p className="text-[6px] font-black uppercase tracking-widest opacity-40 mb-0.5 underline italic">Client Details:</p>
                             <p className="text-base font-black italic tracking-tight uppercase leading-tight">{formData.client || (typeof selectedOrder.client === 'object' && selectedOrder.client ? (selectedOrder.client.companyName || selectedOrder.client.name) : selectedOrder.client) || 'Institutional Account'}</p>
+                            {formData.pickupLocation && <p className="text-[8px] text-gray-500 mt-0.5 font-medium leading-tight italic">Origin: {formData.pickupLocation}</p>}
                             <p className="text-[8px] text-gray-500 mt-0.5 font-medium leading-tight italic">Destination: {formData.location}</p>
                             <p className="text-[7px] font-black mt-1 text-gray-400">REGISTRY: {formData.clientId || selectedOrder.clientId || 'ZN-ACC-EXT'}</p>
                         </div>

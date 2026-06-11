@@ -196,7 +196,7 @@ const GuestRequests = () => {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-muted uppercase">Priority</label>
                                     <select
-                                        value={String(formData.priority || '').toLowerCase()}
+                                        value={String(formData.priority || '').toLowerCase().trim()}
                                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                                         className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
                                         disabled={modalType === 'view'}

@@ -345,6 +345,31 @@ const Events = () => {
                   )}
                 </div>
 
+                {/* Client Mood Board Link */}
+                {(formData.moodBoardUrl || formData.mood_board_url || modalType !== 'view') && (
+                  <div className="col-span-1 md:col-span-2 space-y-1">
+                    <label className="text-[10px] font-bold text-muted uppercase">Mood Board Link</label>
+                    {modalType === 'view' ? (
+                      <a
+                        href={(formData.moodBoardUrl || formData.mood_board_url || '').startsWith('http') ? (formData.moodBoardUrl || formData.mood_board_url) : `https://${formData.moodBoardUrl || formData.mood_board_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full bg-accent/5 border border-accent/20 rounded-xl px-4 py-3 text-sm font-bold text-accent hover:bg-accent/10 transition-all truncate"
+                      >
+                        🔗 {formData.moodBoardUrl || formData.mood_board_url}
+                      </a>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.moodBoardUrl || formData.mood_board_url || ''}
+                        onChange={(e) => setFormData({ ...formData, moodBoardUrl: e.target.value })}
+                        placeholder="https://pinterest.com/..."
+                        className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
+                      />
+                    )}
+                  </div>
+                )}
+
                 <div className="col-span-1 md:col-span-2 space-y-1">
                   <label className="text-[10px] font-bold text-muted uppercase">Special Requests & Notes</label>
                   <textarea

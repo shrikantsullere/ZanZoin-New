@@ -179,14 +179,11 @@ const ClientEvents = () => {
                                         ? 'bg-muted/20 text-muted'
                                         : String(evt.status).toLowerCase() === 'cancelled'
                                             ? 'bg-danger/20 text-danger'
-                                            : String(evt.status).toLowerCase() === 'in_progress'
+                                            : String(evt.status).toLowerCase().includes('progress')
                                                 ? 'bg-info/20 text-info'
                                                 : 'bg-warning/20 text-warning'
                                 }`}>
-                                {String(evt.status).toLowerCase() === 'planned' ? 'Planning' :
-                                    String(evt.status).toLowerCase() === 'confirmed' ? 'Active' :
-                                        String(evt.status).toLowerCase() === 'in_progress' ? 'Setup' :
-                                            evt.status}
+                                {evt.status}
                             </span>
                         </div>
                         <h3 className="text-lg font-bold mb-1">{evt.title}</h3>
@@ -249,8 +246,8 @@ const ClientEvents = () => {
                                 <Star size={16} className="text-accent" />
                                 <div>
                                     <p className="text-[10px] text-muted uppercase font-bold">Current Status</p>
-                                    <p className={`text-sm font-bold uppercase ${String(formData.status).toLowerCase() === 'confirmed' ? 'text-success' : String(formData.status).toLowerCase() === 'in_progress' ? 'text-info' : String(formData.status).toLowerCase() === 'cancelled' ? 'text-danger' : String(formData.status).toLowerCase() === 'completed' ? 'text-muted' : 'text-warning'}`}>
-                                        {String(formData.status).toLowerCase() === 'planned' ? 'Planning' : String(formData.status).toLowerCase() === 'confirmed' ? 'Active' : String(formData.status).toLowerCase() === 'in_progress' ? 'Setup' : formData.status || 'Planning'}
+                                    <p className={`text-sm font-bold uppercase ${String(formData.status).toLowerCase() === 'confirmed' ? 'text-success' : String(formData.status).toLowerCase().includes('progress') ? 'text-info' : String(formData.status).toLowerCase() === 'cancelled' ? 'text-danger' : String(formData.status).toLowerCase() === 'completed' ? 'text-muted' : 'text-warning'}`}>
+                                        {formData.status || 'Planning'}
                                     </p>
                                 </div>
                             </div>

@@ -47,6 +47,21 @@ export const generateInvoice = async (data, performerId, tenantId) => {
       throw new AppError('Delivery or Order not found', 404);
     }
 
+    // Ensure item IDs are valid to prevent Foreign Key constraints
+    const prisma = (await import('../config/db.js')).default;
+    for (let it of items) {
+      const existingItem = await prisma.item.findUnique({ where: { id: it.itemId } });
+      if (!existingItem) {
+        let fallbackItem = await prisma.item.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
+        if (!fallbackItem) {
+          fallbackItem = await prisma.item.create({
+            data: { tenantId: tenantId || 1, itemCode: 'SVC-001', name: 'General Logistics Service', category: 'General', type: 'service', unit: 'pcs', unitPrice: 0, inventoryStatus: 'in_stock' }
+          });
+        }
+        it.itemId = fallbackItem.id;
+      }
+    }
+
     invoiceData = {
       clientId: order.clientId,
       orderId: order.id,

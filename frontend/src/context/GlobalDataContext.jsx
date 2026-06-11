@@ -2073,9 +2073,9 @@ export const GlobalDataProvider = ({ children }) => {
   const fetchTickets = React.useCallback(async () => {
     try {
       const [tickets, eventsData, guestReqs] = await Promise.all([
-        api.get("/support/tickets").catch((e) => ({ data: [] })),
-        api.get("/support/events").catch((e) => ({ data: [] })),
-        api.get("/support/guest-requests").catch((e) => ({ data: [] })),
+        api.get(`/support/tickets?_t=${Date.now()}`).catch((e) => ({ data: [] })),
+        api.get(`/support/events?_t=${Date.now()}`).catch((e) => ({ data: [] })),
+        api.get(`/support/guest-requests?_t=${Date.now()}`).catch((e) => ({ data: [] })),
       ]);
       if (tickets.data?.success) {
         const formatStatus = (s) => {
@@ -2320,7 +2320,7 @@ export const GlobalDataProvider = ({ children }) => {
         const notifs = res.data.data || [];
         setNotifications(notifs);
         // Compute unread count directly from the scoped list to prevent phantom badges
-        setUnreadCount(notifs.filter(n => !n.is_read).length);
+        setUnreadCount(notifs.filter(n => !(n.isRead || n.is_read)).length);
       }
     } catch (e) {
       console.error("Fetch notifications failed", e);
@@ -2334,9 +2334,9 @@ export const GlobalDataProvider = ({ children }) => {
 
   const markNotificationRead = async (id) => {
     try {
-      await api.patch(`/notifications/${id}/read`);
+      await api.put(`/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+        prev.map((n) => (n.id === id ? { ...n, isRead: true, is_read: true } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (e) {
@@ -2346,8 +2346,8 @@ export const GlobalDataProvider = ({ children }) => {
 
   const markAllNotificationsRead = async () => {
     try {
-      await api.patch("/notifications/read-all");
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      await api.put("/notifications/mark-all-read");
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, is_read: true })));
       setUnreadCount(0);
     } catch (e) {
       console.error("Mark all read failed", e);

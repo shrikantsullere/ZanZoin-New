@@ -80,7 +80,7 @@ export const findAllInvoices = async (tenantId, query) => {
     ...(clientId && { clientId: Number(clientId) })
   };
 
-  const [invoices, total] = await Promise.all([
+  const [invoicesData, total] = await Promise.all([
     prisma.invoice.findMany({
       where,
       skip: Number(skip),
@@ -88,11 +88,17 @@ export const findAllInvoices = async (tenantId, query) => {
       orderBy: { createdAt: 'desc' },
       include: {
         client: { select: { companyName: true } },
-        order: { select: { orderNumber: true } }
+        order: { select: { orderNumber: true } },
+        payments: { select: { amount: true } }
       }
     }),
     prisma.invoice.count({ where })
   ]);
+
+  const invoices = invoicesData.map(inv => {
+    const paidAmount = inv.payments ? inv.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
+    return { ...inv, paidAmount };
+  });
 
   return { invoices, total, page: Number(page), totalPages: Math.ceil(total / limit) };
 };

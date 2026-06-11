@@ -225,7 +225,7 @@ const Topbar = ({ toggleSidebar, role }) => {
                         const iconMap = { order: ShoppingCart, delivery: Truck, alert: AlertCircle };
                         const NotifIcon = iconMap[n.type] || Bell;
                         const timeAgo = (() => {
-                          const diff = Date.now() - new Date(n.created_at).getTime();
+                          const diff = Date.now() - new Date(n.createdAt || n.created_at).getTime();
                           const mins = Math.floor(diff / 60000);
                           if (mins < 1) return 'Just now';
                           if (mins < 60) return `${mins}m ago`;
@@ -233,25 +233,26 @@ const Topbar = ({ toggleSidebar, role }) => {
                           if (hrs < 24) return `${hrs}h ago`;
                           return `${Math.floor(hrs / 24)}d ago`;
                         })();
+                        const isUnread = !(n.isRead || n.is_read);
                         return (
                           <button
                             key={n.id}
                             onClick={() => {
-                              if (!n.is_read) markNotificationRead(n.id);
+                              if (isUnread) markNotificationRead(n.id);
                               if (n.link) navigate(n.link);
                               setIsNotifOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-white/5 transition-all border-b border-white/[0.03] ${!n.is_read ? 'bg-accent/[0.03]' : ''}`}
+                            className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-white/5 transition-all border-b border-white/[0.03] ${isUnread ? 'bg-accent/[0.03]' : ''}`}
                           >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${!n.is_read ? 'bg-accent/10 text-accent' : 'bg-white/5 text-muted'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isUnread ? 'bg-accent/10 text-accent' : 'bg-white/5 text-muted'}`}>
                               <NotifIcon size={14} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-bold truncate ${!n.is_read ? 'text-white' : 'text-secondary'}`}>{n.title}</p>
+                              <p className={`text-xs font-bold truncate ${isUnread ? 'text-white' : 'text-secondary'}`}>{n.title}</p>
                               <p className="text-[10px] text-muted truncate mt-0.5">{n.message}</p>
                               <p className="text-[9px] text-muted/50 font-bold uppercase tracking-widest mt-1">{timeAgo}</p>
                             </div>
-                            {!n.is_read && <div className="w-2 h-2 rounded-full bg-accent shrink-0 mt-2" />}
+                            {isUnread && <div className="w-2 h-2 rounded-full bg-accent shrink-0 mt-2" />}
                           </button>
                         );
                       })

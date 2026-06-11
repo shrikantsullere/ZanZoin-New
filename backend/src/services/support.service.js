@@ -17,7 +17,12 @@ export const createTicket = async (data, performerId, tenantId) => {
     priority: data.priority || 'Medium',
     status: data.status || 'Open',
     category: data.category || 'General',
-    clientId: data.client_id ? Number(data.client_id) : (data.clientId ? Number(data.clientId) : null),
+    clientId: (() => {
+      const cid = data.client_id || data.clientId;
+      if (!cid) return null;
+      const parsed = parseInt(String(cid).replace(/\D/g, ''), 10);
+      return isNaN(parsed) ? null : parsed;
+    })(),
     managerId: data.manager_id ? Number(data.manager_id) : (data.managerId ? Number(data.managerId) : null),
     createdById: data.created_by ? Number(data.created_by) : (data.createdById ? Number(data.createdById) : null),
     createdByEmail: data.createdByEmail || null,

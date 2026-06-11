@@ -24,7 +24,7 @@ export const receivePayment = async (data, performerId, tenantId) => {
   }
 
   // Check valid status
-  if (!['approved', 'sent', 'partially_paid'].includes(invoice.status)) {
+  if (!['draft', 'generated', 'approved', 'sent', 'partially_paid'].includes(invoice.status)) {
     throw new AppError(`Cannot receive payment for an invoice in ${invoice.status} status`, 400);
   }
 

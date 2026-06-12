@@ -710,7 +710,7 @@ const Inventory = () => {
                     </div>
                     <div className="flex justify-between items-center text-[10px] font-black uppercase text-muted">
                       <span>Expected Qty: {pr.qty || (pr.items && pr.items[0]?.qty)}</span>
-                      <span>{pr.department}</span>
+                      <span>{typeof pr.department === 'object' && pr.department !== null ? (pr.department.name || '—') : (pr.department || '—')}</span>
                     </div>
                   </div>
                 ))}

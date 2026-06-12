@@ -91,30 +91,32 @@ const ProcurementDashboard = () => {
             {reqList.length === 0 && (
               <p className="text-secondary text-sm py-8 text-center">No purchase requests loaded yet.</p>
             )}
-            {reqList.map((req) => (
-              <div
-                key={req.id ?? `req-${req.item}-${req.department}`}
-                className="group bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-accent/30 hover:bg-white/[0.04] transition-all duration-300 shadow-xl"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div
-                      className={`w-12 h-12 bg-background border border-white/10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${String(req.status || '').toLowerCase() === 'approved' ? 'text-success' : 'text-warning'
-                        }`}
-                    >
-                      <CheckCircle size={22} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-white text-sm sm:text-base group-hover:text-accent transition-colors truncate">
-                        {req.item}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">{req.id}</span>
-                        <span className="text-muted/30">•</span>
-                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">{req.department}</span>
+            {reqList.map((req) => {
+              const deptName = typeof req.department === 'object' && req.department !== null ? (req.department.name || '—') : (req.department || '—');
+              return (
+                <div
+                  key={req.id ?? `req-${req.item}-${deptName}`}
+                  className="group bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-accent/30 hover:bg-white/[0.04] transition-all duration-300 shadow-xl"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div
+                        className={`w-12 h-12 bg-background border border-white/10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${String(req.status || '').toLowerCase() === 'approved' ? 'text-success' : 'text-warning'
+                          }`}
+                      >
+                        <CheckCircle size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-white text-sm sm:text-base group-hover:text-accent transition-colors truncate">
+                          {req.item}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-black text-muted uppercase tracking-widest">{req.id}</span>
+                          <span className="text-muted/30">•</span>
+                          <span className="text-[10px] font-black text-muted uppercase tracking-widest">{deptName}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 border-white/5 pt-4 sm:pt-0">
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] text-muted font-black uppercase tracking-widest mb-0.5">Priority</p>
@@ -140,7 +142,8 @@ const ProcurementDashboard = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            )
+            })}
           </div>
         </div>
 

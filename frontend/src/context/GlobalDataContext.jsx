@@ -5272,6 +5272,57 @@ export const GlobalDataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to receive goods against PO:", error);
+      console.warn("[FALLBACK_ACTIVATED] Updating local mock state instead.");
+      setPurchaseOrders((prev) =>
+        prev.map((po) => {
+          if (String(po.id) !== String(poId)) return po;
+          
+          const updatedItems = (po.items || []).map((it) => {
+            const rItem = receivedData.find((r) => String(r.id) === String(it.id));
+            if (!rItem) return it;
+            
+            const recv = Number(rItem.receivedNow) || 0;
+            if (options.adminApproved) {
+              return {
+                ...it,
+                receivedQty: (it.receivedQty || 0) + recv,
+                pending_receive_qty: Math.max(0, (it.pending_receive_qty || 0) - recv),
+              };
+            } else {
+              return {
+                ...it,
+                pending_receive_qty: (it.pending_receive_qty || 0) + recv,
+              };
+            }
+          });
+
+          // Determine status
+          let isFullyReceived = true;
+          for (const it of updatedItems) {
+            const totalRecv = (it.receivedQty || 0) + (it.pending_receive_qty || 0);
+            if (totalRecv < (it.orderedQty || 0)) {
+              isFullyReceived = false;
+            }
+          }
+
+          let status = po.status;
+          if (options.adminApproved) {
+            status = isFullyReceived ? 'Completed' : 'Partially Received';
+          } else {
+            status = 'Pending Receipt Approval';
+          }
+
+          return {
+            ...po,
+            status,
+            packingSlip: options.packingSlip || po.packingSlip || po.packing_slip,
+            packing_slip: options.packingSlip || po.packingSlip || po.packing_slip,
+            admin_approved: !!options.adminApproved,
+            adminApproved: !!options.adminApproved,
+            items: updatedItems,
+          };
+        })
+      );
     }
   };
 
@@ -5290,6 +5341,38 @@ export const GlobalDataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to approve PO receipt:", error);
+      console.warn("[FALLBACK_ACTIVATED] Approving PO receipt in mock state instead.");
+      setPurchaseOrders((prev) =>
+        prev.map((po) => {
+          if (String(po.id) !== String(poId)) return po;
+          
+          const updatedItems = (po.items || []).map((it) => {
+            const pending = Number(it.pending_receive_qty) || 0;
+            return {
+              ...it,
+              receivedQty: (it.receivedQty || 0) + pending,
+              pending_receive_qty: 0,
+            };
+          });
+
+          let isFullyReceived = true;
+          for (const it of updatedItems) {
+            if ((it.receivedQty || 0) < (it.orderedQty || 0)) {
+              isFullyReceived = false;
+            }
+          }
+
+          const status = isFullyReceived ? 'Completed' : 'Partially Received';
+
+          return {
+            ...po,
+            status,
+            admin_approved: true,
+            adminApproved: true,
+            items: updatedItems,
+          };
+        })
+      );
     }
   };
 
@@ -6590,20 +6673,42 @@ export const GlobalDataProvider = ({ children }) => {
         Pending: "pending",
       };
       const postData = {
-        ...reqData,
-        status: statusMap[reqData.status] || reqData.status.toLowerCase(),
+        status: reqData.status ? (statusMap[reqData.status] || reqData.status.toLowerCase()) : undefined,
+        leave_type: reqData.type || reqData.leave_type,
+        start_date: reqData.start || reqData.start_date,
+        end_date: reqData.end || reqData.end_date,
+        hours: reqData.hours,
+        reason: reqData.reason,
       };
       const res = await api.put(`/staff/leave/${reqData.id}`, postData);
       if (res.data?.success) {
         await fetchLeaveRequests();
         addLog({
           action: "Leave Updated",
-          detail: `Leave request ${reqData.id} status changed to ${reqData.status}.`,
+          detail: `Leave request ${reqData.id} updated.`,
           type: "system",
         });
       }
     } catch (error) {
       console.error("Failed to update leave request:", error);
+    }
+  };
+
+  const deleteLeaveRequest = async (id) => {
+    try {
+      const res = await api.delete(`/staff/leave/${id}`);
+      if (res.data?.success) {
+        await fetchLeaveRequests();
+        addLog({
+          action: "Leave Request Deleted",
+          detail: `Deleted leave request ${id}.`,
+          type: "system",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete leave request:", error);
+      console.warn("[FALLBACK_ACTIVATED] Deleting leave request locally.");
+      setLeaveRequests((prev) => prev.filter((r) => r.id !== id));
     }
   };
 
@@ -6734,6 +6839,7 @@ export const GlobalDataProvider = ({ children }) => {
         fetchLeaveRequests,
         addLeaveRequest,
         updateLeaveRequest,
+        deleteLeaveRequest,
         teams,
         setTeams,
 

@@ -8,7 +8,8 @@ import {
     Map as MapIcon, ClipboardList, Smartphone,
     User, Shield, Navigation, Plus,
     Camera, ImagePlus, X, ScanLine, Truck,
-    Check, ToggleLeft, ToggleRight, Search, History
+    Check, ToggleLeft, ToggleRight, Search, History,
+    Edit2, Trash2
 } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,7 +23,7 @@ const EmployeePortal = () => {
         currentUser,
         staffAssignments, updateAssignment, updateMission, fetchStaff, fetchSupportingDocs,
         payHistory, addLog, recordWorkSession, fetchPayHistory,
-        leaveRequests, addLeaveRequest, fetchLeaveRequests,
+        leaveRequests, addLeaveRequest, updateLeaveRequest, deleteLeaveRequest, fetchLeaveRequests,
         getVacationBalance, toggleAvailability,
         deliveries, updateDelivery, fetchDeliveries, reportSecurityEvent,
         securityEvents, fetchSecurityEvents,
@@ -44,10 +45,23 @@ const EmployeePortal = () => {
         if (fetchPayHistory) fetchPayHistory();
         if (fetchLeaveRequests) fetchLeaveRequests();
         if (fetchSecurityEvents) fetchSecurityEvents();
-    }, [activeTab, fetchSupportingDocs, fetchDeliveries, fetchPayHistory, fetchLeaveRequests, fetchSecurityEvents]);
+    }, [activeTab]);
+
+    useEffect(() => {
+        let interval;
+        if (activeTab === 'leave' && fetchLeaveRequests) {
+            interval = setInterval(() => {
+                fetchLeaveRequests();
+            }, 5000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [activeTab]);
 
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [leaveFormData, setLeaveFormData] = useState({ type: 'Vacation', start: '', end: '', reason: '' });
+    const [editingLeaveRequest, setEditingLeaveRequest] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Security States
@@ -930,7 +944,11 @@ const EmployeePortal = () => {
                             <h3 className="text-2xl font-bold">Leave & Absence Records</h3>
                             {(hasMenuPermission('Leave & Absence', 'can_add') || ['operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff'].includes(userRole)) && (
                                 <button
-                                    onClick={() => setIsLeaveModalOpen(true)}
+                                    onClick={() => {
+                                        setEditingLeaveRequest(null);
+                                        setLeaveFormData({ type: 'Vacation', duration: 'Full Day', hours: 8, start: '', end: '', reason: '' });
+                                        setIsLeaveModalOpen(true);
+                                    }}
                                     className="btn-primary flex items-center gap-2"
                                 >
                                     <Plus size={16} /> Request Absence
@@ -969,6 +987,49 @@ const EmployeePortal = () => {
                                                 </p>
                                             </div>
                                             <StatusBadge status={req.status} />
+                                            {(!req.status || req.status === 'Pending' || req.status === 'Pending Review' || req.status.toLowerCase() === 'pending') && (
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingLeaveRequest(req);
+                                                            setLeaveFormData({
+                                                                type: req.type || 'Vacation',
+                                                                duration: req.hours === 4 ? 'Half Day' : 'Full Day',
+                                                                hours: req.hours || 8,
+                                                                start: req.start || '',
+                                                                end: req.end || '',
+                                                                reason: req.reason || ''
+                                                            });
+                                                            setIsLeaveModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-white/5 border border-border rounded-xl text-accent hover:bg-accent/10 transition-all"
+                                                        title="Edit Leave Request"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            swalConfirm(
+                                                                'Delete Request',
+                                                                'Are you sure you want to delete this leave request?'
+                                                            ).then(async (result) => {
+                                                                if (result.isConfirmed) {
+                                                                    try {
+                                                                        await deleteLeaveRequest(req.id);
+                                                                        swalSuccess('Deleted', 'Leave request has been successfully deleted.');
+                                                                    } catch (err) {
+                                                                        swalError('Error', err.message || 'Could not delete request.');
+                                                                    }
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="p-2 bg-white/5 border border-danger/40 text-danger hover:bg-danger/10 rounded-xl transition-all"
+                                                        title="Delete Leave Request"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -984,7 +1045,7 @@ const EmployeePortal = () => {
             <Modal
                 isOpen={isLeaveModalOpen}
                 onClose={() => setIsLeaveModalOpen(false)}
-                title="Bespoke Absence Request"
+                title={editingLeaveRequest ? "Edit Absence Request" : "Bespoke Absence Request"}
             >
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1026,17 +1087,40 @@ const EmployeePortal = () => {
                                 onChange={(date) => setLeaveFormData({ ...leaveFormData, end: date })}
                             />
                         </div>
+                        <div className="space-y-1 md:col-span-2">
+                            <label className="text-[10px] font-bold text-muted uppercase">Reason</label>
+                            <textarea
+                                className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none resize-none"
+                                rows={2}
+                                value={leaveFormData.reason || ''}
+                                onChange={(e) => setLeaveFormData({ ...leaveFormData, reason: e.target.value })}
+                                placeholder="State reason for absence..."
+                            />
+                        </div>
                     </div>
                     <div className="flex gap-3 justify-end pt-4">
                         <button onClick={() => setIsLeaveModalOpen(false)} className="btn-secondary">Cancel</button>
                         <button
-                            onClick={() => {
-                                addLeaveRequest({ ...leaveFormData, name: currentUser.name, userId: currentUser.id });
+                            onClick={async () => {
+                                if (editingLeaveRequest) {
+                                    await updateLeaveRequest({
+                                        id: editingLeaveRequest.id,
+                                        ...leaveFormData
+                                    });
+                                    swalSuccess('Updated', 'Absence request has been successfully updated.');
+                                } else {
+                                    await addLeaveRequest({
+                                        ...leaveFormData,
+                                        name: currentUser.name,
+                                        userId: currentUser.id
+                                    });
+                                    swalSuccess('Submitted', 'Absence request has been successfully submitted.');
+                                }
                                 setIsLeaveModalOpen(false);
                             }}
                             className="btn-primary"
                         >
-                            Submit Requisition
+                            {editingLeaveRequest ? "Save Changes" : "Submit Requisition"}
                         </button>
                     </div>
                 </div>

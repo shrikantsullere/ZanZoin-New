@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   FileText,
   Plus,
@@ -71,16 +71,11 @@ const PurchaseOrders = () => {
   ]);
   const [receivePackingSlip, setReceivePackingSlip] = useState("");
   const [receiveAdminApprove, setReceiveAdminApprove] = useState(false);
+  const fileInputRef = useRef(null);
   const canApproveReceipt = ["admin", "super_admin", "superadmin"].includes(
     userRole,
   );
 
-  React.useEffect(() => {
-    if (showReceiveModal) {
-      setReceivePackingSlip("");
-      setReceiveAdminApprove(false);
-    }
-  }, [showReceiveModal, selectedPO]);
 
   const addLineItem = () =>
     setPoItems([
@@ -247,7 +242,14 @@ const PurchaseOrders = () => {
         data: {
           status: selectedPO.status.toLowerCase(),
           paymentTerms: formData.get("paymentTerms"),
-          totalAmount: total
+          totalAmount: total,
+          items: items.map(it => ({
+            id: typeof it.id === 'number' && Number.isInteger(it.id) ? it.id : undefined,
+            name: it.name,
+            orderedQty: it.orderedQty,
+            price: it.price,
+            category: it.category
+          }))
         }
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Updated');
@@ -267,8 +269,12 @@ const PurchaseOrders = () => {
     setSelectedPO(null);
   };
 
-  const HandleReceiveGoods = (e) => {
+  const HandleReceiveGoods = async (e) => {
     e.preventDefault();
+    if (!receivePackingSlip) {
+      window.alert("Please upload a Packing Slip / Delivery Note before confirming receipt.");
+      return;
+    }
     const poItems = Array.isArray(selectedPO.items) ? selectedPO.items : [];
     const receivedData = poItems.map((item) => ({
       id: item.id,
@@ -278,15 +284,16 @@ const PurchaseOrders = () => {
       receivedNow: Number(e.target[`received_${item.id}`].value),
     }));
 
-    receiveGoodsAgainstPO(selectedPO.id, receivedData, {
+    await receiveGoodsAgainstPO(selectedPO.id, receivedData, {
       packingSlip: receivePackingSlip,
       adminApproved: receiveAdminApprove,
     });
+    queryClient.invalidateQueries(["purchaseOrders"]);
     setShowReceiveModal(false);
     setSelectedPO(null);
   };
 
-  const handleReverseReceipt = (e) => {
+  const handleReverseReceipt = async (e) => {
     e.preventDefault();
     if (!selectedPO?.items?.length) return;
     const lineAdjustments = selectedPO.items
@@ -302,7 +309,8 @@ const PurchaseOrders = () => {
       window.alert("Enter units to reverse (cannot exceed received quantity).");
       return;
     }
-    reverseGoodsReceipt(selectedPO.id, lineAdjustments);
+    await reverseGoodsReceipt(selectedPO.id, lineAdjustments);
+    queryClient.invalidateQueries(["purchaseOrders"]);
     setShowReverseModal(false);
     setShowViewModal(false);
     setSelectedPO(null);
@@ -507,7 +515,8 @@ const PurchaseOrders = () => {
                                 <button
                                   onClick={() => {
                                     setSelectedPO(po);
-                                    setReceivePackingSlip(po.packing_slip || po.packingSlip || "");
+                                    setReceivePackingSlip("");
+                                    setReceiveAdminApprove(false);
                                     setShowReceiveModal(true);
                                   }}
                                   className="p-2.5 bg-accent/10 border border-accent/20 text-accent rounded-lg hover:bg-accent hover:text-black transition-all"
@@ -558,7 +567,10 @@ const PurchaseOrders = () => {
                             {["superadmin", "super_admin", "admin"].includes(userRole) &&
                               po.status === "Pending Receipt Approval" && (
                                 <button
-                                  onClick={() => approvePOReceipt(po.id)}
+                                  onClick={async () => {
+                                    await approvePOReceipt(po.id);
+                                    queryClient.invalidateQueries(["purchaseOrders"]);
+                                  }}
                                   className="p-2.5 bg-success/10 border border-success/20 text-success rounded-lg hover:bg-success hover:text-black transition-all"
                                   title="Approve Receipt & Sync Inventory"
                                 >
@@ -1026,7 +1038,7 @@ const PurchaseOrders = () => {
                                   className={`w-full bg-background border border-border rounded-2xl px-5 py-3 md:py-4 text-center text-sm text-white focus:outline-none focus:border-accent font-black ${item.pendingQty === 0 ? "opacity-30 cursor-not-allowed" : ""}`}
                                 />
                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted italic text-right pr-4">
-                                  Total Ordered
+                                  Receiving Now
                                 </div>
                               </div>
                               <div className="relative">
@@ -1064,24 +1076,33 @@ const PurchaseOrders = () => {
                         Packing Slip / Delivery Note
                       </label>
                       <div className="flex items-center gap-4">
-                        <label className="flex-1 flex items-center justify-between bg-white/5 border border-dashed border-accent/20 rounded-2xl px-5 py-4 cursor-pointer hover:bg-accent/5 transition-all">
+                        <div className="flex-1 flex items-center justify-between bg-white/5 border border-dashed border-accent/20 rounded-2xl px-5 py-4">
                           <div className="flex items-center gap-3">
                             <FileText size={18} className="text-accent" />
                             <span className="text-xs text-secondary font-bold">
                               {receivePackingSlip || "Upload packing slip..."}
                             </span>
                           </div>
-                          <span className="text-[10px] font-black text-accent uppercase tracking-widest bg-accent/10 px-3 py-1 rounded-lg">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="text-[10px] font-black text-accent uppercase tracking-widest bg-accent/10 px-3 py-1 rounded-lg hover:bg-accent/20 transition-all cursor-pointer"
+                          >
                             Browse
-                          </span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            onChange={(e) =>
-                              setReceivePackingSlip(e.target.files[0]?.name)
+                          </button>
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              console.log("Selected packing slip file:", file.name);
+                              setReceivePackingSlip(file.name);
                             }
-                          />
-                        </label>
+                          }}
+                        />
                       </div>
                     </div>
                     <div className="space-y-1">

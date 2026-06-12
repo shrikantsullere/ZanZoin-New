@@ -127,7 +127,11 @@ const PurchaseRequests = () => {
       accessor: "total",
       render: (item) => {
         const items = Array.isArray(item.items) ? item.items : [];
-        const total = item.total || items.reduce((acc, i) => acc + ((parseFloat(i.price) || 0) * (parseFloat(i.qty) || 0)), 0);
+        const total = item.total || items.reduce((acc, i) => {
+          const itemPrice = parseFloat(i.price ?? i.estimatedCost ?? i.estimated_cost ?? 0);
+          const itemQty = parseFloat(i.qty ?? i.quantity ?? 0);
+          return acc + (itemPrice * itemQty);
+        }, 0);
         return `$${parseFloat(total || 0).toLocaleString()}`;
       },
     },

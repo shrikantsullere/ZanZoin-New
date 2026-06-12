@@ -78,8 +78,9 @@ const Vendors = () => {
       contact: vendor.contactPerson ?? vendor.contact ?? vendor.contact_name ?? '',
       rating: vendor.rating ?? 90,
       delivery: vendor.delivery ?? 90,
-      category: vendor.category ?? 'Premium Supplier'
-    } : { name: '', rating: 90, delivery: 90, category: 'General', contact: '', address: '', phone: '', email: '' });
+      category: vendor.category ?? 'Premium Supplier',
+      status: vendor.status ?? 'inactive'
+    } : { name: '', rating: 90, delivery: 90, category: 'General', contact: '', address: '', phone: '', email: '', status: 'inactive' });
     setIsModalOpen(true);
   };
 
@@ -114,6 +115,7 @@ const Vendors = () => {
             category: formData.category || 'Premium Supplier',
             rating: formData.rating,
             delivery: formData.delivery,
+            status: formData.status || 'inactive',
             vendorCode: 'VND-' + Date.now().toString().slice(-6)
           };
           await realApi.post('/vendors', apiPayload);
@@ -152,7 +154,8 @@ const Vendors = () => {
             address: formData.address || '',
             category: formData.category || 'Premium Supplier',
             rating: formData.rating,
-            delivery: formData.delivery
+            delivery: formData.delivery,
+            status: formData.status
           };
           await realApi.put(`/vendors/${selectedVendor.id}`, apiPayload);
           console.log('[REAL_API_SUCCESS] Vendor updated successfully via real API');
@@ -239,8 +242,8 @@ const Vendors = () => {
       render: (row) => {
         const st = String(row.status || 'inactive').toLowerCase();
         if (st === 'active') return <span className="text-[10px] font-black uppercase text-success">Active</span>;
-        if (st === 'blacklisted') return <span className="text-[10px] font-black uppercase text-danger">Blocked</span>;
-        return <span className="text-[10px] font-black uppercase text-warning">Pending HQ approval</span>;
+        if (st === 'blacklisted' || st === 'blocked') return <span className="text-[10px] font-black uppercase text-danger">Blocked</span>;
+        return <span className="text-[10px] font-black uppercase text-warning">Pending Approval</span>;
       }
     },
   ];
@@ -299,7 +302,7 @@ const Vendors = () => {
           canEdit={hasMenuPermission('Vendors', 'can_edit')}
           canDelete={hasMenuPermission('Vendors', 'can_delete')}
           customAction={(row) => (
-            ['superadmin', 'admin'].includes(normalizeRole(currentUser?.role)) && String(row.status || '').toLowerCase() === 'inactive' ? (
+            ['superadmin'].includes(normalizeRole(currentUser?.role)) && String(row.status || '').toLowerCase() === 'inactive' ? (
               <button
                 type="button"
                 className="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-success/15 text-success border border-success/30 hover:bg-success hover:text-black"
@@ -522,6 +525,21 @@ const Vendors = () => {
                     disabled={modalType === 'view'}
                   />
                 </div>
+                {modalType !== 'add' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted uppercase">Status</label>
+                    <select
+                      value={formData.status || 'inactive'}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none font-bold"
+                      disabled={modalType === 'view'}
+                    >
+                      <option value="active" disabled={normalizeRole(currentUser?.role) !== 'superadmin'}>Active</option>
+                      <option value="inactive">Pending Approval</option>
+                      <option value="blacklisted">Blocked</option>
+                    </select>
+                  </div>
+                )}
 
                 {modalType === 'view' && (
                   <div className="mt-6 p-4 bg-white/5 rounded-xl border border-border space-y-4 col-span-1 sm:col-span-2">

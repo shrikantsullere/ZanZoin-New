@@ -11,7 +11,15 @@ const LeaveManagement = () => {
   useEffect(() => {
     fetchStaff();
     fetchLeaveRequests();
-  }, [fetchStaff, fetchLeaveRequests]);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchLeaveRequests();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const filtered = leaveRequests.filter(r => {
     const matchesFilter = filter === 'all' || r.status?.toLowerCase() === filter;

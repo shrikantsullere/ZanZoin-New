@@ -408,6 +408,10 @@ const Deliveries = () => {
         dueDate: finalData.dueDate,
         pickupLocation: finalData.pickupLocation,
         dropLocation: finalData.dropLocation,
+        routeDistance: finalData.route_distance ? Number(finalData.route_distance) : null,
+        staffPayRate: finalData.staff_pay_rate ? Number(finalData.staff_pay_rate) : null,
+        deliveryFee: finalData.delivery_fee ? Number(finalData.delivery_fee) : null,
+        status: finalData.status || undefined,
         remarks: JSON.stringify(manifestMeta)
       };
 

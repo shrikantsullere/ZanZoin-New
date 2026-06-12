@@ -281,11 +281,7 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
     if (userRole === 'client') {
       baseMenu = businessClientMenu;
     } else if (userRole === 'customer') {
-      let allowed = planMenuAccess[userPlan] || planMenuAccess.free;
-      if (currentUser?.concierge_member || currentUser?.conciergeMembership) {
-        allowed = [...allowed, 'Events', 'Guest Requests', 'Luxury Items'];
-      }
-      baseMenu = (menuItems.customer || []).filter(item => allowed.includes(item.label));
+      baseMenu = businessClientMenu;
     } else {
       baseMenu = menuItems[userRole] || menuItems.superadmin;
     }

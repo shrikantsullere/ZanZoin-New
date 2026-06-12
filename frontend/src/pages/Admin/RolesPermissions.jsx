@@ -45,7 +45,24 @@ const RolesPermissions = () => {
             );
 
             if (rolesRes.data?.success) setRoles(filteredRoles);
-            if (menusRes.data?.success) setMenus(menusRes.data.data);
+            const MENU_SEQUENCE = [
+                'Dashboard', 'Marketplace', 'Customers', 'Staff & Users', 'Orders',
+                'Deliveries', 'Invoices', 'Purchase Requests', 'Quotes', 'Purchase Orders',
+                'Inventory', 'Audit Protocol', 'Warehouses', 'Vendors', 'Events',
+                'Guest Requests', 'Luxury Items', 'Chauffeur', 'Support', 'Plans', 'Settings'
+            ];
+            if (menusRes.data?.success) {
+                const fetchedMenus = menusRes.data.data;
+                fetchedMenus.sort((a, b) => {
+                    const idxA = MENU_SEQUENCE.indexOf(a.name);
+                    const idxB = MENU_SEQUENCE.indexOf(b.name);
+                    if (idxA === -1 && idxB === -1) return a.name.localeCompare(b.name);
+                    if (idxA === -1) return 1;
+                    if (idxB === -1) return -1;
+                    return idxA - idxB;
+                });
+                setMenus(fetchedMenus);
+            }
 
             if (filteredRoles.length > 0) {
                 handleSelectRole(filteredRoles[0]);

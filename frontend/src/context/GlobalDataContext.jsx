@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../services/api/setupAxios.js";
+import { io } from "socket.io-client";
 import {
   normalizeRole,
   roleCanCreateInstitutionalOrder,
@@ -642,8 +643,15 @@ function extractTransportModeFromOrder(row) {
   const fromNotes = normalizeTransportMode(notesMatch?.[1]);
   if (fromNotes) return fromNotes;
 
+  let meta = {};
+  if (typeof row.metadata === "string") {
+    try { meta = JSON.parse(row.metadata); } catch (e) {}
+  } else if (row.metadata && typeof row.metadata === "object") {
+    meta = row.metadata;
+  }
+
   const direct = normalizeTransportMode(
-    row.delivery_mode ?? row.deliveryMode ?? row.deliveryType ?? row.mode,
+    row.delivery_mode ?? row.deliveryMode ?? row.deliveryType ?? row.mode ?? meta.deliveryType ?? meta.delivery_mode ?? meta.mode,
   );
   if (direct) return direct;
 
@@ -859,6 +867,56 @@ export const GlobalDataProvider = ({ children }) => {
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    // Determine the base URL for the socket connection from the API URL
+    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const socketURL = baseURL.replace('/api/v1', '');
+    
+    const socket = io(socketURL, {
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('🔗 Connected to Socket.io real-time server');
+    });
+
+    socket.on('delivery_update', (updatedDelivery) => {
+      if (!updatedDelivery || !updatedDelivery.id) return;
+      setDeliveries(prev => prev.map(d => d.id === updatedDelivery.id ? { ...d, ...updatedDelivery } : d));
+    });
+
+    socket.on('support_update', (updatedTicket) => {
+      if (!updatedTicket || !updatedTicket.id) return;
+      if (updatedTicket.deleted) {
+        setSupportTickets(prev => prev.filter(t => t.id !== parseInt(updatedTicket.id)));
+      } else {
+        setSupportTickets(prev => prev.map(t => t.id === updatedTicket.id ? { ...t, ...updatedTicket } : t));
+      }
+    });
+
+    socket.on('event_update', (updatedEvent) => {
+      if (!updatedEvent || !updatedEvent.id) return;
+      if (updatedEvent.deleted) {
+        setEvents(prev => prev.filter(e => e.id !== parseInt(updatedEvent.id)));
+      } else {
+        setEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
+      }
+    });
+
+    socket.on('guest_request_update', (updatedReq) => {
+      if (!updatedReq || !updatedReq.id) return;
+      if (updatedReq.deleted) {
+        setGuestRequests(prev => prev.filter(r => r.id !== parseInt(updatedReq.id)));
+      } else {
+        setGuestRequests(prev => prev.map(r => r.id === updatedReq.id ? { ...r, ...updatedReq } : r));
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
 
   const filterDataForCurrentUser = React.useCallback(
@@ -1862,8 +1920,16 @@ export const GlobalDataProvider = ({ children }) => {
         const displayDate = orderDay || createdDay;
         const statusForUi = o.status;
         const transportMode = extractTransportModeFromOrder(o);
+        let meta = {};
+        if (typeof o.metadata === "string") {
+          try { meta = JSON.parse(o.metadata); } catch (e) {}
+        } else if (o.metadata && typeof o.metadata === "object") {
+          meta = o.metadata;
+        }
+        
         return {
           ...o,
+          ...meta,
           items: itemsArr,
           clientId: o.customer_id || o.client_id || o.clientId,
           companyId: o.company_id || o.tenantId,
@@ -1882,10 +1948,10 @@ export const GlobalDataProvider = ({ children }) => {
           status: statusForUi,
           statusLabel: displayOrderStatus(statusForUi),
           delivery_instructions:
-            o.delivery_instructions || o.deliveryInstructions || null,
-          location: o.delivery_address || o.location || o.deliveryAddress || "",
-          pickupLocation: o.pickup_location || o.pickupLocation || "",
-          pickup_location: o.pickup_location || o.pickupLocation || null,
+            o.delivery_instructions || o.deliveryInstructions || meta.delivery_instructions || meta.deliveryInstructions || null,
+          location: o.delivery_address || o.location || o.deliveryAddress || meta.delivery_address || meta.location || meta.deliveryAddress || "",
+          pickupLocation: o.pickup_location || o.pickupLocation || meta.pickup_location || meta.pickupLocation || "",
+          pickup_location: o.pickup_location || o.pickupLocation || meta.pickup_location || meta.pickupLocation || null,
           deliveryType: transportMode,
           deliveryMode: transportMode,
           delivery_mode: transportMode,
@@ -1980,7 +2046,7 @@ export const GlobalDataProvider = ({ children }) => {
     };
 
     try {
-      const res = await api.get("/orders/projects/all");
+      const res = await api.get(`/orders/projects/all?_t=${Date.now()}`);
       let rawData = res.data?.success
         ? res.data.data
         : Array.isArray(res.data)
@@ -2116,7 +2182,7 @@ export const GlobalDataProvider = ({ children }) => {
           }
 
           return {
-            id: `TKT-${String(t.id).padStart(3, "0")}`,
+            id: String(t.id).startsWith("TKT-") ? t.id : `TKT-${String(t.id).padStart(3, "0")}`,
             db_id: t.id,
             // preserve original backend identification fields to satisfy global filters
             submitted_by: t.submitted_by ?? t.createdById ?? null,
@@ -2199,7 +2265,7 @@ export const GlobalDataProvider = ({ children }) => {
             requestedBy: r.requested_by,
             time: parsedTime || r.delivery_time || "",
             date: parsedDate || (r.created_at ? r.created_at.split("T")[0] : ""),
-            guest: r.guest || r.client_name || "VIP Suite",
+            guest: r.guest || r.guestName || r.client_name || "VIP Suite",
             priority: capitalizePriority(r.priority),
           };
         });
@@ -2321,7 +2387,13 @@ export const GlobalDataProvider = ({ children }) => {
       if (res.data?.success) {
         // Backend already scopes notifications to the current user via user_id and role_target+company_id.
         // No additional client-side filtering needed — this prevents false notifications for new accounts.
-        const notifs = res.data.data || [];
+        let notifs = res.data.data || [];
+        
+        // TEMPORARY FIX: Ignore default mock notifications that leak from outdated mockApi fallback
+        if (notifs.length === 2 && notifs[0]?.id === 1 && notifs[1]?.id === 2 && notifs[0]?.title === "New Purchase Order") {
+            notifs = [];
+        }
+        
         setNotifications(notifs);
         // Compute unread count directly from the scoped list to prevent phantom badges
         setUnreadCount(notifs.filter(n => !(n.isRead || n.is_read)).length);
@@ -6467,8 +6539,9 @@ export const GlobalDataProvider = ({ children }) => {
       let id, payload;
       if (typeof ticketOrId === "object") {
         id = ticketOrId.db_id || ticketOrId.id;
-        // Strip prefix if needed
-        if (typeof id === "string" && id.includes("-")) id = id.split("-")[1];
+        id = ticketOrId.db_id || ticketOrId.id;
+        // Ensure ID has TKT- prefix if it's supposed to
+        if (typeof id === "string" && !id.startsWith("TKT-")) id = `TKT-${id}`;
 
         payload = {
           status: (ticketOrId.status || "open").toLowerCase().replace(" ", "_"),
@@ -6478,11 +6551,10 @@ export const GlobalDataProvider = ({ children }) => {
         };
       } else {
         id = ticketOrId;
-        if (typeof id === "string" && id.includes("-")) id = id.split("-")[1];
+        if (typeof id === "string" && !id.startsWith("TKT-")) id = `TKT-${id}`;
         payload = { status: status.toLowerCase().replace(" ", "_") };
       }
-
-      await api.patch(`/support/tickets/${id}/status`, payload);
+      await api.put(`/support/tickets/${id}`, payload);
       await fetchTickets();
       addLog({
         action: "Ticket Update",
@@ -6497,7 +6569,7 @@ export const GlobalDataProvider = ({ children }) => {
   const addGuestRequest = async (request) => {
     try {
       const formattedTime = formatDateTime(request.date, request.time);
-      const userRole = (currentUser?.role || "")
+      const userRole = String(currentUser?.role?.name || currentUser?.role || "")
         .toLowerCase()
         .replace(/\s+/g, "_");
       const isClientRole = [
@@ -6506,19 +6578,21 @@ export const GlobalDataProvider = ({ children }) => {
         "admin",
         "saas_client",
       ].includes(userRole);
-      const res = await api.post("/support/guest-requests", {
+      const payload = {
         client_id:
           request.clientId ||
           (isClientRole
             ? currentUser.clientId || currentUser.company_id
             : clients.find((c) => c.name === request.client)?.id || null),
-        guest: request.guest,
-        requested_by: request.requestedBy,
-        request_details: request.request || request.details,
+        guest: request.guest || "Guest",
+        requested_by: request.requestedBy || currentUser?.name || "Staff",
+        request_details: request.request || request.details || "",
         delivery_time: formattedTime,
-        priority: request.priority || "medium",
-        status: request.status || "pending",
-      });
+        priority: (request.priority || "medium").toLowerCase(),
+        status: (request.status || "pending").toLowerCase(),
+      };
+      console.log('[GuestRequest] Creating:', payload);
+      const res = await api.post("/support/guest-requests", payload);
       if (res.data?.success) {
         await fetchTickets(); // Re-fetch all tickets to include new one with mapped fields
         addLog({
@@ -6534,22 +6608,25 @@ export const GlobalDataProvider = ({ children }) => {
 
   const updateGuestRequest = async (data) => {
     try {
-      const { id, ...updateData } = data;
+      const { id, requestId, ...updateData } = data;
+      // Use requestId (GRQ-XXXX) if available, fall back to id
+      const reqId = requestId || id;
       const formattedTime = formatDateTime(updateData.date, updateData.time);
       const reqData = {
-        guest: updateData.guest,
-        requested_by: updateData.requestedBy,
+        guest: updateData.guest || updateData.guestName || "Guest",
+        requested_by: updateData.requestedBy || updateData.requested_by || "",
         request_details:
-          updateData.request || updateData.request_details || null,
+          updateData.request || updateData.request_details || "",
         delivery_time: formattedTime,
-        priority: updateData.priority || "medium",
-        status: updateData.status || "pending",
+        priority: (updateData.priority || "medium").toLowerCase(),
+        status: (updateData.status || "pending").toLowerCase(),
       };
-      await api.put(`/support/guest-requests/${id}`, reqData);
+      console.log('[GuestRequest] Updating:', reqId, reqData);
+      await api.put(`/support/guest-requests/${reqId}`, reqData);
       await fetchTickets(); // Sync state
       addLog({
         action: "Concierge Update",
-        detail: `Request ${id} parameters updated.`,
+        detail: `Request ${reqId} parameters updated.`,
         type: "system",
       });
     } catch (error) {

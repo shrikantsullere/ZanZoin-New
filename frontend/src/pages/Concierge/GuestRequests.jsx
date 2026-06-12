@@ -253,15 +253,15 @@ const GuestRequests = () => {
                                         </div>
                                     ) : (
                                         <select
-                                            value={formData.status}
+                                            value={String(formData.status || 'pending').toLowerCase().trim()}
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                             className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm focus:border-accent outline-none"
                                             disabled={modalType === 'view'}
                                         >
-                                            <option>Pending</option>
-                                            <option>In Progress</option>
-                                            <option>Completed</option>
-                                            <option>Deferred</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="in progress">In Progress</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="deferred">Deferred</option>
                                         </select>
                                     )}
                                 </div>

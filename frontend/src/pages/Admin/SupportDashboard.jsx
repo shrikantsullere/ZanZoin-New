@@ -22,8 +22,8 @@ const SupportDashboard = () => {
     const [refundAmount, setRefundAmount] = useState(0);
 
     const filteredTickets = supportTickets.filter(t => {
-        const matchesSearch = t.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch = t.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            t.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             String(t.id || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = filterStatus === 'All' || t.status === filterStatus;
         return matchesSearch && matchesStatus;

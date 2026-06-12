@@ -351,12 +351,13 @@ const Events = () => {
                     <label className="text-[10px] font-bold text-muted uppercase">Mood Board Link</label>
                     {modalType === 'view' ? (
                       <a
-                        href={(formData.moodBoardUrl || formData.mood_board_url || '').startsWith('http') ? (formData.moodBoardUrl || formData.mood_board_url) : `https://${formData.moodBoardUrl || formData.mood_board_url}`}
+                        href={(formData.moodBoardUrl || formData.mood_board_url || '').trim().startsWith('http') ? (formData.moodBoardUrl || formData.mood_board_url).trim() : `https://${(formData.moodBoardUrl || formData.mood_board_url || '').trim()}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full bg-accent/5 border border-accent/20 rounded-xl px-4 py-3 text-sm font-bold text-accent hover:bg-accent/10 transition-all truncate"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        🔗 {formData.moodBoardUrl || formData.mood_board_url}
+                        🔗 {(formData.moodBoardUrl || formData.mood_board_url || '').trim()}
                       </a>
                     ) : (
                       <input

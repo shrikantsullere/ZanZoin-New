@@ -311,12 +311,13 @@ const ClientEvents = () => {
                             <label className="text-[10px] font-bold text-muted uppercase tracking-widest text-accent">Mood Board / Inspiration (URL)</label>
                             {modalType === 'view' && formData.moodBoard ? (
                                 <a
-                                    href={formData.moodBoard.startsWith('http') ? formData.moodBoard : `https://${formData.moodBoard}`}
+                                    href={(formData.moodBoard || '').trim().startsWith('http') ? (formData.moodBoard || '').trim() : `https://${(formData.moodBoard || '').trim()}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="block w-full bg-accent/5 border border-accent/20 rounded-xl px-4 py-3 text-sm font-bold text-accent hover:bg-accent/10 transition-all truncate"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    🔗 {formData.moodBoard}
+                                    🔗 {(formData.moodBoard || '').trim()}
                                 </a>
                             ) : (
                                 <input

@@ -496,37 +496,30 @@ const EmployeePortal = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedMission(del);
-                                                    setIsMissionModalOpen(true);
-                                                }}
-                                                className="flex-1 py-4 bg-white/5 border border-white/10 text-accent rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <FileText size={16} /> View Intel
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => updateDelivery({
-                                                    ...del,
-                                                    status: 'assigned',
-                                                    driverId: currentUser?.id,
-                                                    driver: currentUser?.name
-                                                })}
-                                                className="flex-[1.5] py-4 bg-accent text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-2"
-                                            >
-                                                <Check size={18} /> Accept Mission
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => swalWarning('Mission Declined', 'You have declined this mission. It will remain in the queue for other pilots.')}
-                                                className="flex-1 py-4 bg-white/5 border border-white/10 text-muted rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-danger/10 hover:text-danger hover:border-danger/30 transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <X size={16} /> Reject
-                                            </button>
-                                        </div>
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedMission(del);
+                                                        setIsMissionModalOpen(true);
+                                                    }}
+                                                    className="flex-1 py-4 bg-white/5 border border-white/10 text-accent rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <FileText size={16} /> View Intel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateDelivery({
+                                                        ...del,
+                                                        status: 'assigned',
+                                                        driverId: currentUser?.id,
+                                                        driver: currentUser?.name
+                                                    })}
+                                                    className="flex-[1.5] py-4 bg-accent text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-2"
+                                                >
+                                                    <Check size={18} /> Accept Mission
+                                                </button>
+                                            </div>
                                     </div>
                                 ))}
                                 {openDeliveryQueue.length === 0 && (
@@ -594,7 +587,7 @@ const EmployeePortal = () => {
                                                             </button>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => updateDelivery({ ...del, status: 'cancelled' })}
+                                                                onClick={() => updateDelivery({ ...del, status: 'pending', driverId: null, driver: null })}
                                                                 className="py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-danger/40 text-danger hover:bg-danger/10"
                                                             >
                                                                 Decline

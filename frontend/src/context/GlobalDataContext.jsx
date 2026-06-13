@@ -5344,57 +5344,7 @@ export const GlobalDataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to receive goods against PO:", error);
-      console.warn("[FALLBACK_ACTIVATED] Updating local mock state instead.");
-      setPurchaseOrders((prev) =>
-        prev.map((po) => {
-          if (String(po.id) !== String(poId)) return po;
-          
-          const updatedItems = (po.items || []).map((it) => {
-            const rItem = receivedData.find((r) => String(r.id) === String(it.id));
-            if (!rItem) return it;
-            
-            const recv = Number(rItem.receivedNow) || 0;
-            if (options.adminApproved) {
-              return {
-                ...it,
-                receivedQty: (it.receivedQty || 0) + recv,
-                pending_receive_qty: Math.max(0, (it.pending_receive_qty || 0) - recv),
-              };
-            } else {
-              return {
-                ...it,
-                pending_receive_qty: (it.pending_receive_qty || 0) + recv,
-              };
-            }
-          });
-
-          // Determine status
-          let isFullyReceived = true;
-          for (const it of updatedItems) {
-            const totalRecv = (it.receivedQty || 0) + (it.pending_receive_qty || 0);
-            if (totalRecv < (it.orderedQty || 0)) {
-              isFullyReceived = false;
-            }
-          }
-
-          let status = po.status;
-          if (options.adminApproved) {
-            status = isFullyReceived ? 'Completed' : 'Partially Received';
-          } else {
-            status = 'Pending Receipt Approval';
-          }
-
-          return {
-            ...po,
-            status,
-            packingSlip: options.packingSlip || po.packingSlip || po.packing_slip,
-            packing_slip: options.packingSlip || po.packingSlip || po.packing_slip,
-            admin_approved: !!options.adminApproved,
-            adminApproved: !!options.adminApproved,
-            items: updatedItems,
-          };
-        })
-      );
+      throw error;
     }
   };
 
@@ -5413,38 +5363,7 @@ export const GlobalDataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to approve PO receipt:", error);
-      console.warn("[FALLBACK_ACTIVATED] Approving PO receipt in mock state instead.");
-      setPurchaseOrders((prev) =>
-        prev.map((po) => {
-          if (String(po.id) !== String(poId)) return po;
-          
-          const updatedItems = (po.items || []).map((it) => {
-            const pending = Number(it.pending_receive_qty) || 0;
-            return {
-              ...it,
-              receivedQty: (it.receivedQty || 0) + pending,
-              pending_receive_qty: 0,
-            };
-          });
-
-          let isFullyReceived = true;
-          for (const it of updatedItems) {
-            if ((it.receivedQty || 0) < (it.orderedQty || 0)) {
-              isFullyReceived = false;
-            }
-          }
-
-          const status = isFullyReceived ? 'Completed' : 'Partially Received';
-
-          return {
-            ...po,
-            status,
-            admin_approved: true,
-            adminApproved: true,
-            items: updatedItems,
-          };
-        })
-      );
+      throw error;
     }
   };
 
@@ -5457,41 +5376,8 @@ export const GlobalDataProvider = ({ children }) => {
       });
       await fetchPurchaseOrders();
     } catch (error) {
-      console.warn("reverse-receipt API fallback local", error);
-      setPurchaseOrders((prev) =>
-        prev.map((po) => {
-          if (String(po.id) !== String(poId)) return po;
-          const items = (po.items || []).map((it) => {
-            const adj = lineAdjustments.find(
-              (a) => String(a.id) === String(it.id),
-            );
-            if (!adj) return it;
-            const dec = Math.max(
-              0,
-              Number(adj.reduceBy ?? adj.quantityToReverse) || 0,
-            );
-            const rq = Math.max(0, (Number(it.receivedQty) || 0) - dec);
-            const ord = Number(it.orderedQty) || 0;
-            return {
-              ...it,
-              receivedQty: rq,
-              pendingQty: Math.max(0, ord - rq),
-            };
-          });
-          let status = po.status;
-          const allPending = items.every((i) => (i.receivedQty || 0) === 0);
-          const anyRecv = items.some((i) => (i.receivedQty || 0) > 0);
-          if (allPending && po.status !== "Pending") status = "Pending";
-          else if (anyRecv && items.some((i) => (i.pendingQty || 0) > 0))
-            status = "Partially Received";
-          return { ...po, items, status };
-        }),
-      );
-      addLog({
-        action: "Receipt reversed",
-        detail: `Adjusted receiving for PO ${poId}.`,
-        type: "inventory",
-      });
+      console.error("reverse-receipt API failed", error);
+      throw error;
     }
   };
 
@@ -6784,8 +6670,7 @@ export const GlobalDataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to delete leave request:", error);
-      console.warn("[FALLBACK_ACTIVATED] Deleting leave request locally.");
-      setLeaveRequests((prev) => prev.filter((r) => r.id !== id));
+      throw error;
     }
   };
 

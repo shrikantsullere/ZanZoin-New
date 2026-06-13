@@ -338,8 +338,7 @@ const Inventory = () => {
             res = { ok: true, data: apiRes.data };
           } catch (e) {
             console.warn('[REAL_API_FAILED] Item creation via real API failed', e);
-            console.info('[FALLBACK_ACTIVATED] Falling back to mock addStockEntry');
-            res = await addStockEntry({ ...formData, imageFile });
+            res = { ok: false, error: 'Failed to create item' };
           }
           if (!res?.ok) {
             swalError('Save failed', res?.error || 'Stock entry could not be saved.');
@@ -428,8 +427,7 @@ const Inventory = () => {
           console.log('[REAL_API_SUCCESS] Item updated successfully via real API');
         } catch (e) {
           console.warn('[REAL_API_FAILED] Item update via real API failed', e);
-          console.info('[FALLBACK_ACTIVATED] Falling back to mock updateInventory');
-          await updateInventory({ ...formData, imageFile });
+          swalWarning('Error', 'Failed to update item.');
         }
       } else if (modalType === 'delete') {
         try {
@@ -437,8 +435,7 @@ const Inventory = () => {
           console.log('[REAL_API_SUCCESS] Item deleted successfully via real API');
         } catch (e) {
           console.warn('[REAL_API_FAILED] Item deletion via real API failed', e);
-          console.info('[FALLBACK_ACTIVATED] Falling back to mock deleteInventory');
-          await deleteInventory(selectedItem.id);
+          swalWarning('Error', 'Failed to delete item.');
         }
       }
       setIsModalOpen(false);

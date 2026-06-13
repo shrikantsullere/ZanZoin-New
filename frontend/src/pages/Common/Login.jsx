@@ -361,7 +361,6 @@ const Login = ({ onLogin }) => {
                   <h4 className="text-xl font-bold text-white uppercase tracking-tighter">Security Verification</h4>
                 </div>
                 <p className="text-xs text-secondary">Code sent to <span className="text-accent">{resetEmail}</span></p>
-                {otpValue && <p className="text-[9px] text-success/60 font-mono tracking-widest">DUMMY OTP: {otpValue}</p>}
               </div>
               <div className="relative group">
                 <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" size={20} />

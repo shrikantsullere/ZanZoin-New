@@ -271,30 +271,7 @@ const Quotes = () => {
          deleteQuote(selectedQuote.id);
       }
     } catch (err) {
-      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
-      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
-      
-      const finalData = {
-        ...formData,
-        vendor: resolvedVendorName,
-        vendor_name: resolvedVendorName,
-        vendor_id: normalizedVendorId,
-        vendorId: normalizedVendorId,
-        purchaseRequestId: formData.purchaseRequestId,
-        rfqId: formData.rfqId,
-        items,
-        total,
-        total_amount: total,
-        date: new Date().toISOString().split('T')[0],
-        quote_type: qt,
-        quoteType: formData.quoteType,
-        payment_terms: formData.paymentTerms,
-        paymentTerms: formData.paymentTerms,
-      };
-      
-      if (modalType === 'add') addQuote(finalData);
-      else if (modalType === 'edit') updateQuote(finalData);
-      else if (modalType === 'delete') deleteQuote(selectedQuote.id);
+      swalError('Failed to process Quotation');
     }
     
     setIsModalOpen(false);
@@ -320,17 +297,7 @@ const Quotes = () => {
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Created from Quotation');
     } catch (err) {
-      console.warn('[REAL_API_FAILED] Fallback mock for Accept Quote', err);
-      addOrder({
-        clientId: 1,
-        client: 'Platinum Client X',
-        items: normalizeQuoteItems(selectedQuote.items),
-        vendorId: selectedQuote.vendorId,
-        vendor: 'Monaco Global',
-        status: 'Confirmed',
-        location: 'Central Vault'
-      });
-      updateQuote({ ...selectedQuote, status: 'Accepted' });
+      swalError('Failed to generate Purchase Order from Quotation');
     }
     setIsModalOpen(false);
   };

@@ -124,8 +124,7 @@ const Vendors = () => {
           await refreshVendorsList();
         } catch(e) {
           console.warn('[REAL_API_FAILED] Vendor creation via real API failed', e);
-          console.info('[FALLBACK_ACTIVATED] Falling back to mock addVendor');
-          await mockAddVendor(formData);
+          swalWarning('Error', 'Failed to create vendor.');
         }
         setIsModalOpen(false);
       } catch (e) {
@@ -163,8 +162,7 @@ const Vendors = () => {
           await refreshVendorsList();
         } catch(e) {
           console.warn('[REAL_API_FAILED] Vendor update via real API failed', e);
-          console.info('[FALLBACK_ACTIVATED] Falling back to mock updateVendor');
-          await mockUpdateVendor({ ...selectedVendor, ...formData });
+          swalWarning('Error', 'Failed to update vendor.');
         }
         setIsModalOpen(false);
       } catch (e) {
@@ -181,8 +179,7 @@ const Vendors = () => {
         await refreshVendorsList();
       } catch(e) {
         console.warn('[REAL_API_FAILED] Vendor deletion via real API failed', e);
-        console.info('[FALLBACK_ACTIVATED] Falling back to mock deleteVendor');
-        await mockDeleteVendor(selectedVendor.id);
+        swalWarning('Error', 'Failed to delete vendor.');
       }
       setIsModalOpen(false);
       swalSuccess('Deleted', 'Vendor has been removed successfully.');
@@ -315,8 +312,7 @@ const Vendors = () => {
                       console.log('[REAL_API_SUCCESS] Vendor activated successfully via real API');
                     } catch(err) {
                       console.warn('[REAL_API_FAILED] Vendor activation via real API failed', err);
-                      console.info('[FALLBACK_ACTIVATED] Falling back to mock updateVendor activate');
-                      await mockUpdateVendor({ ...row, status: 'active' });
+                      swalWarning('Error', 'Failed to activate vendor.');
                     }
                     await fetchVendors();
                     realApi.get('/vendors').then(res => setRealVendors(res.data?.data?.vendors || res.data?.data || [])).catch(() => {});

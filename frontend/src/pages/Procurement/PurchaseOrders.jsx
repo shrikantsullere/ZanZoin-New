@@ -189,17 +189,7 @@ const PurchaseOrders = () => {
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Created');
     } catch (err) {
-      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
-      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
-      addPurchaseOrder({
-        vendorId,
-        vendorName: vendor?.name || "Unknown",
-        total,
-        total_amount: total,
-        items,
-        paymentTerms: formData.get("paymentTerms"),
-        purchaseRequestId
-      });
+      swalError('Failed to create Purchase Order');
     }
 
     if (purchaseRequestId) {
@@ -254,15 +244,7 @@ const PurchaseOrders = () => {
       });
       console.log('[REAL_API_SUCCESS] Purchase Order Updated');
     } catch (err) {
-      console.warn('[REAL_API_FAILED] Falling back to offline context mutations', err);
-      console.log('[FALLBACK_ACTIVATED] Using mock GlobalDataContext state.');
-      updatePurchaseOrder({
-        ...selectedPO,
-        paymentTerms: formData.get("paymentTerms"),
-        payment_terms: formData.get("paymentTerms"),
-        items,
-        total,
-      });
+      swalError('Failed to update Purchase Order');
     }
 
     setShowEditModal(false);

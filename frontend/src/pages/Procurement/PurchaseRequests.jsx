@@ -67,18 +67,16 @@ const PurchaseRequests = () => {
     if (modalType === 'add') {
       try {
         await createPRMutation.mutateAsync(formData);
-        console.log('[REAL_API_SUCCESS] Purchase Request Created');
+        swalSuccess('Purchase Request Created');
       } catch (e) {
-        console.warn('[REAL_API_FAILED] Create PR Failed. [FALLBACK_ACTIVATED]', e);
-        addPurchaseRequest(formData);
+        swalError('Failed to create Purchase Request');
       }
     } else if (modalType === 'edit') {
       try {
         await updatePRMutation.mutateAsync({ id: selectedRequest.id, data: formData });
-        console.log('[REAL_API_SUCCESS] Purchase Request Updated');
+        swalSuccess('Purchase Request Updated');
       } catch (e) {
-        console.warn('[REAL_API_FAILED] Update PR Failed. [FALLBACK_ACTIVATED]', e);
-        updatePurchaseRequest({ ...selectedRequest, ...formData });
+        swalError('Failed to update Purchase Request');
       }
     }
     setIsModalOpen(false);
@@ -87,10 +85,9 @@ const PurchaseRequests = () => {
   const handleDelete = async (id) => {
     try {
       await deletePRMutation.mutateAsync(id);
-      console.log('[REAL_API_SUCCESS] Purchase Request Deleted');
+      swalSuccess('Purchase Request Deleted');
     } catch (e) {
-      console.warn('[REAL_API_FAILED] Delete PR Failed. [FALLBACK_ACTIVATED]', e);
-      deletePurchaseRequest(id);
+      swalError('Failed to delete Purchase Request');
     }
     setIsModalOpen(false);
   };

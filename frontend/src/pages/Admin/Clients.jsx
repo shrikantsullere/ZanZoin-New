@@ -322,10 +322,13 @@ const Clients = () => {
         ...formData,
         source: 'Manual',
         client_type: formData.clientType,
+        clientType: formData.clientType,
         plan: formData.clientType === 'Personal' ? 'Free' : formData.plan
       });
       if (result?.credentials) {
         swalCredentials("Account Created", result.credentials.email, result.credentials.password);
+      } else {
+        swalSuccess('Success', 'Customer added successfully');
       }
       setShowAddModal(false);
     } catch (e) {

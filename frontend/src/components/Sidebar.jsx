@@ -290,6 +290,9 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
       if (['Dashboard', 'Settings', 'Profile', 'Sign Out'].includes(item.label)) {
         return true;
       }
+      if (userRole === 'staff') {
+        return true;
+      }
       if (hasMenuPermission) {
         return hasMenuPermission(item.label, 'can_view');
       }

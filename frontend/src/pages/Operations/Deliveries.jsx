@@ -783,9 +783,14 @@ const Deliveries = () => {
                             : (formData.item || '—')}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest">Est. collection (order total)</p>
+                      <div className="text-right space-y-1">
+                        <p className="text-[9px] font-black text-muted uppercase tracking-widest">
+                          {portalRole === 'staff' || portalRole === 'driver' ? 'Expected Earning' : 'Est. collection (order total)'}
+                        </p>
                         <p className="text-lg font-black text-accent">${parseFloat(formData.delivery_fee || 0).toFixed(2)}</p>
+                        {(portalRole === 'staff' || portalRole === 'driver') && formData.route_distance && (
+                          <p className="text-[9px] text-secondary font-bold italic">Distance: {formData.route_distance} km</p>
+                        )}
                       </div>
                     </div>
                   </div>

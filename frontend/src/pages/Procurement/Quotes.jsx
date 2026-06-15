@@ -166,7 +166,7 @@ const Quotes = () => {
       purchaseRequestId: quote.purchaseRequestId || '',
       rfqId: quote.rfqId || '',
       vendor: quote.vendor || quote.vendor_name || '',
-      items: normalizeQuoteItems(quote.items),
+      items: normalizeQuoteItems(quote.items || quote.metadata?.items),
       validity: quote.validity ?? quote.metadata?.validity ?? (quote.validity_date?.split?.('T')?.[0] || ''),
       leadTime: quote.leadTime ?? quote.metadata?.leadTime ?? quote.lead_time ?? '',
       paymentTerms: quote.paymentTerms ?? quote.metadata?.paymentTerms ?? quote.payment_terms ?? 'Net 30',
@@ -251,7 +251,13 @@ const Quotes = () => {
           // Send to API
           await createRfqMutation.mutateAsync({
             purchaseRequestId: parseInt(formData.purchaseRequestId, 10),
-            vendorId: normalizedVendorId
+            vendorId: normalizedVendorId,
+            metadata: {
+              items: items,
+              leadTime: formData.leadTime,
+              validity: formData.validity,
+              paymentTerms: formData.paymentTerms
+            }
           });
           console.log('[REAL_API_SUCCESS] RFQ Created');
         } else {
@@ -272,7 +278,15 @@ const Quotes = () => {
         if (isRfq) {
           await updateRfqMutation.mutateAsync({
             id: parseInt(rawId, 10),
-            data: { status: formData.status.toLowerCase() }
+            data: { 
+              status: formData.status.toLowerCase(),
+              metadata: {
+                items: items,
+                leadTime: formData.leadTime,
+                validity: formData.validity,
+                paymentTerms: formData.paymentTerms
+              }
+            }
           });
           console.log('[REAL_API_SUCCESS] RFQ Updated');
         } else {

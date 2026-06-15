@@ -13,8 +13,9 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Common/Pagination';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQuotes, useRFQs, useCreateRFQ, useUpdateRFQ, useCreateQuotation, useUpdateQuotation, usePurchaseRequests, useCreatePurchaseOrder } from '../../hooks/api/useProcurement';
+import { useQuotes, useRFQs, useCreateRFQ, useUpdateRFQ, useDeleteRFQ, useCreateQuotation, useUpdateQuotation, useDeleteQuotation, usePurchaseRequests, useCreatePurchaseOrder } from '../../hooks/api/useProcurement';
 import { RefreshCcw } from 'lucide-react';
+import { swalSuccess, swalError } from '../../utils/swal';
 
 /** API may return items as JSON string, object, or array — form always uses [{ name, qty, price }]. */
 function normalizeQuoteItems(items) {
@@ -61,14 +62,16 @@ const Quotes = () => {
     if (fetchVendors) fetchVendors();
   }, [fetchVendors]);
 
-  const realQuotes = Array.isArray(quotesData) ? quotesData : (quotesData?.data || []);
-  const realRfqs = Array.isArray(rfqsData) ? rfqsData : (rfqsData?.data || []);
-  const activePurchaseRequests = Array.isArray(prData) ? prData : (prData?.data || []);
+  const realQuotes = Array.isArray(quotesData) ? quotesData : (quotesData?.quotations || quotesData?.data || []);
+  const realRfqs = Array.isArray(rfqsData) ? rfqsData : (rfqsData?.rfqs || rfqsData?.data || []);
+  const activePurchaseRequests = Array.isArray(prData) ? prData : (prData?.purchaseRequests || prData?.data || []);
 
   const createRfqMutation = useCreateRFQ();
   const updateRfqMutation = useUpdateRFQ();
+  const deleteRfqMutation = useDeleteRFQ();
   const createQuoteMutation = useCreateQuotation();
   const updateQuoteMutation = useUpdateQuotation();
+  const deleteQuoteMutation = useDeleteQuotation();
   const { mutateAsync: createPurchaseOrderMutation } = useCreatePurchaseOrder();
 
   // Offline Fallback Mechanism: If real API is empty or fails, merge with context mocks
@@ -164,9 +167,9 @@ const Quotes = () => {
       rfqId: quote.rfqId || '',
       vendor: quote.vendor || quote.vendor_name || '',
       items: normalizeQuoteItems(quote.items),
-      validity: quote.validity ?? (quote.validity_date?.split?.('T')?.[0] || ''),
-      leadTime: quote.leadTime ?? quote.lead_time ?? '',
-      paymentTerms: quote.paymentTerms ?? quote.payment_terms ?? 'Net 30',
+      validity: quote.validity ?? quote.metadata?.validity ?? (quote.validity_date?.split?.('T')?.[0] || ''),
+      leadTime: quote.leadTime ?? quote.metadata?.leadTime ?? quote.lead_time ?? '',
+      paymentTerms: quote.paymentTerms ?? quote.metadata?.paymentTerms ?? quote.payment_terms ?? 'Net 30',
       quoteType: quote.quote_type === 'vendor_request' || quote.quoteType === 'vendor' ? 'vendor' : 'client',
     } : {
       vendor: '',
@@ -194,6 +197,24 @@ const Quotes = () => {
   };
 
   const handleSave = async () => {
+    if (modalType === 'delete') {
+      try {
+        const isRfq = formData.quoteType === 'vendor';
+        const rawId = String(selectedQuote.id).replace('RFQ-', '').replace('QUO-', '');
+        if (isRfq) {
+          await deleteRfqMutation.mutateAsync(parseInt(rawId, 10));
+          swalSuccess('Success', 'RFQ deleted successfully.');
+        } else {
+          await deleteQuoteMutation.mutateAsync(parseInt(rawId, 10));
+          swalSuccess('Success', 'Quotation deleted successfully.');
+        }
+      } catch (err) {
+        swalError('Error', err?.response?.data?.message || 'Failed to process Quotation');
+      }
+      setIsModalOpen(false);
+      return;
+    }
+
     const items = normalizeQuoteItems(formData.items).map((row) =>
       formData.quoteType === 'vendor'
         ? { ...row, price: 0 }
@@ -223,10 +244,6 @@ const Quotes = () => {
       window.alert('Purchase Request is required to generate an RFQ.');
       return;
     }
-    if (!isRfq && !formData.rfqId) {
-      window.alert('Parent RFQ is required to generate a Quotation.');
-      return;
-    }
 
     try {
       if (modalType === 'add') {
@@ -239,15 +256,14 @@ const Quotes = () => {
           console.log('[REAL_API_SUCCESS] RFQ Created');
         } else {
           await createQuoteMutation.mutateAsync({
-            rfqId: parseInt(formData.rfqId, 10),
+            rfqId: formData.rfqId ? parseInt(formData.rfqId, 10) : undefined,
             vendorId: normalizedVendorId,
             amount: total,
-            remarks: JSON.stringify({
-              leadTime: formData.leadTime,
-              validity: formData.validity,
-              paymentTerms: formData.paymentTerms,
-              items: items
-            })
+            remarks: JSON.stringify(items),
+            leadTime: formData.leadTime,
+            validity: formData.validity,
+            paymentTerms: formData.paymentTerms,
+            items: items
           });
           console.log('[REAL_API_SUCCESS] Quotation Created');
         }
@@ -266,10 +282,8 @@ const Quotes = () => {
           });
           console.log('[REAL_API_SUCCESS] Quotation Updated');
         }
-      } else if (modalType === 'delete') {
-         // No delete mutation yet, fallback to context
-         deleteQuote(selectedQuote.id);
       }
+
     } catch (err) {
       swalError('Failed to process Quotation');
     }
@@ -353,19 +367,30 @@ const Quotes = () => {
       render: (row) => {
         const vid = row.vendorId ?? row.vendor_id;
         const linkedVendor = (vendors || []).find((v) => String(v.id) === String(vid));
+        const fallbackVendor = typeof row.vendor === 'object' && row.vendor !== null 
+          ? (row.vendor.companyName || row.vendor.name || row.vendor.vendor_name || 'Unknown Provider')
+          : (row.vendor_name || row.vendor || 'Unknown Provider');
+          
         return (
           linkedVendor?.name ||
           linkedVendor?.vendor_name ||
           linkedVendor?.business_name ||
           linkedVendor?.company_name ||
-          row.vendor_name ||
-          row.vendor ||
-          'Unknown Provider'
+          fallbackVendor
         );
       }
     },
-    { header: "Request Date", accessor: "date", render: (row) => (row.created_at || row.date)?.split('T')[0] || 'N/A' },
-    { header: "Protocol Validity", accessor: "validity_date", render: (row) => (row.validity_date || row.validity)?.split('T')[0] || 'N/A' },
+    { header: "Request Date", accessor: "date", render: (row) => (row.createdAt || row.created_at || row.date)?.split('T')[0] || 'N/A' },
+    { header: "Protocol Validity", accessor: "validity_date", render: (row) => {
+        let v = row.validity_date || row.validity || row.metadata?.validity;
+        if (!v && typeof row.remarks === 'string') {
+          try {
+            const parsed = JSON.parse(row.remarks);
+            if (parsed.validity) v = parsed.validity;
+          } catch(e){}
+        }
+        return v?.split?.('T')?.[0] || 'N/A';
+    } },
     {
       header: "Settlement Value",
       accessor: "total_amount",
@@ -513,6 +538,14 @@ const Quotes = () => {
           {modalType === 'delete' ? (
             <div className="space-y-4">
               <p className="text-secondary">Are you sure you want to permanently discard the quote request <span className="text-accent font-bold">{selectedQuote?.id}</span>?</p>
+              <div className="flex gap-3 justify-end pt-6 border-t border-border/50">
+                <button onClick={() => setIsModalOpen(false)} className="btn-secondary h-11 px-8 rounded-xl font-bold uppercase text-xs">
+                  Cancel
+                </button>
+                <button onClick={handleSave} className="btn-primary bg-danger hover:bg-danger/80 border-danger h-11 px-8 rounded-xl font-bold uppercase text-xs">
+                  Confirm Delete
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -570,8 +603,10 @@ const Quotes = () => {
                       disabled={modalType === 'view' || modalType === 'edit'}
                     >
                       <option value="">Select an approved Purchase Request...</option>
-                      {activePurchaseRequests.map(pr => (
-                        <option key={pr.id} value={pr.id}>PR-{pr.id} ({pr.item}) - {pr.status}</option>
+                      {activePurchaseRequests
+                        .filter(pr => String(pr.status).toLowerCase() === 'approved' || String(pr.status).toLowerCase() === 'department_approved' || String(pr.status).toLowerCase() === 'procurement_review' || String(pr.status).toLowerCase() === 'pending') // temporarily broadened to show options if none are strictly 'approved'
+                        .map(pr => (
+                        <option key={pr.id} value={pr.id}>PR-{pr.id} ({pr.title || pr.item || 'Items'}) - {pr.status}</option>
                       ))}
                     </select>
                   </div>
@@ -718,7 +753,6 @@ const Quotes = () => {
                 {modalType === 'view' && formData.status === 'Active' && (
                   <button onClick={handleAccept} className="btn-primary bg-success hover:bg-success/90 border-success">Accept & Generate Order</button>
                 )}
-                {modalType === 'delete' && <button onClick={handleSave} className="btn-primary bg-danger hover:bg-danger/80 border-danger">Confirm Delete</button>}
                 {(modalType === 'add' || modalType === 'edit') && <button onClick={handleSave} className="btn-primary">Finalize Procurement Offer</button>}
               </div>
             </div>
@@ -755,7 +789,11 @@ const Quotes = () => {
             <div className="grid grid-cols-2 gap-8 mb-6 px-1 print-section">
               <div className="border-l-2 border-black pl-4">
                 <p className="text-[6px] font-black uppercase tracking-widest opacity-40 mb-0.5 underline italic">Supply Partner:</p>
-                <p className="text-base font-black italic tracking-tight uppercase leading-tight">{selectedQuote.vendor_name || selectedQuote.vendor}</p>
+                <p className="text-base font-black italic tracking-tight uppercase leading-tight">
+                  {typeof selectedQuote.vendor === 'object' && selectedQuote.vendor !== null 
+                    ? (selectedQuote.vendor.companyName || selectedQuote.vendor.name || selectedQuote.vendor.vendor_name || 'Unknown Provider') 
+                    : (selectedQuote.vendor_name || selectedQuote.vendor || 'Unknown Provider')}
+                </p>
                 <p className="text-[8px] text-gray-500 mt-0.5 font-medium leading-tight italic">Strategic Sourcing Partner</p>
                 <p className="text-[7px] font-black mt-1 text-gray-400">REGISTRY: {selectedQuote.vendorId || 'ZN-VND-EXT'}</p>
               </div>

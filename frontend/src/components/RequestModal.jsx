@@ -179,9 +179,22 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={modalType === 'add' ? "New Strategic Purchase Request" : modalType === 'edit' ? `Edit Strategic Request: ${formData.requestId}` : `Purchase Request Transcript: ${formData.requestId}`}
+      title={modalType === 'add' ? "New Strategic Purchase Request" : modalType === 'edit' ? `Edit Strategic Request: ${formData.requestId}` : modalType === 'delete' ? `Discard Request: ${formData.requestId}` : `Purchase Request Transcript: ${formData.requestId}`}
     >
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      {modalType === 'delete' ? (
+        <div className="space-y-6">
+          <p className="text-secondary">Are you sure you want to permanently discard the purchase request <span className="text-accent font-bold">{formData.requestId}</span>?</p>
+          <div className="flex gap-3 justify-end pt-6 border-t border-border/50">
+            <button type="button" onClick={onClose} className="btn-secondary h-11 px-8 rounded-xl font-bold uppercase text-xs">
+              Cancel
+            </button>
+            <button type="button" onClick={() => onSave(formData)} className="btn-primary bg-danger hover:bg-danger/80 border-danger h-11 px-8 rounded-xl font-bold uppercase text-xs">
+              Confirm Delete
+            </button>
+          </div>
+        </div>
+      ) : (
+        <form className="space-y-6" onSubmit={handleSubmit}>
         {isView && (
           <div className="p-3 bg-accent/5 border border-accent/20 rounded-xl flex items-center gap-3">
             <ClipboardList className="text-accent" size={18} />
@@ -453,6 +466,7 @@ const RequestModal = ({ isOpen, onClose, onSave, selectedRequest, modalType = 'a
           )}
         </div>
       </form>
+      )}
     </Modal>
   );
 };

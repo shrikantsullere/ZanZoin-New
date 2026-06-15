@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Table from '../../components/Table';
-import { swalWarning } from '../../utils/swal';
+import { swalWarning, swalSuccess, swalError } from '../../utils/swal';
 import { Search, Plus, RefreshCcw } from 'lucide-react';
 import { useData } from '../../context/GlobalDataContext';
 import RequestModal from '../../components/RequestModal';
@@ -77,6 +77,14 @@ const PurchaseRequests = () => {
         swalSuccess('Purchase Request Updated');
       } catch (e) {
         swalError('Failed to update Purchase Request');
+      }
+    } else if (modalType === 'delete') {
+      try {
+        const rawId = String(selectedRequest.id).replace('PR-', '').replace('REQ-', '');
+        await deletePRMutation.mutateAsync(parseInt(rawId, 10));
+        swalSuccess('Purchase Request Deleted');
+      } catch (e) {
+        swalError('Failed to delete Purchase Request');
       }
     }
     setIsModalOpen(false);
@@ -206,7 +214,7 @@ const PurchaseRequests = () => {
               actions={true}
               onView={(item) => handleAction('view', item)}
               onEdit={(item) => handleAction('edit', item)}
-              onDelete={(item) => handleDelete(item.id)}
+              onDelete={(item) => handleAction('delete', item)}
               canEdit={!isCustomer && hasMenuPermission('Purchase Requests', 'can_edit')}
               canDelete={!isCustomer && hasMenuPermission('Purchase Requests', 'can_delete')}
             />

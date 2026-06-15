@@ -29,11 +29,12 @@ const Warehouses = () => {
     setModal({ open: true, type, wh });
     if (wh && type !== 'delete') {
       setFormData({
+        id: wh.id,
         name: wh.name || '',
         location: wh.location || '',
         capacity: wh.capacity ?? 0,
         status: wh.status || 'active',
-        manager_id: wh.manager?.userId != null ? String(wh.manager.userId) : (wh.managerId != null ? String(wh.managerId) : (wh.manager_id != null ? String(wh.manager_id) : ''))
+        manager_id: wh.manager?.userId != null ? String(wh.manager.userId) : ''
       });
     } else if (!wh) {
       setFormData(EMPTY_FORM);
@@ -50,13 +51,13 @@ const Warehouses = () => {
         location: formData.location || null,
         capacity: formData.capacity !== undefined ? Number(formData.capacity) : 0,
         status: formData.status || 'active',
-        manager_id: formData.manager_id ? Number(formData.manager_id) : null
+        managerId: formData.manager_id ? Number(formData.manager_id) : null
       };
 
       if (modal.type === 'add') {
         await createMutation.mutateAsync(payload);
       } else if (modal.type === 'edit') {
-        await updateMutation.mutateAsync({ id: modal.wh.id, data: payload });
+        await updateMutation.mutateAsync({ id: formData.id || modal.wh?.id, data: payload });
       }
       closeModal();
     } catch (e) {

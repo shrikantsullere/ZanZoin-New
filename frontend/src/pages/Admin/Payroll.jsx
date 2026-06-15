@@ -6,6 +6,7 @@ import StatusBadge from '../../components/StatusBadge';
 import { useData } from '../../context/GlobalDataContext';
 import api from '../../services/api/setupAxios.js';
 import { normalizeRole } from '../../utils/authUtils';
+import { swalSuccess, swalError, swalWarning } from '../../utils/swal';
 
 const Payroll = () => {
     const { users, fetchStaff, addLog, hasMenuPermission, currentUser } = useData();
@@ -124,6 +125,11 @@ const Payroll = () => {
     };
 
     const handleSubmit = async () => {
+        if (!formData.empId) {
+            swalWarning("Validation Error", "Please select a staff member.");
+            return;
+        }
+
         const netSettlement = (parseFloat(formData.baseSalary) || 0) + (parseFloat(formData.bonus) || 0) - (parseFloat(formData.nibDeduction) || 0) - (parseFloat(formData.medicalDeduction) || 0) - (parseFloat(formData.pensionDeduction) || 0) - (parseFloat(formData.savingsDeduction) || 0) - (parseFloat(formData.birthdayClub) || 0);
         
         const reqData = {
@@ -136,6 +142,7 @@ const Payroll = () => {
             savings_deduction: formData.savingsDeduction || 0,
             birthday_club: formData.birthdayClub || 0,
             net_amount: netSettlement,
+            amount: netSettlement,
             method: formData.method,
             payment_date: formData.date,
             status: formData.status
@@ -144,16 +151,19 @@ const Payroll = () => {
         try {
              if (modalType === 'add') {
                  await api.post('/finance/payroll', reqData);
+                 swalSuccess('Success', 'Payout created successfully.');
                  if(addLog) addLog({ action: 'Payroll Disbursed', detail: `Settlement generated for ${formData.name}`, type: 'system' });
              } else if (modalType === 'edit' && formData.id) {
                  await api.put(`/finance/payroll/${formData.id}`, reqData);
+                 swalSuccess('Success', 'Payout updated successfully.');
                  if(addLog) addLog({ action: 'Payroll Record Modified', detail: `Updated settlement for ${formData.name}`, type: 'system' });
              }
              
              await fetchPayroll();
              setIsModalOpen(false);
-        } catch (error) {
-            console.error("Failed to submit payroll:", error);
+        } catch (err) {
+            console.error("Failed to submit payroll:", err);
+            swalError("Error", err?.response?.data?.message || err?.message || "Failed to process payroll record.");
             setError("Failed to process payroll record.");
         }
     };

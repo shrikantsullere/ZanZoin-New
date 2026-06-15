@@ -78,6 +78,17 @@ export const useUpdateRFQ = () => {
   });
 };
 
+export const useDeleteRFQ = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const res = await api.delete(`/rfqs/${id}`);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['rfqs'])
+  });
+};
+
 export const useCreateQuotation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -97,6 +108,20 @@ export const useUpdateQuotation = () => {
   return useMutation({
     mutationFn: async ({ id, data }) => {
       const res = await api.put(`/quotations/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['quotations']);
+      queryClient.invalidateQueries(['quotes']);
+    }
+  });
+};
+
+export const useDeleteQuotation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const res = await api.delete(`/quotations/${id}`);
       return res.data;
     },
     onSuccess: () => {

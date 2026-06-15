@@ -105,30 +105,26 @@ const Vendors = () => {
       }
 
       try {
-        try {
-          const apiPayload = {
-            companyName: formData.name.trim(),
-            contactPerson: formData.contact || '',
-            email: formData.email.trim(),
-            phone: formData.phone || '',
-            address: formData.address || '',
-            category: formData.category || 'Premium Supplier',
-            rating: formData.rating,
-            delivery: formData.delivery,
-            status: formData.status || 'inactive',
-            vendorCode: 'VND-' + Date.now().toString().slice(-6)
-          };
-          await realApi.post('/vendors', apiPayload);
-          console.log('[REAL_API_SUCCESS] Vendor created successfully via real API');
-          swalSuccess('Success', 'Vendor added successfully.');
-          await refreshVendorsList();
-        } catch(e) {
-          console.warn('[REAL_API_FAILED] Vendor creation via real API failed', e);
-          swalWarning('Error', 'Failed to create vendor.');
-        }
+        const apiPayload = {
+          companyName: formData.name.trim(),
+          contactPerson: formData.contact || '',
+          email: formData.email.trim(),
+          phone: formData.phone || '',
+          address: formData.address || '',
+          category: formData.category || 'Premium Supplier',
+          rating: Number(formData.rating) || 0,
+          delivery: Number(formData.delivery) || 0,
+          status: formData.status || 'inactive',
+          vendorCode: 'VND-' + Date.now().toString().slice(-6)
+        };
+        await realApi.post('/vendors', apiPayload);
+        console.log('[REAL_API_SUCCESS] Vendor created successfully via real API');
+        swalSuccess('Success', 'Vendor added successfully.');
+        await refreshVendorsList();
         setIsModalOpen(false);
       } catch (e) {
-        window.alert(vendorSaveErrorMessage(e));
+        console.warn('[REAL_API_FAILED] Vendor creation via real API failed', e);
+        swalWarning('Error', vendorSaveErrorMessage(e));
       }
       return;
     }
@@ -144,29 +140,25 @@ const Vendors = () => {
       }
 
       try {
-        try {
-          const apiPayload = {
-            companyName: formData.name.trim(),
-            contactPerson: formData.contact || '',
-            email: formData.email.trim(),
-            phone: formData.phone || '',
-            address: formData.address || '',
-            category: formData.category || 'Premium Supplier',
-            rating: formData.rating,
-            delivery: formData.delivery,
-            status: formData.status
-          };
-          await realApi.put(`/vendors/${selectedVendor.id}`, apiPayload);
-          console.log('[REAL_API_SUCCESS] Vendor updated successfully via real API');
-          swalSuccess('Success', 'Vendor updated successfully.');
-          await refreshVendorsList();
-        } catch(e) {
-          console.warn('[REAL_API_FAILED] Vendor update via real API failed', e);
-          swalWarning('Error', 'Failed to update vendor.');
-        }
+        const apiPayload = {
+          companyName: formData.name.trim(),
+          contactPerson: formData.contact || '',
+          email: formData.email.trim(),
+          phone: formData.phone || '',
+          address: formData.address || '',
+          category: formData.category || 'Premium Supplier',
+          rating: Number(formData.rating) || 0,
+          delivery: Number(formData.delivery) || 0,
+          status: formData.status
+        };
+        await realApi.put(`/vendors/${selectedVendor.id}`, apiPayload);
+        console.log('[REAL_API_SUCCESS] Vendor updated successfully via real API');
+        swalSuccess('Success', 'Vendor updated successfully.');
+        await refreshVendorsList();
         setIsModalOpen(false);
       } catch (e) {
-        window.alert(vendorSaveErrorMessage(e));
+        console.warn('[REAL_API_FAILED] Vendor update via real API failed', e);
+        swalWarning('Error', vendorSaveErrorMessage(e));
       }
     }
   };

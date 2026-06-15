@@ -719,7 +719,7 @@ const Chauffeur = () => {
                                                                             id: editingRequest.id,
                                                                             data: {
                                                                                 ...editingRequest,
-                                                                                driverName: selected.name,
+                                                                                driverName: selected.fullName || selected.name,
                                                                                 driverPhotoUrl: photo,
                                                                                 status: 'assigned',
                                                                                 passenger_info: mergePassengerPayload(editingRequest, {
@@ -734,10 +734,11 @@ const Chauffeur = () => {
                                                             >
                                                                 <option value="">Select from staff...</option>
                                                                 {(users || []).filter((u) => {
-                                                                    const r = String(u.role || '').toLowerCase().replace(/\s+/g, '_');
-                                                                    return ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
+                                                                    const r = String(u.role?.name || u.role || '').toLowerCase().replace(/\s+/g, '_');
+                                                                    const isActive = String(u.status || u.account_status || '').toLowerCase() === 'active';
+                                                                    return isActive && ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
                                                                 }).map(u => (
-                                                                    <option key={u.id} value={u.id}>{u.name} ({String(u.role?.name || u.role || '')})</option>
+                                                                    <option key={u.id} value={u.id}>{u.fullName || u.name} {u.employee_id || u.employeeId ? `- ${u.employee_id || u.employeeId}` : ''} ({String(u.role?.name || u.role || '')})</option>
                                                                 ))}
                                                             </select>
                                                         </div>
@@ -1037,7 +1038,7 @@ const Chauffeur = () => {
                                                         <select name="assignClient" defaultValue={editingRequest?.clientId || ''} className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent font-bold appearance-none cursor-pointer">
                                                             <option value="">Current User ({currentUser?.name})</option>
                                                             {(clients || []).map(c => (
-                                                                <option key={c.id} value={c.id}>{c.name || c.business_name} {c.email ? `(${c.email})` : ''}</option>
+                                                                <option key={c.id} value={c.id}>{c.fullName || c.name || c.companyName || c.business_name}</option>
                                                             ))}
                                                         </select>
                                                     </div>
@@ -1048,22 +1049,23 @@ const Chauffeur = () => {
                                                             <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Assign Chauffeur</label>
                                                             <select
                                                                 name="driverNameSelect"
-                                                                defaultValue={editingRequest?.driverName || ""}
+                                                                defaultValue={editingRequest?.driver_user_id || editingRequest?.driverId || ""}
                                                                 onChange={(e) => {
                                                                     const input = e.target.form?.querySelector('input[name="driverName"]');
                                                                     const hidden = e.target.form?.querySelector('input[name="driverUserId"]');
-                                                                    const selected = (users || []).find(u => u.name === e.target.value);
-                                                                    if (input && e.target.value) input.value = e.target.value;
+                                                                    const selected = (users || []).find(u => String(u.id) === e.target.value);
+                                                                    if (input && selected) input.value = selected.fullName || selected.name || '';
                                                                     if (hidden && selected) hidden.value = selected.id;
                                                                 }}
                                                                 className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-accent font-bold appearance-none cursor-pointer"
                                                             >
                                                                 <option value="">Select from staff...</option>
                                                                 {(users || []).filter((u) => {
-                                                                    const r = String(u.role || '').toLowerCase().replace(/\s+/g, '_');
-                                                                    return ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
+                                                                    const r = String(u.role?.name || u.role || '').toLowerCase().replace(/\s+/g, '_');
+                                                                    const isActive = String(u.status || u.account_status || '').toLowerCase() === 'active';
+                                                                    return isActive && ['staff', 'logistics', 'concierge', 'operation', 'operations', 'driver', 'field_staff'].includes(r);
                                                                 }).map(u => (
-                                                                    <option key={u.id} value={u.name}>{u.name} ({String(u.role?.name || u.role || '')})</option>
+                                                                    <option key={u.id} value={u.id}>{u.fullName || u.name} {u.employee_id || u.employeeId ? `- ${u.employee_id || u.employeeId}` : ''} ({String(u.role?.name || u.role || '')})</option>
                                                                 ))}
                                                             </select>
                                                         </div>

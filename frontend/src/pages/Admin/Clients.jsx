@@ -9,8 +9,10 @@ import BootstrapPagination from '../../components/Common/Pagination';
 import api from '../../services/api/setupAxios.js';
 import realApi from '../../services/api/setupAxios';
 import { normalizeRole } from '../../utils/authUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Clients = () => {
+  const queryClient = useQueryClient();
   const {
     currentUser,
     subscriptionRequests, fetchSubscriptionRequests, updateSubscriptionRequest,
@@ -186,7 +188,7 @@ const Clients = () => {
     return clientsList.map(c => ({ ...c, isRequest: false }));
   })();
 
-  const filteredClients = allClients;
+  const filteredClients = allClients.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
   const currentItems = filteredClients.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -217,7 +219,10 @@ const Clients = () => {
       email: client.email || '',
       phone: client.phone || '',
       password: '',
-      location: client.city || client.location || client.country || '',
+      location: client.location || '',
+      address: client.address || '',
+      city: client.city || '',
+      country: client.country || '',
       source: client.source || 'Manual',
       clientType: client.clientType || client.client_type || 'SaaS',
       companyName: client.companyName || client.company_name || client.business_name || '',
@@ -227,6 +232,8 @@ const Clients = () => {
       paymentMethod: client.paymentMethod || client.payment_method || 'Wire Transfer',
       contact: client.contactPerson || client.contact || client.contact_person || '',
       address: client.address || '',
+      city: client.city || '',
+      country: client.country || '',
       status: client.status || 'active'
     });
     setErrors({});
@@ -238,7 +245,7 @@ const Clients = () => {
       name: '', email: '', phone: '', password: '', location: '', source: 'Manual',
       clientType: isAdminRole ? 'Personal' : (clientTypeFilter === 'Website' ? 'SaaS' : clientTypeFilter),
       companyName: '', logo: '', plan: 'Starter', billingCycle: 'Monthly', paymentMethod: 'Wire Transfer',
-      contact: '', address: '', status: 'active'
+      contact: '', address: '', city: '', country: '', status: 'active'
     });
     setErrors({});
     setShowAddModal(true);
@@ -288,7 +295,11 @@ const Clients = () => {
         }
         swalSuccess('Updated', 'Request updated successfully');
       } else {
-        const result = await updateMutation.mutateAsync({ id: selectedClient.id, data: { ...selectedClient, ...formData, client_type: formData.clientType } });
+        const updatePayload = { ...selectedClient, ...formData, client_type: formData.clientType };
+        if (isAdminRole) {
+          updatePayload.companyName = formData.name;
+        }
+        const result = await updateMutation.mutateAsync({ id: selectedClient.id, data: updatePayload });
         if (result?.credentials) {
           swalCredentials("Account Activated", result.credentials.email, result.credentials.password, result.credentials.message);
         } else {
@@ -325,13 +336,19 @@ const Clients = () => {
         clientType: formData.clientType,
         plan: formData.clientType === 'Personal' ? 'Free' : formData.plan
       });
+      console.log('Client Created Successfully:', result);
+      
       if (result?.credentials) {
         swalCredentials("Account Created", result.credentials.email, result.credentials.password);
       } else {
         swalSuccess('Success', 'Customer added successfully');
       }
       setShowAddModal(false);
+      
+      // Force refresh query
+      await queryClient.invalidateQueries({ queryKey: ['clients'] });
     } catch (e) {
+      console.error('Error creating client:', e);
       const errorMsg = e.response?.data?.message || e.message;
       const errorField = e.response?.data?.field;
       if (errorField === 'email' || errorMsg?.toLowerCase().includes('email:')) {
@@ -562,10 +579,13 @@ const Clients = () => {
                     <td className="p-6">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs uppercase">
-                          {(client.companyName || client.name || client.business_name || 'C')[0]}
+                          {(client.name || client.contactPerson || client.companyName || client.business_name || 'C')[0]}
                         </div>
                         <div>
-                          <span className="text-sm font-bold text-white uppercase tracking-tight block">{client.companyName || client.name || client.business_name || 'N/A'}</span>
+                          <span className="text-sm font-bold text-white uppercase tracking-tight block">
+                            {client.name || client.companyName || client.business_name || 'N/A'}
+                          </span>
+                          <span className="text-[10px] text-muted font-medium block mt-0.5">Contact: {client.contactPerson || client.contact || 'N/A'}</span>
                           <span className="text-[10px] text-muted font-medium">{client.phone || ''}</span>
                         </div>
                       </div>
@@ -781,7 +801,9 @@ const Clients = () => {
                         { icon: User, label: 'Contact Person', value: selectedClient.contactPerson || selectedClient.contact || selectedClient.contact_person || 'N/A' },
                         { icon: Mail, label: 'Email', value: selectedClient.email || 'N/A' },
                         { icon: Phone, label: 'Phone', value: selectedClient.phone || 'N/A' },
-                        { icon: MapPin, label: 'Address', value: selectedClient.address || selectedClient.location || 'N/A' },
+                        { icon: MapPin, label: 'Street Address', value: selectedClient.address || selectedClient.location || 'N/A' },
+                        { icon: MapPin, label: 'City', value: selectedClient.city || 'N/A' },
+                        { icon: MapPin, label: 'Country', value: selectedClient.country || 'N/A' },
                         { icon: Package, label: 'Client Type', value: selectedClient.client_type || selectedClient.clientType || 'Direct' },
                         { icon: Calendar, label: 'Created', value: (selectedClient.created_at || selectedClient.createdAt) ? new Date(selectedClient.created_at || selectedClient.createdAt).toLocaleDateString() : 'N/A' },
                       ] : [
@@ -811,6 +833,10 @@ const Clients = () => {
                         <div>
                           <span className="text-[9px] text-info/60 font-bold uppercase">Login Email</span>
                           <p className="text-sm font-bold text-info">{selectedClient.email || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-info/60 font-bold uppercase">Login Password</span>
+                          <p className="text-sm font-bold text-info">••••••••</p>
                         </div>
                         <div>
                           <span className="text-[9px] text-info/60 font-bold uppercase">Account Status</span>
@@ -1049,18 +1075,42 @@ const Clients = () => {
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Primary Contact" />
                   </div>
                   {!isAdminRole && formData.clientType !== 'Personal' && formData.clientType !== 'Direct' && (
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Location</label>
-                      <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="City, Country" />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address</label>
+                        <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street Address" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">City</label>
+                        <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="City" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Country</label>
+                        <input type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Country" />
+                      </div>
+                    </>
                   )}
                   {isAdminRole && (
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address / Location</label>
-                      <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street, City, Country" />
-                    </div>
+                    <>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Street Address</label>
+                        <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="123 Main St" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">City</label>
+                        <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="New York" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Country</label>
+                        <input type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="USA" />
+                      </div>
+                    </>
                   )}
                   {!isAdminRole && (
                     <div className="space-y-2">
@@ -1121,11 +1171,9 @@ const Clients = () => {
                   </div>
                 </div>
                 {!isAdminRole && (
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address</label>
-                  <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street, City, Country" />
-                </div>
+                <>
+                  {/* Additional address inputs at the bottom for non-admin if needed, but handled above now */}
+                </>
                 )}
               </div>
 

@@ -6804,7 +6804,6 @@ export const GlobalDataProvider = ({ children }) => {
         deleteLeaveRequest,
         teams,
         setTeams,
-
         // Inventory
         inventory,
         setInventory,

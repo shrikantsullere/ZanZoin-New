@@ -704,13 +704,13 @@ export const GlobalDataProvider = ({ children }) => {
           const res = await api.get('/auth/profile');
           const realUser = res.data?.data || res.data;
           if (realUser) {
-            setCurrentUser(realUser);
+            setCurrentUser((prev) => JSON.stringify(prev) === JSON.stringify(realUser) ? prev : realUser);
             localStorage.setItem('user', JSON.stringify(realUser));
             if (realUser.role?.name) {
               localStorage.setItem('userRole', realUser.role.name.toLowerCase());
             }
             if (realUser.menuPermissions) {
-              setMenuPermissions(realUser.menuPermissions);
+              setMenuPermissions((prev) => JSON.stringify(prev) === JSON.stringify(realUser.menuPermissions) ? prev : realUser.menuPermissions);
               localStorage.setItem('menuPermissions', JSON.stringify(realUser.menuPermissions));
 
               // Auto-kick out if on a restricted page

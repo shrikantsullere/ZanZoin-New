@@ -59,8 +59,9 @@ const Quotes = () => {
   const { data: prData } = usePurchaseRequests(1, 100);
 
   React.useEffect(() => {
-    if (fetchVendors) fetchVendors();
-  }, [fetchVendors]);
+    if (fetchVendors && (!vendors || vendors.length === 0)) fetchVendors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const realQuotes = Array.isArray(quotesData) ? quotesData : (quotesData?.quotations || quotesData?.data || []);
   const realRfqs = Array.isArray(rfqsData) ? rfqsData : (rfqsData?.rfqs || rfqsData?.data || []);

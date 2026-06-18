@@ -83,7 +83,10 @@ const Users = () => {
     setSearchTerm('');
   };
 
-  const filteredUsers = users;
+  const filteredUsers = users.filter(u => {
+    const rName = (typeof u?.role === 'object' ? u.role?.name || '' : u?.role || '').toLowerCase();
+    return !['customer', 'saas_client', 'business_client', 'client'].includes(rName);
+  });
   const currentUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const allPossibleClients = [

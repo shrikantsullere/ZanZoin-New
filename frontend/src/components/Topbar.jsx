@@ -34,17 +34,8 @@ const Topbar = ({ toggleSidebar, role }) => {
     window.location.href = '/login';
   };
 
-  let roleLabel = {
-    superadmin: 'Super Admin',
-    operations: 'Operations',
-    procurement: 'Procurement',
-    logistics: 'Logistics',
-    inventory: 'Inventory',
-    concierge: 'Concierge',
-    client: 'Client',
-    customer: 'Customer',
-    staff: 'Field Staff',
-  }[userRole] || userRole;
+  const dbRoleName = typeof currentUser?.role === 'object' ? currentUser?.role?.name : currentUser?.role;
+  let roleLabel = dbRoleName ? String(dbRoleName).replace(/_/g, ' ') : userRole;
 
   if (userRole === 'client') {
     roleLabel = currentUser?.company_name || currentUser?.name || 'Admin';

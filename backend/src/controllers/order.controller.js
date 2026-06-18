@@ -60,7 +60,7 @@ export const getOrders = async (req, res, next) => {
 export const getOrderById = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const tenantIdToFilter = isSuperAdmin ? null : (req.user.tenantId || 1);
 
     const order = await orderService.getOrderById(Number(req.params.id), tenantIdToFilter);
     sendResponse(res, 200, 'Order fetched successfully', order);
@@ -72,7 +72,7 @@ export const getOrderById = async (req, res, next) => {
 export const updateOrderStatus = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const tenantIdToFilter = isSuperAdmin ? null : (req.user.tenantId || 1);
     const { status } = req.body;
 
     const updatedOrder = await orderService.updateOrderStatus(Number(req.params.id), status, tenantIdToFilter, req.user.id);
@@ -85,7 +85,7 @@ export const updateOrderStatus = async (req, res, next) => {
 export const updateOrder = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const tenantIdToFilter = isSuperAdmin ? null : (req.user.tenantId || 1);
 
     const updatedOrder = await orderService.updateOrder(Number(req.params.id), req.body, tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Order updated successfully', updatedOrder);
@@ -97,7 +97,7 @@ export const updateOrder = async (req, res, next) => {
 export const deleteOrder = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const tenantIdToFilter = isSuperAdmin ? null : (req.user.tenantId || 1);
 
     await orderService.deleteOrder(Number(req.params.id), tenantIdToFilter, req.user.id);
     sendResponse(res, 200, 'Order deleted successfully');
@@ -112,9 +112,41 @@ export const createProject = async (req, res, next) => {
     const tenantIdToUse = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);
 
     // Resolve client id
-    const incomingClientId = req.body.customerId || req.body.customer_id || req.body.companyId || req.body.company_id || req.body.clientUserId || req.body.client_user_id || req.body.clientId;
-    const extractedClientId = typeof incomingClientId === 'string' && incomingClientId.includes('_') ? incomingClientId.split('_')[1] : incomingClientId;
-    const clientId = extractedClientId && !isNaN(Number(extractedClientId)) ? Number(extractedClientId) : 1;
+      const incomingClientId = req.body.customerId || req.body.customer_id || req.body.companyId || req.body.company_id || req.body.clientUserId || req.body.client_user_id || req.body.clientId;
+      const extractedClientId = typeof incomingClientId === 'string' && incomingClientId.includes('_') ? incomingClientId.split('_')[1] : incomingClientId;
+      
+      let clientId = extractedClientId && !isNaN(Number(extractedClientId)) ? Number(extractedClientId) : null;
+
+      if (!clientId) {
+        const clientName = req.body.client_name || req.body.client || req.body.name || "Default Project Client";
+        // Try to find a client with this name
+        let client = await prisma.client.findFirst({
+           where: { tenantId: tenantIdToUse, companyName: { equals: clientName } }
+        });
+        
+        if (!client) {
+           // Fallback to any client for this tenant
+           client = await prisma.client.findFirst({ where: { tenantId: tenantIdToUse } });
+        }
+
+        if (!client) {
+           // Create a default client
+           const clientCode = `CLT-${Date.now().toString().slice(-6)}`;
+           client = await prisma.client.create({
+              data: {
+                 tenantId: tenantIdToUse,
+                 companyName: clientName,
+                 clientCode,
+                 contactPerson: "Admin",
+                 email: `admin-${Date.now()}@example.com`,
+                 phone: "0000000000",
+                 status: "active"
+              }
+           });
+        }
+        
+        clientId = client.id;
+      }
 
     // Fetch employee creator ID
     const employee = await prisma.employee.findUnique({ where: { userId: req.user.id } });
@@ -290,7 +322,7 @@ export const deleteProject = async (req, res, next) => {
 export const convertOrderToProject = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const tenantIdToFilter = isSuperAdmin ? null : req.user.tenantId;
+    const tenantIdToFilter = isSuperAdmin ? null : (req.user.tenantId || 1);
     const orderId = Number(req.params.orderId);
 
     const project = await orderService.convertOrderToProject(orderId, req.body, tenantIdToFilter, req.user.id);

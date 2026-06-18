@@ -169,17 +169,11 @@ const menuItems = {
   ],
   customer: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: ShoppingBag, label: 'Marketplace', path: '/dashboard/store' },
-    { icon: ShoppingCart, label: 'My Orders', path: '/dashboard/client-orders' },
-    { icon: Truck, label: 'Track Delivery', path: '/dashboard/track-delivery' },
-    { icon: Car, label: 'Chauffeur', path: '/dashboard/chauffeur' },
-    { icon: Sparkles, label: 'Membership', path: '/dashboard/membership' },
-    { icon: Calendar, label: 'Events', path: '/dashboard/events' },
-    { icon: Heart, label: 'Guest Requests', path: '/dashboard/guest-requests' },
-    { icon: Gift, label: 'Luxury Items', path: '/dashboard/luxury-items' },
+    { icon: ShoppingCart, label: 'My Orders', path: '/dashboard/orders' },
+    { icon: Truck, label: 'Track Delivery', path: '/dashboard/deliveries' },
+    { icon: FileText, label: 'Invoices', path: '/dashboard/invoices' },
+    { icon: CreditCard, label: 'Payments', path: '/dashboard/payments' },
     { icon: Headphones, label: 'Support', path: '/dashboard/support' },
-    { icon: ShoppingCart, label: 'Purchase Requests', path: '/dashboard/purchase-requests' },
-    { icon: BarChart3, label: 'Audit Protocol', path: '/dashboard/audits' },
   ],
   staff: [
     { icon: LayoutDashboard, label: 'Staff Terminal', path: '/dashboard' },
@@ -211,7 +205,6 @@ const businessClientMenu = [
   { icon: Gift, label: 'Luxury Items', path: '/dashboard/luxury-items' },
   { icon: Car, label: 'Chauffeur', path: '/dashboard/chauffeur' },
   { icon: Headphones, label: 'Support', path: '/dashboard/support' },
-  { icon: Globe, label: 'Plans', path: '/dashboard/plans' },
   { icon: ShieldAlert, label: 'Security Incidents', path: '/dashboard/security-events' },
   { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
 ];
@@ -239,6 +232,9 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const userRole = normalizeRole(role || 'superadmin');
+  
+  const dbRoleName = typeof currentUser?.role === 'object' ? currentUser?.role?.name : currentUser?.role;
+  const displayRole = dbRoleName ? String(dbRoleName).replace(/_/g, ' ') : userRole;
 
   const userInitials = currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'ZN';
 
@@ -278,21 +274,24 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
 
   const currentMenu = (() => {
     let baseMenu = [];
-    if (userRole === 'client') {
-      baseMenu = businessClientMenu;
-    } else if (userRole === 'customer') {
+    if (userRole === 'client' || userRole === 'saas_client') {
       baseMenu = businessClientMenu;
     } else {
       baseMenu = menuItems[userRole] || menuItems.superadmin;
     }
 
     return baseMenu.filter(item => {
-      if (['Dashboard', 'Settings', 'Profile', 'Sign Out'].includes(item.label)) {
+      // 1. Remove 'Settings' from forced inclusion so it can be hidden from personal clients
+      if (['Dashboard', 'Profile', 'Sign Out'].includes(item.label)) {
         return true;
       }
-      if (userRole === 'staff') {
+      
+      // 2. Bypass DB permissions for external roles, forcing them to use our hardcoded arrays
+      if (['staff', 'customer', 'client', 'saas_client'].includes(userRole)) {
         return true;
       }
+      
+      // 3. Keep DB permission check only for internal staff (admin, procurement, etc.)
       if (hasMenuPermission) {
         return hasMenuPermission(item.label, 'can_view');
       }
@@ -418,7 +417,7 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
               <div className="overflow-hidden">
                 <p className="text-sm font-bold text-white truncate">{currentUser?.name || 'Guest'}</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] text-muted truncate uppercase tracking-widest font-black">{ROLE_DISPLAY[userRole] || userRole}</p>
+                  <p className="text-[10px] text-muted truncate uppercase tracking-widest font-black">{displayRole}</p>
                   {userRole === 'customer' && currentUser?.plan && (
                     <span className="px-1.5 py-0.5 bg-accent/20 text-accent text-[8px] font-black uppercase rounded tracking-wider">{currentUser.plan}</span>
                   )}

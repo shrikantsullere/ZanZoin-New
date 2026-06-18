@@ -20,7 +20,7 @@ const Clients = () => {
   } = useData();
   const roleNormalized = normalizeRole(currentUser?.role);
   const isSuperAdmin = roleNormalized === 'superadmin';
-  const isAdminRole = isSuperAdmin || roleNormalized === 'admin' || roleNormalized === 'client' || roleNormalized === 'saas_client' || hasMenuPermission('Staff Management', 'can_edit');
+  const isAdminRole = roleNormalized === 'admin' || roleNormalized === 'client' || roleNormalized === 'saas_client' || (!isSuperAdmin && hasMenuPermission('Staff Management', 'can_edit'));
   
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,7 +29,7 @@ const Clients = () => {
   const [clientTypeFilter, setClientTypeFilter] = useState(isAdminRole ? 'Customers' : 'SaaS'); // 'SaaS' | 'Personal' | 'Customers'
   const itemsPerPage = 10;
 
-  const activeClientType = isAdminRole ? 'Personal' : (clientTypeFilter === 'Website' ? undefined : (clientTypeFilter === 'Business' ? 'Business' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined)));
+  const activeClientType = isAdminRole ? 'Personal' : (clientTypeFilter === 'Website' ? undefined : (clientTypeFilter === 'Personal' ? 'Personal' : (clientTypeFilter === 'SaaS' ? 'SaaS' : undefined)));
   
   const { data: clientsData, isLoading: isLoadingClients } = useClients(currentPage, itemsPerPage, debounceSearch, activeClientType);
   const rawClientsData = clientsData?.data || [];
@@ -442,11 +442,11 @@ const Clients = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tighter text-white italic uppercase">
-            {isAdminRole ? 'Customers' : (clientTypeFilter === 'SaaS' ? 'SaaS Clients' : (clientTypeFilter === 'Business' ? 'Business Clients' : 'Website Signups'))}
+            {isAdminRole ? 'Customers' : (clientTypeFilter === 'SaaS' ? 'SaaS Clients' : (clientTypeFilter === 'Personal' ? 'Normal Clients' : 'Website Signups'))}
           </h1>
           <p className="text-secondary text-xs mt-1 font-black uppercase tracking-[0.2em] opacity-70 italic">
             {isAdminRole ? 'Manage your customers' : (clientTypeFilter === 'SaaS' ? 'Manage your registered SaaS clients' :
-             clientTypeFilter === 'Business' ? 'Business accounts signed up via website — review & approve' : 'Review and approve incoming portal requests')}
+             clientTypeFilter === 'Personal' ? 'Manage your personal/normal clients' : 'Review and approve incoming portal requests')}
           </p>
         </div>
         <div className="flex gap-3 items-center">
@@ -459,7 +459,7 @@ const Clients = () => {
           {!isAdminRole && clientTypeFilter !== 'Website' && (
             <button onClick={handleAdd} className="btn-primary group flex items-center gap-3 px-8 shadow-xl shadow-accent/20">
               <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-              <span>Add {clientTypeFilter === 'Business' ? 'Business' : 'SaaS'} Client</span>
+              <span>Add {clientTypeFilter === 'Personal' ? 'Normal' : 'SaaS'} Client</span>
             </button>
           )}
           {isAdminRole && (
@@ -476,8 +476,7 @@ const Clients = () => {
         <div className="flex gap-2">
           {[
             { label: 'SaaS Clients', value: 'SaaS' },
-            { label: 'Business Clients', value: 'Business' },
-            { label: 'Website Clients', value: 'Website' },
+            { label: 'Normal Clients', value: 'Personal' },
           ].map(tab => (
             <button
               key={tab.value}
@@ -1074,45 +1073,24 @@ const Clients = () => {
                     <input type="text" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Primary Contact" />
                   </div>
-                  {!isAdminRole && formData.clientType !== 'Personal' && formData.clientType !== 'Direct' && (
-                    <>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Address</label>
-                        <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Street Address" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">City</label>
-                        <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="City" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Country</label>
-                        <input type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="Country" />
-                      </div>
-                    </>
-                  )}
-                  {isAdminRole && (
-                    <>
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Street Address</label>
-                        <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="123 Main St" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">City</label>
-                        <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="New York" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Country</label>
-                        <input type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder="USA" />
-                      </div>
-                    </>
-                  )}
-                  {!isAdminRole && (
+                  <>
+                    <div className={`space-y-2 ${isAdminRole ? 'md:col-span-2' : ''}`}>
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">{isAdminRole ? 'Street Address' : 'Address'}</label>
+                      <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder={isAdminRole ? "123 Main St" : "Street Address"} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">City</label>
+                      <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder={isAdminRole ? "New York" : "City"} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Country</label>
+                      <input type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent font-bold" placeholder={isAdminRole ? "USA" : "Country"} />
+                    </div>
+                  </>
+                  {!isAdminRole && formData.clientType !== 'Personal' && (
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Company Name</label>
                       <input type="text" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}

@@ -307,8 +307,13 @@ function App() {
                 </RoleProtectedRoute>
               } />
               <Route path="invoices" element={
-                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'client', 'admin', 'saas_client', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff']}>
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'client', 'admin', 'saas_client', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff', 'customer']}>
                   <Invoices />
+                </RoleProtectedRoute>
+              } />
+              <Route path="payments" element={
+                <RoleProtectedRoute role={auth.role} allowedRoles={['superadmin', 'client', 'admin', 'saas_client', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff', 'customer']}>
+                  <Payments />
                 </RoleProtectedRoute>
               } />
               <Route path="plans" element={
